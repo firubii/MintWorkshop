@@ -12,15 +12,17 @@ namespace MintWorkshop.Types
     public class MintScript
     {
         public XData XData { get; private set; }
+        public byte[] Version { get; private set; }
 
         public string Name { get; set; }
         public List<byte> SData { get; set; }
         public List<byte[]> XRef { get; set; }
         public List<MintClass> Classes { get; private set; }
 
-        public MintScript(string name)
+        public MintScript(string name, byte[] version)
         {
             XData = new XData(Endianness.Little);
+            Version = version;
             Name = name;
             SData = new List<byte>();
             XRef = new List<byte[]>();

@@ -162,7 +162,7 @@ namespace MintWorkshop
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");
 
-                function.Disassemble(archive.Version, ref hashes, ref box);
+                function.Disassemble(ref hashes, ref box);
                 box.SelectionStart = 0;
                 box.ScrollToCaret();
                 box.ClearUndo();
@@ -245,7 +245,7 @@ namespace MintWorkshop
                 string scriptName = node.Parent.Parent.Parent.FullPath;
                 int classIndex = node.Parent.Parent.Index;
                 int funcIndex = node.Index;
-                archive.Scripts[scriptName].Classes[classIndex].Functions[funcIndex].Assemble(archive.Version, (tabControl.SelectedTab.Controls[0] as RichTextBox).Lines);
+                archive.Scripts[scriptName].Classes[classIndex].Functions[funcIndex].Assemble((tabControl.SelectedTab.Controls[0] as RichTextBox).Lines);
             }
             if (tabControl.SelectedTab.Text.EndsWith("*"))
             {
@@ -477,7 +477,7 @@ namespace MintWorkshop
             EditGenericForm edit = new EditGenericForm(name + ".NewScript");
             if (edit.ShowDialog() == DialogResult.OK)
             {
-                MintScript newScript = new MintScript(edit.StringName);
+                MintScript newScript = new MintScript(edit.StringName, archive.Version);
                 if (!newScript.Name.StartsWith(name + "."))
                     newScript.Name = name + "." + edit.StringName.Split('.').Last();
 

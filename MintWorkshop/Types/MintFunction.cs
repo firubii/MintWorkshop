@@ -44,6 +44,7 @@ namespace MintWorkshop.Types
 
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
+            Opcode[] opcodes = MintVersions.Versions[ParentClass.ParentScript.Version];
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 Instruction i = new Instruction(reader.ReadBytes(4));
@@ -51,7 +52,7 @@ namespace MintWorkshop.Types
 
                 // Detect fleave and fret instructions for stopping execution
                 // Mainly for future-proofing, all fleave and fret instructions use only argument Y
-                if (i.Z == 0xFF && i.X == 0xFF && i.Y != 0xFF)
+                if ((i.Z == 0xFF && i.X == 0xFF && i.Y != 0xFF) || opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return))
                 {
                     //Console.WriteLine($"Finished reading function {ParentClass.Name}.{NameWithoutType()} at instruction {i.Opcode:X2} {i.Z:X2} {i.X:X2} {i.Y:X2}");
                     break;
@@ -60,8 +61,9 @@ namespace MintWorkshop.Types
         }
 
         //This is completely unused but I'm keeping it here just because it's nice to have
-        public string Disassemble(byte[] version, ref Dictionary<byte[], string> hashes)
+        public string Disassemble(ref Dictionary<byte[], string> hashes)
         {
+            byte[] version = ParentClass.ParentScript.Version;
             if (!MintVersions.Versions.ContainsKey(version))
                 return "Unimplemented Mint version";
 
@@ -290,8 +292,9 @@ namespace MintWorkshop.Types
             return disasm;
         }
 
-        public void Disassemble(byte[] version, ref Dictionary<byte[], string> hashes, ref RichTextBox textBox, bool writeBytes = false)
+        public void Disassemble(ref Dictionary<byte[], string> hashes, ref RichTextBox textBox, bool writeBytes = false)
         {
+            byte[] version = ParentClass.ParentScript.Version;
             if (!MintVersions.Versions.ContainsKey(version))
             {
                 textBox.AppendText("Unknown Mint version!", Color.Red);
@@ -543,8 +546,9 @@ namespace MintWorkshop.Types
             }
         }
 
-        public void Assemble(byte[] version, string[] text)
+        public void Assemble(string[] text)
         {
+            byte[] version = ParentClass.ParentScript.Version;
             List<string> lines = text.ToList();
             List<Instruction> instructions = new List<Instruction>();
             Opcode[] opcodes = MintVersions.Versions[version];
