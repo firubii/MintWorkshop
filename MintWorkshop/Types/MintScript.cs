@@ -29,9 +29,10 @@ namespace MintWorkshop.Types
             Classes = new List<MintClass>();
         }
 
-        public MintScript(EndianBinaryReader reader)
+        public MintScript(EndianBinaryReader reader, byte[] version)
         {
             XData = new XData(reader);
+            Version = version;
 
             reader.BaseStream.Seek(0x10, SeekOrigin.Begin);
             reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
@@ -108,7 +109,8 @@ namespace MintWorkshop.Types
                     writer.Write(-1);
                     writer.Write(-1);
                     writer.Write(-1);
-                    writer.Write(-1);
+                    if (!ByteArrayComparer.Equal(Version, new byte[] { 1, 0, 5, 0 }))
+                        writer.Write(-1);
                     writer.Write(Classes[i].Flags);
 
                     writer.BaseStream.Seek(cl + 0x8, SeekOrigin.Begin);
@@ -172,13 +174,16 @@ namespace MintWorkshop.Types
                         writer.Write(Classes[i].Constants[v].Value);
                     }
 
-                    writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
-                    writer.Write((uint)writer.BaseStream.Length);
-                    writer.BaseStream.Seek(0, SeekOrigin.End);
+                    if (!ByteArrayComparer.Equal(Version, new byte[] { 1, 0, 5, 0 }))
+                    {
+                        writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
+                        writer.Write((uint)writer.BaseStream.Length);
+                        writer.BaseStream.Seek(0, SeekOrigin.End);
 
-                    writer.Write(Classes[i].UnknownList.Count);
-                    for (int v = 0; v < Classes[i].UnknownList.Count; v++)
-                        writer.Write(Classes[i].UnknownList[v]);
+                        writer.Write(Classes[i].UnknownList.Count);
+                        for (int v = 0; v < Classes[i].UnknownList.Count; v++)
+                            writer.Write(Classes[i].UnknownList[v]);
+                    }
 
                     varNameOffs.Add(vOffs.ToArray());
                     funcNameOffs.Add(funcOffsList.ToArray());

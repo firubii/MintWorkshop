@@ -94,12 +94,15 @@ namespace MintWorkshop.Types
                 Constants.Add(new Constant(cname, cval));
             }
 
-            reader.BaseStream.Seek(unkOffs, SeekOrigin.Begin);
-            uint unkCount = reader.ReadUInt32();
             UnknownList = new List<uint>();
-            for (int i = 0; i < unkCount; i++)
-                UnknownList.Add(reader.ReadUInt32());
-            
+            if (!ByteArrayComparer.Equal(ParentScript.Version, new byte[] { 1, 0, 5, 0 }))
+            {
+                reader.BaseStream.Seek(unkOffs, SeekOrigin.Begin);
+                uint unkCount = reader.ReadUInt32();
+                UnknownList = new List<uint>();
+                for (int i = 0; i < unkCount; i++)
+                    UnknownList.Add(reader.ReadUInt32());
+            }
             /*if (unkCount > 0)
                 Console.WriteLine($"{Name} - {unkCount} Unknowns: {string.Join(",", UnknownList)}");*/
         }

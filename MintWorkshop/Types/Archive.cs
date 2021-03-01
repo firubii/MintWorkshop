@@ -106,7 +106,7 @@ namespace MintWorkshop.Types
 
                 using (MemoryStream scr = new MemoryStream(reader.ReadBytes((int)scrX.Filesize)))
                 using (EndianBinaryReader scrReader = new EndianBinaryReader(scr))
-                    Scripts.Add(name, new MintScript(new EndianBinaryReader(scr)));
+                    Scripts.Add(name, new MintScript(new EndianBinaryReader(scr), Version));
             }
 
             reader.BaseStream.Seek(unk, SeekOrigin.Begin);
