@@ -24,8 +24,7 @@ namespace MintWorkshop.Types
         public MintFunction(string name, uint flags, MintClass parent)
         {
             ParentClass = parent;
-            Name = name;
-            Hash = HashCalculator.Calculate(FullName());
+            SetName(name);
             Instructions = new List<Instruction>();
             Flags = flags;
         }
@@ -915,7 +914,7 @@ namespace MintWorkshop.Types
         public void SetName(string name)
         {
             Name = name;
-            Hash = HashCalculator.Calculate(Name);
+            Hash = HashCalculator.Calculate(FullName());
         }
 
         public string FullName()

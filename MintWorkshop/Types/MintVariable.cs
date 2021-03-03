@@ -21,7 +21,7 @@ namespace MintWorkshop.Types
         public MintVariable(string name, string type, uint flags, MintClass parentClass)
         {
             ParentClass = parentClass;
-            Name = name;
+            SetName(name);
             Type = type;
             Flags = flags;
         }
@@ -50,7 +50,7 @@ namespace MintWorkshop.Types
         public void SetName(string name)
         {
             Name = name;
-            Hash = HashCalculator.Calculate(Name);
+            Hash = HashCalculator.Calculate(FullName());
         }
 
         public string FullName()
