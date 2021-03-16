@@ -600,6 +600,17 @@ namespace MintWorkshop.Types
                 }
             }
 
+            //Verify each opcode name exists
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string opName = lines[i].Split(' ')[0];
+                if (opcodes.Where(x => x.Name == opName).Count() == 0)
+                {
+                    MessageBox.Show($"Error: Unknown opcode name!\nOpcode: {opName}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
+                    return;
+                }
+            }
+
             //Sdata Integers
             for (int i = 0; i < lines.Count; i++)
             {
@@ -704,7 +715,13 @@ namespace MintWorkshop.Types
                         }
 
                         int strEndIndex = a;
-                        string str = string.Join(" ", line.Skip(a).TakeWhile(x => !x.EndsWith("\"") && !x.EndsWith("\",")));
+                        string str = "";
+                        for (int s = a + 1; s < line.Length; s++)
+                        {
+                            str += line[s];
+                            if (line[s].EndsWith("\"") || line[s].EndsWith("\","))
+                                break;
+                        }
                         if (!str.EndsWith("\"") && !str.EndsWith("\","))
                         {
                             MessageBox.Show($"Error: String has no ending:\nArgument: {str}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -849,7 +866,6 @@ namespace MintWorkshop.Types
             {
                 string[] line = lines[i].Replace(",", "").Split(' ');
                 var o = opcodes.Where(x => x.Name == line[0]);
-                if (o.Count() == 0) { Console.WriteLine($"oops: {line[0]}"); continue; }
 
                 Opcode op = o.FirstOrDefault();
                 Instruction inst = new Instruction(new byte[] { (byte)opcodes.ToList().IndexOf(op), 0xFF, 0xFF, 0xFF });
