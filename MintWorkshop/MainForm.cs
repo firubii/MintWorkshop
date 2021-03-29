@@ -77,6 +77,8 @@ namespace MintWorkshop
                 foreach (TreeNode n in root.Nodes)
                     arcTree.Nodes.Add(n);
 
+                this.Text = "MintWorkshop - " + filePath;
+
                 arcTree.EndUpdate();
             }
         }
@@ -184,7 +186,7 @@ namespace MintWorkshop
                 {
                     if (MessageBox.Show("Are you sure you want to close this tab?" +
                                       "\nThis function has been edited, closing it without saving will lose any changes you have made.",
-                                      this.Text, MessageBoxButtons.YesNo) == DialogResult.No)
+                                      "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.No)
                         return;
                 }
 
@@ -273,6 +275,7 @@ namespace MintWorkshop
             {
                 filePath = save.FileName;
                 archive.Write(filePath);
+                this.Text = "MintWorkshop - " + filePath;
             }
         }
 
@@ -308,7 +311,7 @@ namespace MintWorkshop
 
         private void deleteScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this script?\nThis action cannot be undone.", this.Text, MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to delete this script?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string scriptName = arcTree.SelectedNode.FullPath;
                 archive.Scripts.Remove(scriptName);
@@ -333,7 +336,7 @@ namespace MintWorkshop
 
         private void deleteClassToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", this.Text, MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string parentScript = arcTree.SelectedNode.Parent.FullPath;
                 int index = arcTree.SelectedNode.Index;
@@ -443,7 +446,7 @@ namespace MintWorkshop
 
         private void deleteObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show($"Are you sure you want to delete this {arcTree.SelectedNode.Parent.Text.TrimEnd('s').ToLower()}?\nThis action cannot be undone.", this.Text, MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete this {arcTree.SelectedNode.Parent.Text.TrimEnd('s').ToLower()}?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
                 int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
@@ -510,7 +513,66 @@ namespace MintWorkshop
                 }
                 else
                 {
-                    MessageBox.Show("Error: Could not find parent Namespace.", this.Text, MessageBoxButtons.OK);
+                    MessageBox.Show("Error: Could not find parent Namespace.", "MintWorkshop", MessageBoxButtons.OK);
+                }
+            }
+        }
+
+        private void exportScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MintScript script = archive.Scripts[arcTree.SelectedNode.FullPath];
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Mint Script Binary Files|*.bin";
+            save.FileName = script.Name + ".bin";
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                File.WriteAllBytes(save.FileName, script.Write());
+                MessageBox.Show($"Exported Mint script to\n{save.FileName}", "MintWorkshop", MessageBoxButtons.OK);
+            }
+        }
+
+        private void replaceScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Mint Script Binary Files|*.bin";
+            open.CheckFileExists = true;
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read)))
+                {
+                    MintScript script = new MintScript(reader, archive.Version);
+                    if (script.Name != arcTree.SelectedNode.FullPath)
+                    {
+                        MessageBox.Show("Error: Script has a different name than the one being replaced.", "MintWorkshop", MessageBoxButtons.OK);
+                        return;
+                    }
+
+                    archive.Scripts[arcTree.SelectedNode.FullPath] = script;
+                    arcTree.SelectedNode.Nodes.Clear();
+                    for (int i = 0; i < script.Classes.Count; i++)
+                    {
+                        TreeNode cl = new TreeNode(script.Classes[i].Name.Split('.').Last(), 2, 2);
+                        cl.ContextMenuStrip = classCtxMenu;
+                        cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
+
+                        for (int v = 0; v < script.Classes[i].Variables.Count; v++)
+                        {
+                            cl.Nodes[0].Nodes.Add($"{script.Classes[i].Variables[v].Hash[0]:X2}{script.Classes[i].Variables[v].Hash[1]:X2}{script.Classes[i].Variables[v].Hash[2]:X2}{script.Classes[i].Variables[v].Hash[3]:X2}", script.Classes[i].Variables[v].Type + " " + script.Classes[i].Variables[v].Name, 3, 3);
+                            cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                        }
+                        for (int v = 0; v < script.Classes[i].Functions.Count; v++)
+                        {
+                            cl.Nodes[1].Nodes.Add($"{script.Classes[i].Functions[v].Hash[0]:X2}{script.Classes[i].Functions[v].Hash[1]:X2}{script.Classes[i].Functions[v].Hash[2]:X2}{script.Classes[i].Functions[v].Hash[3]:X2}", script.Classes[i].Functions[v].Name, 4, 4);
+                            cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                        }
+                        for (int v = 0; v < script.Classes[i].Constants.Count; v++)
+                        {
+                            cl.Nodes[2].Nodes.Add(new TreeNode(script.Classes[i].Constants[v].Name, 5, 5));
+                            cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                        }
+
+                        arcTree.SelectedNode.Nodes.Add(cl);
+                    }
                 }
             }
         }

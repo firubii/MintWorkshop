@@ -52,12 +52,12 @@
             this.addClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.classCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.addVariableToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addFunctionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addConstantToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.addVariableToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addFunctionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addConstantToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.genericCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.editObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -65,6 +65,9 @@
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.exportScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.replaceScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -266,21 +269,24 @@
             // 
             this.scriptCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addClassToolStripMenuItem,
-            this.deleteScriptToolStripMenuItem});
+            this.deleteScriptToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.exportScriptToolStripMenuItem,
+            this.replaceScriptToolStripMenuItem});
             this.scriptCtxMenu.Name = "scriptCtxMenu";
-            this.scriptCtxMenu.Size = new System.Drawing.Size(141, 48);
+            this.scriptCtxMenu.Size = new System.Drawing.Size(181, 120);
             // 
             // addClassToolStripMenuItem
             // 
             this.addClassToolStripMenuItem.Name = "addClassToolStripMenuItem";
-            this.addClassToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.addClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addClassToolStripMenuItem.Text = "Add Class";
             this.addClassToolStripMenuItem.Click += new System.EventHandler(this.addClassToolStripMenuItem_Click);
             // 
             // deleteScriptToolStripMenuItem
             // 
             this.deleteScriptToolStripMenuItem.Name = "deleteScriptToolStripMenuItem";
-            this.deleteScriptToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.deleteScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteScriptToolStripMenuItem.Text = "Delete Script";
             this.deleteScriptToolStripMenuItem.Click += new System.EventHandler(this.deleteScriptToolStripMenuItem_Click);
             // 
@@ -295,6 +301,25 @@
             this.addConstantToolStripMenuItem});
             this.classCtxMenu.Name = "classCtxMenu";
             this.classCtxMenu.Size = new System.Drawing.Size(148, 120);
+            // 
+            // editClassToolStripMenuItem
+            // 
+            this.editClassToolStripMenuItem.Name = "editClassToolStripMenuItem";
+            this.editClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.editClassToolStripMenuItem.Text = "Edit Class";
+            this.editClassToolStripMenuItem.Click += new System.EventHandler(this.editClassToolStripMenuItem_Click);
+            // 
+            // deleteClassToolStripMenuItem
+            // 
+            this.deleteClassToolStripMenuItem.Name = "deleteClassToolStripMenuItem";
+            this.deleteClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.deleteClassToolStripMenuItem.Text = "Delete Class";
+            this.deleteClassToolStripMenuItem.Click += new System.EventHandler(this.deleteClassToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
             // 
             // addVariableToolStripMenuItem
             // 
@@ -316,25 +341,6 @@
             this.addConstantToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.addConstantToolStripMenuItem.Text = "Add Constant";
             this.addConstantToolStripMenuItem.Click += new System.EventHandler(this.addConstantToolStripMenuItem_Click);
-            // 
-            // editClassToolStripMenuItem
-            // 
-            this.editClassToolStripMenuItem.Name = "editClassToolStripMenuItem";
-            this.editClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
-            this.editClassToolStripMenuItem.Text = "Edit Class";
-            this.editClassToolStripMenuItem.Click += new System.EventHandler(this.editClassToolStripMenuItem_Click);
-            // 
-            // deleteClassToolStripMenuItem
-            // 
-            this.deleteClassToolStripMenuItem.Name = "deleteClassToolStripMenuItem";
-            this.deleteClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
-            this.deleteClassToolStripMenuItem.Text = "Delete Class";
-            this.deleteClassToolStripMenuItem.Click += new System.EventHandler(this.deleteClassToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
             // 
             // genericCtxMenu
             // 
@@ -365,27 +371,46 @@
             this.addNamespaceToolStripMenuItem,
             this.deleteNamespaceToolStripMenuItem});
             this.namespaceCtxMenu.Name = "namespaceCtxMenu";
-            this.namespaceCtxMenu.Size = new System.Drawing.Size(181, 92);
+            this.namespaceCtxMenu.Size = new System.Drawing.Size(173, 70);
             // 
             // addScriptToolStripMenuItem
             // 
             this.addScriptToolStripMenuItem.Name = "addScriptToolStripMenuItem";
-            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.addScriptToolStripMenuItem.Text = "Add Script";
             this.addScriptToolStripMenuItem.Click += new System.EventHandler(this.addScriptToolStripMenuItem_Click);
             // 
             // addNamespaceToolStripMenuItem
             // 
             this.addNamespaceToolStripMenuItem.Name = "addNamespaceToolStripMenuItem";
-            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.addNamespaceToolStripMenuItem.Text = "Add Namespace";
             this.addNamespaceToolStripMenuItem.Click += new System.EventHandler(this.addNamespaceToolStripMenuItem_Click);
             // 
             // deleteNamespaceToolStripMenuItem
             // 
             this.deleteNamespaceToolStripMenuItem.Name = "deleteNamespaceToolStripMenuItem";
-            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            // 
+            // exportScriptToolStripMenuItem
+            // 
+            this.exportScriptToolStripMenuItem.Name = "exportScriptToolStripMenuItem";
+            this.exportScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportScriptToolStripMenuItem.Text = "Export Script";
+            this.exportScriptToolStripMenuItem.Click += new System.EventHandler(this.exportScriptToolStripMenuItem_Click);
+            // 
+            // replaceScriptToolStripMenuItem
+            // 
+            this.replaceScriptToolStripMenuItem.Name = "replaceScriptToolStripMenuItem";
+            this.replaceScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.replaceScriptToolStripMenuItem.Text = "Replace Script";
+            this.replaceScriptToolStripMenuItem.Click += new System.EventHandler(this.replaceScriptToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -454,6 +479,9 @@
         private System.Windows.Forms.ToolStripMenuItem addScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addNamespaceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteNamespaceToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem exportScriptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem replaceScriptToolStripMenuItem;
     }
 }
 
