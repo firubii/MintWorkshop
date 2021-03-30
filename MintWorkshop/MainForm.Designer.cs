@@ -51,6 +51,9 @@
             this.scriptCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.exportScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.replaceScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.classCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.editClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -65,9 +68,8 @@
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.exportScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.replaceScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.editXRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -272,9 +274,11 @@
             this.deleteScriptToolStripMenuItem,
             this.toolStripSeparator2,
             this.exportScriptToolStripMenuItem,
-            this.replaceScriptToolStripMenuItem});
+            this.replaceScriptToolStripMenuItem,
+            this.toolStripSeparator3,
+            this.editXRefsToolStripMenuItem});
             this.scriptCtxMenu.Name = "scriptCtxMenu";
-            this.scriptCtxMenu.Size = new System.Drawing.Size(181, 120);
+            this.scriptCtxMenu.Size = new System.Drawing.Size(181, 148);
             // 
             // addClassToolStripMenuItem
             // 
@@ -289,6 +293,25 @@
             this.deleteScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteScriptToolStripMenuItem.Text = "Delete Script";
             this.deleteScriptToolStripMenuItem.Click += new System.EventHandler(this.deleteScriptToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            // 
+            // exportScriptToolStripMenuItem
+            // 
+            this.exportScriptToolStripMenuItem.Name = "exportScriptToolStripMenuItem";
+            this.exportScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportScriptToolStripMenuItem.Text = "Export Script";
+            this.exportScriptToolStripMenuItem.Click += new System.EventHandler(this.exportScriptToolStripMenuItem_Click);
+            // 
+            // replaceScriptToolStripMenuItem
+            // 
+            this.replaceScriptToolStripMenuItem.Name = "replaceScriptToolStripMenuItem";
+            this.replaceScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.replaceScriptToolStripMenuItem.Text = "Replace Script";
+            this.replaceScriptToolStripMenuItem.Click += new System.EventHandler(this.replaceScriptToolStripMenuItem_Click);
             // 
             // classCtxMenu
             // 
@@ -393,24 +416,17 @@
             this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
-            // toolStripSeparator2
+            // toolStripSeparator3
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(177, 6);
             // 
-            // exportScriptToolStripMenuItem
+            // editXRefsToolStripMenuItem
             // 
-            this.exportScriptToolStripMenuItem.Name = "exportScriptToolStripMenuItem";
-            this.exportScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.exportScriptToolStripMenuItem.Text = "Export Script";
-            this.exportScriptToolStripMenuItem.Click += new System.EventHandler(this.exportScriptToolStripMenuItem_Click);
-            // 
-            // replaceScriptToolStripMenuItem
-            // 
-            this.replaceScriptToolStripMenuItem.Name = "replaceScriptToolStripMenuItem";
-            this.replaceScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.replaceScriptToolStripMenuItem.Text = "Replace Script";
-            this.replaceScriptToolStripMenuItem.Click += new System.EventHandler(this.replaceScriptToolStripMenuItem_Click);
+            this.editXRefsToolStripMenuItem.Name = "editXRefsToolStripMenuItem";
+            this.editXRefsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.editXRefsToolStripMenuItem.Text = "Edit XRefs";
+            this.editXRefsToolStripMenuItem.Click += new System.EventHandler(this.editXRefsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -482,6 +498,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem exportScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem replaceScriptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem editXRefsToolStripMenuItem;
     }
 }
 

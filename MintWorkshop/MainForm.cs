@@ -576,5 +576,14 @@ namespace MintWorkshop
                 }
             }
         }
+
+        private void editXRefsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EditXRefForm edit = new EditXRefForm(archive.Scripts[arcTree.SelectedNode.FullPath].XRef, hashes);
+            if (edit.ShowDialog() == DialogResult.OK)
+            {
+                archive.Scripts[arcTree.SelectedNode.FullPath].XRef = edit.XRef;
+            }
+        }
     }
 }
