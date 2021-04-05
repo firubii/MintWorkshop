@@ -18,9 +18,11 @@ namespace MintWorkshop.Editors
         public List<byte[]> XRef;
         Dictionary<byte[], string> Hashes;
 
-        public EditXRefForm(List<byte[]> xrefs, Dictionary<byte[], string> hashes)
+        bool clickedSave = false;
+
+        public EditXRefForm(byte[][] xrefs, Dictionary<byte[], string> hashes)
         {
-            XRef = xrefs;
+            XRef = xrefs.ToList();
             Hashes = hashes;
 
             InitializeComponent();
@@ -107,12 +109,13 @@ namespace MintWorkshop.Editors
 
         private void saveButton_Click(object sender, EventArgs e)
         {
+            clickedSave = true;
             DialogResult = DialogResult.OK;
         }
 
         private void EditXRefForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (DialogResult != DialogResult.OK)
+            if (!clickedSave)
                 DialogResult = DialogResult.Cancel;
         }
     }
