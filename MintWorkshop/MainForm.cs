@@ -77,7 +77,7 @@ namespace MintWorkshop
                 foreach (TreeNode n in root.Nodes)
                     arcTree.Nodes.Add(n);
 
-                this.Text = "MintWorkshop - " + filePath;
+                this.Text = "Mint Workshop - " + filePath;
 
                 arcTree.EndUpdate();
             }
@@ -95,7 +95,10 @@ namespace MintWorkshop
                         return;
                     }
                 }
-                node.Nodes.Add(new TreeNode(search[searchIndex], 0, 0));
+
+                TreeNode namespaceNode = new TreeNode(search[searchIndex], 0, 0);
+                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
+                node.Nodes.Add(namespaceNode);
             }
         }
 
@@ -186,7 +189,7 @@ namespace MintWorkshop
                 {
                     if (MessageBox.Show("Are you sure you want to close this tab?" +
                                       "\nThis function has been edited, closing it without saving will lose any changes you have made.",
-                                      "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.No)
+                                      "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.No)
                         return;
                 }
 
@@ -275,7 +278,7 @@ namespace MintWorkshop
             {
                 filePath = save.FileName;
                 archive.Write(filePath);
-                this.Text = "MintWorkshop - " + filePath;
+                this.Text = "Mint Workshop - " + filePath;
             }
         }
 
@@ -311,7 +314,7 @@ namespace MintWorkshop
 
         private void deleteScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this script?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to delete this script?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string scriptName = arcTree.SelectedNode.FullPath;
                 archive.Scripts.Remove(scriptName);
@@ -336,7 +339,7 @@ namespace MintWorkshop
 
         private void deleteClassToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string parentScript = arcTree.SelectedNode.Parent.FullPath;
                 int index = arcTree.SelectedNode.Index;
@@ -446,7 +449,7 @@ namespace MintWorkshop
 
         private void deleteObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show($"Are you sure you want to delete this {arcTree.SelectedNode.Parent.Text.TrimEnd('s').ToLower()}?\nThis action cannot be undone.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete this {arcTree.SelectedNode.Parent.Text.TrimEnd('s').ToLower()}?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
                 int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
@@ -473,48 +476,79 @@ namespace MintWorkshop
             }
         }
 
-        //Unfinished
         private void addScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string name = arcTree.SelectedNode.FullPath;
             EditGenericForm edit = new EditGenericForm(name + ".NewScript");
             if (edit.ShowDialog() == DialogResult.OK)
             {
-                MintScript newScript = new MintScript(edit.StringName, archive.Version);
+                string scriptName = edit.StringName;
+
+                MintScript newScript = new MintScript(scriptName, archive.Version);
                 if (!newScript.Name.StartsWith(name + "."))
-                    newScript.Name = name + "." + edit.StringName.Split('.').Last();
+                    newScript.Name = name + "." + scriptName.Split('.').Last();
 
                 archive.Scripts.Add(newScript.Name, newScript);
 
-                TreeNode scriptNode = new TreeNode(newScript.Name, 1, 1);
+                TreeNode scriptNode = new TreeNode(newScript.Name.Split('.').Last(), 1, 1);
                 scriptNode.ContextMenuStrip = scriptCtxMenu;
                 arcTree.SelectedNode.Nodes.Add(scriptNode);
+
+                string parentName = arcTree.SelectedNode.Parent.FullPath;
+                int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
+                Archive.Namespace parent = archive.Namespaces[parentIndex];
+                parent.Scripts++;
+                parent.TotalScripts++;
+                archive.Namespaces[parentIndex] = parent;
+                for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                {
+                    Archive.Namespace n = archive.Namespaces[i];
+                    n.TotalScripts++;
+                    archive.Namespaces[i] = n;
+                }
             }
         }
 
-        //Unfinished
         private void addNamespaceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string name = arcTree.SelectedNode.FullPath;
-            EditGenericForm edit = new EditGenericForm(name + ".NewScript");
+            EditGenericForm edit = new EditGenericForm(name + ".NewNamespace");
             if (edit.ShowDialog() == DialogResult.OK)
             {
-                string[] n = name.Split('.');
-                string parentName = string.Join(".", n.Take(n.Length - 1));
-                var p = archive.Namespaces.Where(x => x.Name == parentName);
-                if (p.Count() > 0)
-                {
-                    int i = archive.Namespaces.IndexOf(p.First());
-                    Archive.Namespace parent = archive.Namespaces[i];
-                    parent.ChildNamespaces++;
-                    archive.Namespaces[i] = parent;
+                string namespaceName = edit.StringName;
+                if (!namespaceName.StartsWith(name + "."))
+                    namespaceName = name + "." + namespaceName.Split('.').Last();
 
-                    Archive.Namespace newNamespace = new Archive.Namespace(parent.Index, edit.StringName, 0, parent.TotalScripts, 0);
-                }
-                else
-                {
-                    MessageBox.Show("Error: Could not find parent Namespace.", "MintWorkshop", MessageBoxButtons.OK);
-                }
+                List<Archive.Namespace> nList = archive.Namespaces.ToList();
+
+                var parent = nList.Where(x => x.Name.StartsWith(name));
+                List<string> preSort = new List<string>();
+                preSort.Add(namespaceName);
+                foreach (Archive.Namespace n in parent)
+                    preSort.Add(n.Name);
+                preSort.Sort();
+                int sortIndex = preSort.FindIndex(s => s == namespaceName);
+                int index = nList.FindIndex(x => x.Name == preSort[sortIndex - 1]);
+
+                int parentIndex = nList.FindIndex(x => x.Name == name);
+                Archive.Namespace parentNamespace = nList[parentIndex];
+                parentNamespace.ChildNamespaces++;
+                nList[parentIndex] = parentNamespace;
+
+                Archive.Namespace newNamespace = new Archive.Namespace();
+                newNamespace.Index = nList[index].Index;
+                newNamespace.Name = namespaceName;
+                newNamespace.Scripts = 0;
+                newNamespace.TotalScripts = nList[index].TotalScripts;
+                newNamespace.ChildNamespaces = 0;
+
+                nList.Insert(index + 1, newNamespace);
+
+                TreeNode namespaceNode = new TreeNode(namespaceName.Split('.').Last(), 0, 0);
+                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
+                arcTree.SelectedNode.Nodes.Insert(sortIndex, namespaceNode);
+
+                archive.Namespaces = nList;
             }
         }
 
@@ -527,7 +561,7 @@ namespace MintWorkshop
             if (save.ShowDialog() == DialogResult.OK)
             {
                 File.WriteAllBytes(save.FileName, script.Write());
-                MessageBox.Show($"Exported Mint script to\n{save.FileName}", "MintWorkshop", MessageBoxButtons.OK);
+                MessageBox.Show($"Exported Mint script to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
             }
         }
 
@@ -543,7 +577,7 @@ namespace MintWorkshop
                     MintScript script = new MintScript(reader, archive.Version);
                     if (script.Name != arcTree.SelectedNode.FullPath)
                     {
-                        MessageBox.Show("Error: Script has a different name than the one being replaced.", "MintWorkshop", MessageBoxButtons.OK);
+                        MessageBox.Show("Error: Script has a different name than the one being replaced.", "Mint Workshop", MessageBoxButtons.OK);
                         return;
                     }
 

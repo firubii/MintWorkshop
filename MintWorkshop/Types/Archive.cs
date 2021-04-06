@@ -31,7 +31,7 @@ namespace MintWorkshop.Types
         public byte[] Version { get; private set; }
         public uint RootNamespaces { get; private set; }
 
-        public List<Namespace> Namespaces { get; private set; }
+        public List<Namespace> Namespaces { get; set; }
         public Dictionary<string, MintScript> Scripts { get; private set; }
         public List<int> IndexTable { get; private set; }
 
