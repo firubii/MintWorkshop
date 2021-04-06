@@ -299,7 +299,7 @@ namespace MintWorkshop
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 newClass.SetName(edit.ClassName);
-                if (!newClass.Name.StartsWith(archive.Scripts[parentScript].Name + "."))
+                if (!newClass.Name.StartsWith(archive.Scripts[parentScript].Name))
                     newClass.SetName(archive.Scripts[parentScript].Name + "." + edit.ClassName.Split('.').Last());
 
                 newClass.Flags = edit.ClassFlags;
