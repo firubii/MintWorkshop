@@ -664,6 +664,13 @@ namespace MintWorkshop.Types
                             }
                         }
 
+                        //Make absolutely sure that SData is 4-aligned before running through SData
+                        while ((sdata.Count & 0xF) != 0x0
+                            && (sdata.Count & 0xF) != 0x4
+                            && (sdata.Count & 0xF) != 0x8
+                            && (sdata.Count & 0xF) != 0xC)
+                            sdata.Add(0xFF);
+
                         int sIndex = sdata.Count;
                         for (int s = 0; s < sdata.Count; s += 4)
                         {
@@ -729,11 +736,13 @@ namespace MintWorkshop.Types
                         }
                         b = Encoding.UTF8.GetBytes(str.TrimStart('\"').TrimEnd('\"')).ToList();
                         b.Add(0);
-                        while ((b.Count & 0xF) != 0x0
-                            && (b.Count & 0xF) != 0x4
-                            && (b.Count & 0xF) != 0x8
-                            && (b.Count & 0xF) != 0xC)
-                            b.Add(0xFF);
+
+                        //Make absolutely sure that SData is 4-aligned before running through SData
+                        while ((sdata.Count & 0xF) != 0x0
+                            && (sdata.Count & 0xF) != 0x4
+                            && (sdata.Count & 0xF) != 0x8
+                            && (sdata.Count & 0xF) != 0xC)
+                            sdata.Add(0xFF);
 
                         int sIndex = sdata.Count;
                         for (int s = 0; s < sdata.Count; s += 4)
@@ -747,6 +756,14 @@ namespace MintWorkshop.Types
 
                         if (sIndex == sdata.Count)
                             sdata.AddRange(b);
+
+                        //4-align SData if necessary
+                        //Step isn't done for integers since those are always 32-bit
+                        while ((sdata.Count & 0xF) != 0x0
+                            && (sdata.Count & 0xF) != 0x4
+                            && (sdata.Count & 0xF) != 0x8
+                            && (sdata.Count & 0xF) != 0xC)
+                            sdata.Add(0xFF);
 
                         int buildVal = sIndex;
                         if (op.Arguments[a].StartsWith("str"))
