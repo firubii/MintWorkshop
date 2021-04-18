@@ -48,6 +48,7 @@
             // 
             // constValue
             // 
+            this.constValue.Hexadecimal = true;
             this.constValue.Location = new System.Drawing.Point(81, 38);
             this.constValue.Name = "constValue";
             this.constValue.Size = new System.Drawing.Size(268, 20);

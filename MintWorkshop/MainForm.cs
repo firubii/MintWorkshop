@@ -134,7 +134,7 @@ namespace MintWorkshop
                 }
                 for (int v = 0; v < s.Classes[i].Constants.Count; v++)
                 {
-                    cl.Nodes[2].Nodes.Add(new TreeNode(s.Classes[i].Constants[v].Name, 5, 5));
+                    cl.Nodes[2].Nodes.Add(new TreeNode(s.Classes[i].Constants[v].Name + " (0x" + s.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
                     cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
                 }
 
@@ -395,7 +395,7 @@ namespace MintWorkshop
                 newConst.Value = edit.ConstantValue;
                 archive.Scripts[parentScript].Classes[index].Constants.Add(newConst);
 
-                arcTree.SelectedNode.Nodes[2].Nodes.Add(new TreeNode(newConst.Name, 5, 5));
+                arcTree.SelectedNode.Nodes[2].Nodes.Add(new TreeNode(newConst.Name + " (0x" + newConst.Value.ToString("X") + ")", 5, 5));
                 arcTree.SelectedNode.Nodes[2].Nodes[arcTree.SelectedNode.Nodes[2].Nodes.Count - 1].ContextMenuStrip = genericCtxMenu;
             }
         }
@@ -440,7 +440,7 @@ namespace MintWorkshop
                             MintClass.Constant c = new MintClass.Constant(edit.ConstantName, edit.ConstantValue);
                             archive.Scripts[parentScript].Classes[classIndex].Constants[index] = c;
 
-                            arcTree.SelectedNode.Text = edit.ConstantName;
+                            arcTree.SelectedNode.Text = c.Name + " (0x" + c.Value.ToString("X") + ")";
                         }
                         break;
                     }
@@ -601,7 +601,7 @@ namespace MintWorkshop
                         }
                         for (int v = 0; v < script.Classes[i].Constants.Count; v++)
                         {
-                            cl.Nodes[2].Nodes.Add(new TreeNode(script.Classes[i].Constants[v].Name, 5, 5));
+                            cl.Nodes[2].Nodes.Add(new TreeNode(script.Classes[i].Constants[v].Name + " (0x" + script.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
                             cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
                         }
 
