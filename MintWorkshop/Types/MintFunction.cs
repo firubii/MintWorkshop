@@ -25,7 +25,12 @@ namespace MintWorkshop.Types
         {
             ParentClass = parent;
             SetName(name);
-            Instructions = new List<Instruction>();
+
+            byte[] v = ParentClass.ParentScript.Version;
+            Instructions = new List<Instruction>() { 
+                new Instruction(new byte[] { (byte)MintVersions.Versions[v].ToList().FindIndex(x => x.Name == "fenter"),1,0,0 }),
+                new Instruction(new byte[] { (byte)MintVersions.Versions[v].ToList().FindIndex(x => x.Name == "fleave"),0xff,0xff,0 })
+            };
             Flags = flags;
         }
 
