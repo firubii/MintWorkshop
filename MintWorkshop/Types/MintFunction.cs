@@ -653,6 +653,14 @@ namespace MintWorkshop.Types
                                 return;
                             }
                         }
+                        else if (arg == "true")
+                        {
+                            b = BitConverter.GetBytes((int)1);
+                        }
+                        else if (arg == "false")
+                        {
+                            b = BitConverter.GetBytes((int)0);
+                        }
                         else
                         {
                             if (int.TryParse(arg, out int val))
