@@ -34,6 +34,7 @@ namespace MintWorkshop.Types
 
         public MintClass(string name, uint flags, MintScript parent)
         {
+            ParentScript = parent;
             Name = name;
             Hash = HashCalculator.Calculate(Name);
             Variables = new List<MintVariable>();
