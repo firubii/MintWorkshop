@@ -11,9 +11,9 @@ namespace MintWorkshop.Types
 {
     public class MintClass
     {
-        public struct Constant
+        public struct MintConstant
         {
-            public Constant(string name, uint value)
+            public MintConstant(string name, uint value)
             {
                 this.Name = name;
                 this.Value = value;
@@ -28,18 +28,17 @@ namespace MintWorkshop.Types
         public byte[] Hash { get; private set; }
         public List<MintVariable> Variables { get; private set; }
         public List<MintFunction> Functions { get; private set; }
-        public List<Constant> Constants { get; private set; }
+        public List<MintConstant> Constants { get; private set; }
         public List<uint> UnknownList { get; set; }
         public uint Flags { get; set; }
 
         public MintClass(string name, uint flags, MintScript parent)
         {
             ParentScript = parent;
-            Name = name;
-            Hash = HashCalculator.Calculate(Name);
+            SetName(name);
             Variables = new List<MintVariable>();
             Functions = new List<MintFunction>();
-            Constants = new List<Constant>();
+            Constants = new List<MintConstant>();
             UnknownList = new List<uint>();
             Flags = flags;
         }
@@ -81,7 +80,7 @@ namespace MintWorkshop.Types
 
             reader.BaseStream.Seek(constOffs, SeekOrigin.Begin);
             uint constCount = reader.ReadUInt32();
-            Constants = new List<Constant>();
+            Constants = new List<MintConstant>();
             for (int i = 0; i < constCount; i++)
             {
                 reader.BaseStream.Seek(constOffs + 4 + (i * 4), SeekOrigin.Begin);
@@ -92,7 +91,7 @@ namespace MintWorkshop.Types
                 reader.BaseStream.Seek(cnameOffs, SeekOrigin.Begin);
                 string cname = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
 
-                Constants.Add(new Constant(cname, cval));
+                Constants.Add(new MintConstant(cname, cval));
             }
 
             UnknownList = new List<uint>();

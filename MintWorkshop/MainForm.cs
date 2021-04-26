@@ -387,7 +387,7 @@ namespace MintWorkshop
         {
             string parentScript = arcTree.SelectedNode.Parent.FullPath;
             int index = arcTree.SelectedNode.Index;
-            MintClass.Constant newConst = new MintClass.Constant("newConstant", 0);
+            MintClass.MintConstant newConst = new MintClass.MintConstant("newConstant", 0);
             EditConstantForm edit = new EditConstantForm(newConst);
             if (edit.ShowDialog() == DialogResult.OK)
             {
@@ -437,7 +437,7 @@ namespace MintWorkshop
                         EditConstantForm edit = new EditConstantForm(archive.Scripts[parentScript].Classes[classIndex].Constants[index]);
                         if (edit.ShowDialog() == DialogResult.OK)
                         {
-                            MintClass.Constant c = new MintClass.Constant(edit.ConstantName, edit.ConstantValue);
+                            MintClass.MintConstant c = new MintClass.MintConstant(edit.ConstantName, edit.ConstantValue);
                             archive.Scripts[parentScript].Classes[classIndex].Constants[index] = c;
 
                             arcTree.SelectedNode.Text = c.Name + " (0x" + c.Value.ToString("X") + ")";

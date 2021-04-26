@@ -16,7 +16,7 @@ namespace MintWorkshop.Editors
         public string ConstantName { get; private set; }
         public uint ConstantValue { get; private set; }
 
-        public EditConstantForm(MintClass.Constant baseConstant)
+        public EditConstantForm(MintClass.MintConstant baseConstant)
         {
             ConstantName = baseConstant.Name;
             ConstantValue = baseConstant.Value;
