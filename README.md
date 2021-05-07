@@ -1,6 +1,8 @@
 # MintWorkshop
 A GUI editor for HAL's Mint bytecode found in modern Kirby games and the BoxBoy series
 
+**For information regarding Mint versions and instructions, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1A_08ytw1oIBhqBzpkxDIU86RwmYAjG4DopogqCQllMo).**
+
 ## Features
 * Reads and rebuilds Mint archives that properly function ingame
 * A nice color-coded disassembly view
