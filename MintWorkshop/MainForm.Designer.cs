@@ -54,6 +54,8 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.exportScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.replaceScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.editXRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.classCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.editClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,8 +70,8 @@
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.editXRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uppercaseMnemonicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -134,6 +136,8 @@
             // editorToolStripMenuItem
             // 
             this.editorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.uppercaseMnemonicsToolStripMenuItem,
+            this.toolStripSeparator4,
             this.saveTabToolStripMenuItem,
             this.closeTabToolStripMenuItem,
             this.closeAllTabsToolStripMenuItem});
@@ -278,40 +282,52 @@
             this.toolStripSeparator3,
             this.editXRefsToolStripMenuItem});
             this.scriptCtxMenu.Name = "scriptCtxMenu";
-            this.scriptCtxMenu.Size = new System.Drawing.Size(181, 148);
+            this.scriptCtxMenu.Size = new System.Drawing.Size(149, 126);
             // 
             // addClassToolStripMenuItem
             // 
             this.addClassToolStripMenuItem.Name = "addClassToolStripMenuItem";
-            this.addClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addClassToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.addClassToolStripMenuItem.Text = "Add Class";
             this.addClassToolStripMenuItem.Click += new System.EventHandler(this.addClassToolStripMenuItem_Click);
             // 
             // deleteScriptToolStripMenuItem
             // 
             this.deleteScriptToolStripMenuItem.Name = "deleteScriptToolStripMenuItem";
-            this.deleteScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteScriptToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.deleteScriptToolStripMenuItem.Text = "Delete Script";
             this.deleteScriptToolStripMenuItem.Click += new System.EventHandler(this.deleteScriptToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(145, 6);
             // 
             // exportScriptToolStripMenuItem
             // 
             this.exportScriptToolStripMenuItem.Name = "exportScriptToolStripMenuItem";
-            this.exportScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportScriptToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.exportScriptToolStripMenuItem.Text = "Export Script";
             this.exportScriptToolStripMenuItem.Click += new System.EventHandler(this.exportScriptToolStripMenuItem_Click);
             // 
             // replaceScriptToolStripMenuItem
             // 
             this.replaceScriptToolStripMenuItem.Name = "replaceScriptToolStripMenuItem";
-            this.replaceScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.replaceScriptToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.replaceScriptToolStripMenuItem.Text = "Replace Script";
             this.replaceScriptToolStripMenuItem.Click += new System.EventHandler(this.replaceScriptToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(145, 6);
+            // 
+            // editXRefsToolStripMenuItem
+            // 
+            this.editXRefsToolStripMenuItem.Name = "editXRefsToolStripMenuItem";
+            this.editXRefsToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.editXRefsToolStripMenuItem.Text = "Edit XRefs";
+            this.editXRefsToolStripMenuItem.Click += new System.EventHandler(this.editXRefsToolStripMenuItem_Click);
             // 
             // classCtxMenu
             // 
@@ -416,17 +432,17 @@
             this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
-            // toolStripSeparator3
+            // uppercaseMnemonicsToolStripMenuItem
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(177, 6);
+            this.uppercaseMnemonicsToolStripMenuItem.CheckOnClick = true;
+            this.uppercaseMnemonicsToolStripMenuItem.Name = "uppercaseMnemonicsToolStripMenuItem";
+            this.uppercaseMnemonicsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+            this.uppercaseMnemonicsToolStripMenuItem.Text = "Uppercase Mnemonics";
             // 
-            // editXRefsToolStripMenuItem
+            // toolStripSeparator4
             // 
-            this.editXRefsToolStripMenuItem.Name = "editXRefsToolStripMenuItem";
-            this.editXRefsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.editXRefsToolStripMenuItem.Text = "Edit XRefs";
-            this.editXRefsToolStripMenuItem.Click += new System.EventHandler(this.editXRefsToolStripMenuItem_Click);
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(220, 6);
             // 
             // MainForm
             // 
@@ -500,6 +516,8 @@
         private System.Windows.Forms.ToolStripMenuItem replaceScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem editXRefsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem uppercaseMnemonicsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
     }
 }
 

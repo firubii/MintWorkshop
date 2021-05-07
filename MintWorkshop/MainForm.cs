@@ -167,7 +167,7 @@ namespace MintWorkshop
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");
 
-                function.Disassemble(ref hashes, ref box);
+                function.Disassemble(ref hashes, ref box, uppercaseMnemonicsToolStripMenuItem.Checked);
                 box.SelectionStart = 0;
                 box.ScrollToCaret();
                 box.ClearUndo();

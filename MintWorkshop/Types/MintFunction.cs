@@ -296,7 +296,7 @@ namespace MintWorkshop.Types
             return disasm;
         }
 
-        public void Disassemble(ref Dictionary<byte[], string> hashes, ref RichTextBox textBox, bool writeBytes = false)
+        public void Disassemble(ref Dictionary<byte[], string> hashes, ref RichTextBox textBox, bool uppercase = false)
         {
             byte[] version = ParentClass.ParentScript.Version;
             if (!MintVersions.Versions.ContainsKey(version))
@@ -343,12 +343,11 @@ namespace MintWorkshop.Types
 
                 Opcode op = opcodes[inst.Opcode];
 
-                if (writeBytes)
-                {
-                    textBox.AppendText($" {inst.Opcode} {inst.Z} {inst.X} {inst.Y} ", TextColors.ByteColor);
-                }
+                if (uppercase)
+                    textBox.AppendText(op.Name.ToUpper(), TextColors.MneumonicColor);
+                else
+                    textBox.AppendText(op.Name, TextColors.MneumonicColor);
 
-                textBox.AppendText(op.Name, TextColors.MneumonicColor);
                 for (int s = op.Name.Length; s < 7; s++)
                     textBox.AppendText(" ");
                 for (int a = 0; a < op.Arguments.Length; a++)
@@ -608,7 +607,7 @@ namespace MintWorkshop.Types
             //Verify each opcode name exists
             for (int i = 0; i < lines.Count; i++)
             {
-                string opName = lines[i].Split(' ')[0];
+                string opName = lines[i].Split(' ')[0].ToLower();
                 if (opcodes.Where(x => x.Name == opName).Count() == 0)
                 {
                     MessageBox.Show($"Error: Unknown opcode name!\nOpcode: {opName}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -620,7 +619,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < lines.Count; i++)
             {
                 string[] line = lines[i].Split(' ');
-                Opcode op = opcodes.Where(x => x.Name == line[0]).FirstOrDefault();
+                Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
                     if (op.Arguments[a] == "vint" || op.Arguments[a].StartsWith("s"))
@@ -716,7 +715,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < lines.Count; i++)
             {
                 string[] line = lines[i].Split(' ');
-                Opcode op = opcodes.Where(x => x.Name == line[0]).FirstOrDefault();
+                Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
                     if (op.Arguments[a] == "vstr" || op.Arguments[a].StartsWith("str"))
@@ -800,7 +799,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < lines.Count; i++)
             {
                 string[] line = lines[i].Split(' ');
-                Opcode op = opcodes.Where(x => x.Name == line[0]).FirstOrDefault();
+                Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
                     if (op.Arguments[a].EndsWith("xref"))
@@ -868,7 +867,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < lines.Count; i++)
             {
                 string[] line = lines[i].Split(' ');
-                Opcode op = opcodes.Where(x => x.Name == line[0]).FirstOrDefault();
+                Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 if (op.Action.HasFlag(Mint.Action.Jump))
                 {
                     for (int a = 0; a < op.Arguments.Length; a++)
@@ -895,7 +894,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < lines.Count; i++)
             {
                 string[] line = lines[i].Replace(",", "").Split(' ');
-                var o = opcodes.Where(x => x.Name == line[0]);
+                var o = opcodes.Where(x => x.Name == line[0].ToLower());
 
                 Opcode op = o.FirstOrDefault();
                 Instruction inst = new Instruction(new byte[] { (byte)opcodes.ToList().IndexOf(op), 0xFF, 0xFF, 0xFF });
