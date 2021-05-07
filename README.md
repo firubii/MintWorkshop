@@ -10,6 +10,11 @@ A GUI editor for HAL's Mint bytecode found in modern Kirby games and the BoxBoy 
 ## Supported Mint Versions and Games
 * 1.0.5
   * Kirby: Triple Deluxe
+* 1.0.8
+  * Kirby Fighters Deluxe
+  * Dedede's Drum Dash Deluxe 
+* 1.0.13
+  * BoxBoy!
 * 1.0.17
   * Kirby and the Rainbow Curse
 * 1.1.3
