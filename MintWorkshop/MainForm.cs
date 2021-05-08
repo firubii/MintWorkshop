@@ -20,7 +20,6 @@ namespace MintWorkshop
         static Config config;
 
         string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        float fontSize = 9;
         bool loading = false;
 
         Dictionary<byte[], string> hashes;
@@ -33,13 +32,9 @@ namespace MintWorkshop
 
             config = new Config();
             if (File.Exists(exeDir + "\\Config.xml"))
-            {
                 config.Load(exeDir + "\\Config.xml");
-            }
             else
-            {
                 config.Save(exeDir + "\\Config.xml");
-            }
 
             InitializeComponent();
 
@@ -175,7 +170,7 @@ namespace MintWorkshop
                 RichTextBox box = new RichTextBox();
                 box.BorderStyle = BorderStyle.FixedSingle;
                 box.Dock = DockStyle.Fill;
-                box.Font = new Font(new FontFamily("Courier New"), fontSize);
+                box.Font = new Font(new FontFamily("Courier New"), config.FontSize);
                 box.ScrollBars = RichTextBoxScrollBars.Both;
                 box.WordWrap = false;
                 box.TextChanged += textBoxEdited;

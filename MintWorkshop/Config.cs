@@ -14,10 +14,12 @@ namespace MintWorkshop
         public readonly string ConfigVersion = "0.4";
 
         public bool UppercaseMnemonics = false;
+        public float FontSize = 9;
 
         public Config()
         {
             UppercaseMnemonics = false;
+            FontSize = 9;
         }
 
         public void Load(string filepath)
@@ -36,6 +38,7 @@ namespace MintWorkshop
             }
 
             UppercaseMnemonics = bool.Parse(xml["Config"]["UppercaseMnemonics"].InnerText);
+            FontSize = float.Parse(xml["Config"]["FontSize"].InnerText);
         }
 
         public void Save(string filepath)
@@ -49,6 +52,10 @@ namespace MintWorkshop
             XmlElement uppercase = xml.CreateElement("UppercaseMnemonics");
             uppercase.InnerText = UppercaseMnemonics.ToString();
             root.AppendChild(uppercase);
+
+            XmlElement fontsize = xml.CreateElement("FontSize");
+            fontsize.InnerText = FontSize.ToString();
+            root.AppendChild(fontsize);
 
             xml.AppendChild(root);
 
