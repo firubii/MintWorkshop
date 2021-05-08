@@ -17,6 +17,8 @@ namespace MintWorkshop
 {
     public partial class MainForm : Form
     {
+        static Config config;
+
         string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         float fontSize = 9;
         bool loading = false;
@@ -28,7 +30,26 @@ namespace MintWorkshop
         public MainForm()
         {
             hashes = new Dictionary<byte[], string>(new ByteArrayComparer());
+
+            config = new Config();
+            if (File.Exists(exeDir + "\\Config.xml"))
+            {
+                config.Load(exeDir + "\\Config.xml");
+            }
+            else
+            {
+                config.Save(exeDir + "\\Config.xml");
+            }
+
             InitializeComponent();
+
+            uppercaseMnemonicsToolStripMenuItem.Checked = config.UppercaseMnemonics;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            config.UppercaseMnemonics = uppercaseMnemonicsToolStripMenuItem.Checked;
+            config.Save(exeDir + "\\Config.xml");
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)

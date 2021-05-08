@@ -36,6 +36,8 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uppercaseMnemonicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.saveTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeAllTabsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,8 +72,6 @@
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.uppercaseMnemonicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -144,6 +144,18 @@
             this.editorToolStripMenuItem.Name = "editorToolStripMenuItem";
             this.editorToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.editorToolStripMenuItem.Text = "Editor";
+            // 
+            // uppercaseMnemonicsToolStripMenuItem
+            // 
+            this.uppercaseMnemonicsToolStripMenuItem.CheckOnClick = true;
+            this.uppercaseMnemonicsToolStripMenuItem.Name = "uppercaseMnemonicsToolStripMenuItem";
+            this.uppercaseMnemonicsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+            this.uppercaseMnemonicsToolStripMenuItem.Text = "Uppercase Mnemonics";
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(220, 6);
             // 
             // saveTabToolStripMenuItem
             // 
@@ -432,18 +444,6 @@
             this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
-            // uppercaseMnemonicsToolStripMenuItem
-            // 
-            this.uppercaseMnemonicsToolStripMenuItem.CheckOnClick = true;
-            this.uppercaseMnemonicsToolStripMenuItem.Name = "uppercaseMnemonicsToolStripMenuItem";
-            this.uppercaseMnemonicsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
-            this.uppercaseMnemonicsToolStripMenuItem.Text = "Uppercase Mnemonics";
-            // 
-            // toolStripSeparator4
-            // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(220, 6);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -456,6 +456,7 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Mint Workshop";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
