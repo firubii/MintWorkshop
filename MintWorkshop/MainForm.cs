@@ -37,14 +37,6 @@ namespace MintWorkshop
                 config.Save(exeDir + "\\Config.xml");
 
             InitializeComponent();
-
-            uppercaseMnemonicsToolStripMenuItem.Checked = config.UppercaseMnemonics;
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            config.UppercaseMnemonics = uppercaseMnemonicsToolStripMenuItem.Checked;
-            config.Save(exeDir + "\\Config.xml");
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -183,7 +175,7 @@ namespace MintWorkshop
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");
 
-                function.Disassemble(ref hashes, ref box, uppercaseMnemonicsToolStripMenuItem.Checked);
+                function.Disassemble(ref hashes, ref box, config.UppercaseMnemonics);
                 box.SelectionStart = 0;
                 box.ScrollToCaret();
                 box.ClearUndo();
@@ -633,6 +625,16 @@ namespace MintWorkshop
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 archive.Scripts[arcTree.SelectedNode.FullPath].XRef = edit.XRef;
+            }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ConfigForm configForm = new ConfigForm(config);
+            if (configForm.ShowDialog() == DialogResult.OK)
+            {
+                config = configForm.Config;
+                config.Save(exeDir + "\\Config.xml");
             }
         }
     }
