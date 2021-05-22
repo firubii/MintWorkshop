@@ -488,7 +488,98 @@ namespace MintWorkshop
 
         private void findUsesOfObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            byte[] searchHash = new byte[4];
 
+            string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
+            int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
+            int index = arcTree.SelectedNode.Index;
+            switch (arcTree.SelectedNode.Parent.Text)
+            {
+                case "Variables":
+                    {
+                        searchHash = archive.Scripts[parentScript].Classes[classIndex].Variables[index].Hash;
+                        break;
+                    }
+                case "Functions":
+                    {
+                        searchHash = archive.Scripts[parentScript].Classes[classIndex].Functions[index].Hash;
+                        break;
+                    }
+                case "Constants":
+                    {
+                        MessageBox.Show("Error: Can't search for Constant usage.", "Mint Workshop", MessageBoxButtons.OK);
+                        return;
+                    }
+            }
+
+            List<string> scripts = new List<string>();
+            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+            {
+                bool hasHash = false;
+                for (int i = 0; i < pair.Value.XRef.Count; i++)
+                {
+                    if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[i]))
+                    {
+                        hasHash = true;
+                        break;
+                    }
+                }
+                if (!hasHash)
+                    continue;
+
+                Opcode[] opcodes = MintVersions.Versions[archive.Version];
+                for (int c = 0; c < pair.Value.Classes.Count; c++)
+                {
+                    for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
+                    {
+                        for (int i = 0; i < pair.Value.Classes[c].Functions[f].Instructions.Count; i++)
+                        {
+                            bool h = false;
+                            Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
+                            for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
+                            {
+                                switch (opcodes[inst.Opcode].Arguments[a])
+                                {
+                                    case "vxref":
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V()]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case "zxref":
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case "xxref":
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case "yxref":
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
+                                                h = true;
+                                            break;
+                                        }
+                                    default:
+                                        break;
+                                }
+                            }
+                            if (h)
+                            {
+                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SearchResultForm results = new SearchResultForm(scripts.ToArray());
+            results.ShowDialog();
         }
 
         private void addScriptToolStripMenuItem_Click(object sender, EventArgs e)
