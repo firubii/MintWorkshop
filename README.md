@@ -40,9 +40,9 @@ After starting the program, use `File -> Open` or `Ctrl+O` to select a Mint arch
 
 **Note: MintWorkshop will not automatically decompress or compress Mint archives found in the 3DS games, you must use a separate tool for that!**
 
-Wait for the program to read the archive data and populate the tree view on the right. After it has finished, you can expand the nodes to explore the archive.
+Wait for the program to read the archive data and populate the tree view on the left. After it has finished, you can expand the nodes to explore the archive.
 
-Right-click on scripts, classes, variables, functions, and constants to edit them or add to their contents.
+Right-click on namespaces, scripts, classes, variables, functions, and constants to edit them or add to their contents.
 Click on functions to display them in an editor tab on the right, where you are free to edit the instructions in whatever way you like.
 
 Press `Editor->Save Tab` or `Ctrl+S` to assemble and save the currently selected editor tab.
