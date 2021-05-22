@@ -36,10 +36,13 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.saveTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeAllTabsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.parseAsFloatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl = new System.Windows.Forms.TabControl();
@@ -71,7 +74,12 @@
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.findUsesOfObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.convertToDecimalToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -84,6 +92,7 @@
             this.classCtxMenu.SuspendLayout();
             this.genericCtxMenu.SuspendLayout();
             this.namespaceCtxMenu.SuspendLayout();
+            this.editorCtxMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -91,6 +100,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.editorToolStripMenuItem,
+            this.toolsToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -145,6 +155,13 @@
             this.editorToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.editorToolStripMenuItem.Text = "Editor";
             // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
+            // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
@@ -174,6 +191,22 @@
             this.closeAllTabsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
             this.closeAllTabsToolStripMenuItem.Text = "Close All Tabs";
             this.closeAllTabsToolStripMenuItem.Click += new System.EventHandler(this.closeAllTabsToolStripMenuItem_Click);
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.parseAsFloatToolStripMenuItem,
+            this.convertToDecimalToolStripMenuItem1});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // parseAsFloatToolStripMenuItem
+            // 
+            this.parseAsFloatToolStripMenuItem.Name = "parseAsFloatToolStripMenuItem";
+            this.parseAsFloatToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.parseAsFloatToolStripMenuItem.Text = "Convert to Float";
+            this.parseAsFloatToolStripMenuItem.Click += new System.EventHandler(this.parseAsFloatToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -389,22 +422,24 @@
             // genericCtxMenu
             // 
             this.genericCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.findUsesOfObjectToolStripMenuItem,
+            this.toolStripSeparator5,
             this.editObjectToolStripMenuItem,
             this.deleteObjectToolStripMenuItem});
             this.genericCtxMenu.Name = "genericCtxMenu";
-            this.genericCtxMenu.Size = new System.Drawing.Size(146, 48);
+            this.genericCtxMenu.Size = new System.Drawing.Size(177, 76);
             // 
             // editObjectToolStripMenuItem
             // 
             this.editObjectToolStripMenuItem.Name = "editObjectToolStripMenuItem";
-            this.editObjectToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.editObjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.editObjectToolStripMenuItem.Text = "Edit Object";
             this.editObjectToolStripMenuItem.Click += new System.EventHandler(this.editObjectToolStripMenuItem_Click);
             // 
             // deleteObjectToolStripMenuItem
             // 
             this.deleteObjectToolStripMenuItem.Name = "deleteObjectToolStripMenuItem";
-            this.deleteObjectToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.deleteObjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteObjectToolStripMenuItem.Text = "Delete Object";
             this.deleteObjectToolStripMenuItem.Click += new System.EventHandler(this.deleteObjectToolStripMenuItem_Click);
             // 
@@ -437,12 +472,46 @@
             this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
-            // settingsToolStripMenuItem
+            // editorCtxMenu
             // 
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
-            this.settingsToolStripMenuItem.Text = "Settings";
-            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
+            this.editorCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.parseAsFloatToolStripMenuItem1,
+            this.convertToDecimalToolStripMenuItem});
+            this.editorCtxMenu.Name = "editorCtxMenu";
+            this.editorCtxMenu.Size = new System.Drawing.Size(177, 48);
+            // 
+            // parseAsFloatToolStripMenuItem1
+            // 
+            this.parseAsFloatToolStripMenuItem1.Name = "parseAsFloatToolStripMenuItem1";
+            this.parseAsFloatToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.parseAsFloatToolStripMenuItem1.Text = "Convert to Float";
+            this.parseAsFloatToolStripMenuItem1.Click += new System.EventHandler(this.parseAsFloatToolStripMenuItem_Click);
+            // 
+            // findUsesOfObjectToolStripMenuItem
+            // 
+            this.findUsesOfObjectToolStripMenuItem.Name = "findUsesOfObjectToolStripMenuItem";
+            this.findUsesOfObjectToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.findUsesOfObjectToolStripMenuItem.Text = "Find Uses of Object";
+            this.findUsesOfObjectToolStripMenuItem.Click += new System.EventHandler(this.findUsesOfObjectToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+            // 
+            // convertToDecimalToolStripMenuItem
+            // 
+            this.convertToDecimalToolStripMenuItem.Name = "convertToDecimalToolStripMenuItem";
+            this.convertToDecimalToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
+            this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
+            // 
+            // convertToDecimalToolStripMenuItem1
+            // 
+            this.convertToDecimalToolStripMenuItem1.Name = "convertToDecimalToolStripMenuItem1";
+            this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.convertToDecimalToolStripMenuItem1.Text = "Convert to Decimal";
+            this.convertToDecimalToolStripMenuItem1.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -469,6 +538,7 @@
             this.classCtxMenu.ResumeLayout(false);
             this.genericCtxMenu.ResumeLayout(false);
             this.namespaceCtxMenu.ResumeLayout(false);
+            this.editorCtxMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -518,6 +588,14 @@
         private System.Windows.Forms.ToolStripMenuItem editXRefsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem parseAsFloatToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip editorCtxMenu;
+        private System.Windows.Forms.ToolStripMenuItem parseAsFloatToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem findUsesOfObjectToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripMenuItem convertToDecimalToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem convertToDecimalToolStripMenuItem1;
     }
 }
 

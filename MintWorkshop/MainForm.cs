@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -166,6 +167,7 @@ namespace MintWorkshop
                 box.ScrollBars = RichTextBoxScrollBars.Both;
                 box.WordWrap = false;
                 box.TextChanged += textBoxEdited;
+                box.ContextMenuStrip = editorCtxMenu;
 
                 box.AppendText("[");
                 box.AppendText("Flags", TextColors.SDataColor);
@@ -484,6 +486,11 @@ namespace MintWorkshop
             }
         }
 
+        private void findUsesOfObjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void addScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string name = arcTree.SelectedNode.FullPath;
@@ -635,6 +642,48 @@ namespace MintWorkshop
             {
                 config = configForm.Config;
                 config.Save(exeDir + "\\Config.xml");
+            }
+        }
+
+        private void parseAsFloatToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tabControl.SelectedIndex > 0)
+            {
+                RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+                string text = box.SelectedText;
+                if (text.StartsWith("0x"))
+                {
+                    text = text.Remove(0, 2);
+                    if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
+                    {
+                        box.SelectedText = BitConverter.ToSingle(BitConverter.GetBytes(val), 0).ToString() + "f";
+                    }
+                    else
+                        MessageBox.Show("Error: Could not convert selected text to float.", "Mint Workshop", MessageBoxButtons.OK);
+                }
+                else
+                    MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
+            }
+        }
+
+        private void convertToDecimalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tabControl.SelectedIndex > 0)
+            {
+                RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+                string text = box.SelectedText;
+                if (text.StartsWith("0x"))
+                {
+                    text = text.Remove(0, 2);
+                    if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
+                    {
+                        box.SelectedText = val.ToString();
+                    }
+                    else
+                        MessageBox.Show("Error: Could not convert selected text to decimal.", "Mint Workshop", MessageBoxButtons.OK);
+                }
+                else
+                    MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
             }
         }
     }
