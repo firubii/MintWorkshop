@@ -196,7 +196,7 @@ namespace MintWorkshop
         {
             if (index > 0)
             {
-                if (tabControl.SelectedTab.Text.EndsWith("*"))
+                if (tabControl.TabPages[index].Text.EndsWith("*"))
                 {
                     if (MessageBox.Show("Are you sure you want to close this tab?" +
                                       "\nThis function has been edited, closing it without saving will lose any changes you have made.",
@@ -205,8 +205,10 @@ namespace MintWorkshop
                 }
 
                 loading = true;
+                if (tabControl.SelectedIndex == index)
+                    tabControl.SelectedIndex = index - 1;
+
                 tabControl.TabPages.RemoveAt(index);
-                tabControl.SelectedIndex = index - 1;
                 loading = false;
             }
         }
