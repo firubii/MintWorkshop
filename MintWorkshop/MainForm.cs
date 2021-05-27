@@ -49,6 +49,7 @@ namespace MintWorkshop
             open.DefaultExt = ".bin";
             if (open.ShowDialog() == DialogResult.OK)
             {
+                closeAllTabsToolStripMenuItem_Click(null, new EventArgs());
                 arcTree.Nodes.Clear();
                 arcTree.BeginUpdate();
 
@@ -275,6 +276,10 @@ namespace MintWorkshop
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (config.OptimizeOnBuild)
+            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+                pair.Value.Optimize();
+
             archive.Write(filePath);
         }
 
@@ -287,6 +292,11 @@ namespace MintWorkshop
             if (save.ShowDialog() == DialogResult.OK)
             {
                 filePath = save.FileName;
+
+                if (config.OptimizeOnBuild)
+                foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+                    pair.Value.Optimize();
+
                 archive.Write(filePath);
                 this.Text = "Mint Workshop - " + filePath;
             }
@@ -724,6 +734,17 @@ namespace MintWorkshop
             {
                 archive.Scripts[arcTree.SelectedNode.FullPath].XRef = edit.XRef;
             }
+        }
+
+        private void optimizeScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int origSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
+
+            archive.Scripts[arcTree.SelectedNode.FullPath].Optimize();
+
+            int newSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
+
+            MessageBox.Show($"Successfully optimized {archive.Scripts[arcTree.SelectedNode.FullPath].Name}\nOriginal Size: {origSize} bytes\nNew Size: {newSize} bytes", "Mint Workshop", MessageBoxButtons.OK);
         }
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)

@@ -1082,7 +1082,7 @@ namespace MintWorkshop.Mint
                     new Opcode("obflag", new string[] {"rz","vint"}),
                     new Opcode("obdel",  new string[] {"rz","vxref"}),
                     new Opcode("obname", new string[] {"rz","rx"}),
-                    new Opcode("unk_6B", new string[] {"rz","rx"}),
+                    new Opcode("unk_6b", new string[] {"rz","rx"}),
                     new Opcode("enmstr", new string[] {"rz","vxref"})
                 }
             }

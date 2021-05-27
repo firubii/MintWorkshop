@@ -20,6 +20,7 @@ namespace MintWorkshop
             InitializeComponent();
 
             uppercase.Checked = Config.UppercaseMnemonics;
+            optimize.Checked = Config.OptimizeOnBuild;
             fontSize.Value = (decimal)Config.FontSize;
         }
 
@@ -32,6 +33,7 @@ namespace MintWorkshop
         private void saveButton_Click(object sender, EventArgs e)
         {
             Config.UppercaseMnemonics = uppercase.Checked;
+            Config.OptimizeOnBuild = optimize.Checked;
             Config.FontSize = (float)fontSize.Value;
 
             DialogResult = DialogResult.OK;

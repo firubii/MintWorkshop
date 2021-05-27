@@ -11,14 +11,16 @@ namespace MintWorkshop
 {
     public class Config
     {
-        public readonly string ConfigVersion = "0.4";
+        public readonly string ConfigVersion = "0.5";
 
         public bool UppercaseMnemonics = false;
+        public bool OptimizeOnBuild = false;
         public float FontSize = 9;
 
         public Config()
         {
             UppercaseMnemonics = false;
+            OptimizeOnBuild = false;
             FontSize = 9;
         }
 
@@ -38,6 +40,7 @@ namespace MintWorkshop
             }
 
             UppercaseMnemonics = bool.Parse(xml["Config"]["UppercaseMnemonics"].InnerText);
+            OptimizeOnBuild = bool.Parse(xml["Config"]["OptimizeOnBuild"].InnerText);
             FontSize = float.Parse(xml["Config"]["FontSize"].InnerText);
         }
 
@@ -52,6 +55,10 @@ namespace MintWorkshop
             XmlElement uppercase = xml.CreateElement("UppercaseMnemonics");
             uppercase.InnerText = UppercaseMnemonics.ToString();
             root.AppendChild(uppercase);
+
+            XmlElement optimize = xml.CreateElement("OptimizeOnBuild");
+            optimize.InnerText = OptimizeOnBuild.ToString();
+            root.AppendChild(optimize);
 
             XmlElement fontsize = xml.CreateElement("FontSize");
             fontsize.InnerText = FontSize.ToString();
