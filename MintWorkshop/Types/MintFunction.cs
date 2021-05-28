@@ -502,7 +502,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[(ushort)inst.V()];
                                 if (hashes.ContainsKey(h))
-                                    textBox.AppendText(hashes[h], TextColors.XRefColor);
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
                                 else
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
@@ -511,7 +517,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.Z];
                                 if (hashes.ContainsKey(h))
-                                    textBox.AppendText(hashes[h], TextColors.XRefColor);
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
                                 else
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
@@ -520,7 +532,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.X];
                                 if (hashes.ContainsKey(h))
-                                    textBox.AppendText(hashes[h], TextColors.XRefColor);
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
                                 else
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
@@ -529,7 +547,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.Y];
                                 if (hashes.ContainsKey(h))
-                                    textBox.AppendText(hashes[h], TextColors.XRefColor);
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
                                 else
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
@@ -836,6 +860,10 @@ namespace MintWorkshop.Types
                         else
                         {
                             string xstring = string.Join(" ", line.Skip(a + 1).TakeWhile(x => x.IndexOf(x) < line.Length));
+                            if (xstring.StartsWith("this."))
+                            {
+                                xstring = ParentClass.Name + xstring.Remove(0, 4);
+                            }
                             b = HashCalculator.Calculate(xstring);
                         }
 
