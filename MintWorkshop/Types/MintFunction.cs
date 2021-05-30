@@ -270,7 +270,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     disasm += x;
@@ -285,7 +285,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     disasm += x;
@@ -300,7 +300,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     disasm += x;
@@ -315,7 +315,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     disasm += x;
@@ -544,7 +544,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     textBox.AppendText(x, TextColors.XRefColor);
@@ -559,7 +559,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     textBox.AppendText(x, TextColors.XRefColor);
@@ -574,7 +574,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     textBox.AppendText(x, TextColors.XRefColor);
@@ -589,7 +589,7 @@ namespace MintWorkshop.Types
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
-                                    if (x.StartsWith(ParentClass.Name))
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
                                         x = "this" + x.Remove(0, ParentClass.Name.Length);
 
                                     textBox.AppendText(x, TextColors.XRefColor);
