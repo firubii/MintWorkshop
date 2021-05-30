@@ -189,26 +189,11 @@ namespace MintWorkshop.Types
         public void Optimize()
         {
             Dictionary<byte[], string> blankHashes = new Dictionary<byte[], string>(new ByteArrayComparer());
-            Dictionary<byte[], string[]> disasmFuncs = new Dictionary<byte[], string[]>(new ByteArrayComparer());
 
-            for (int c = 0; c < Classes.Count; c++)
-            {
-                for (int i = 0; i < Classes[c].Functions.Count; i++)
-                {
-                    disasmFuncs.Add(Classes[c].Functions[i].Hash, Classes[c].Functions[i].Disassemble(ref blankHashes).Split('\n'));
-                }
-            }
-            SData.Clear();
-            XRef.Clear();
-            for (int c = 0; c < Classes.Count; c++)
-            {
-                for (int i = 0; i < Classes[c].Functions.Count; i++)
-                {
-                    Classes[c].Functions[i].Assemble(disasmFuncs[Classes[c].Functions[i].Hash]);
-                }
-            }
-
-            disasmFuncs.Clear();
+            MintScript optimized = new MintScript(WriteText(ref blankHashes), Version);
+            SData = optimized.SData;
+            XRef = optimized.XRef;
+            Classes = optimized.Classes;
         }
 
         public byte[] Write()
