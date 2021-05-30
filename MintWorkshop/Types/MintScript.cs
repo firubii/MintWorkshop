@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.IO;
 using MintWorkshop.Mint;
 using MintWorkshop.Util;
@@ -60,6 +63,126 @@ namespace MintWorkshop.Types
                 reader.BaseStream.Seek(classOffs + 4 + (i * 4), SeekOrigin.Begin);
                 reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
                 Classes.Add(new MintClass(reader, this));
+            }
+        }
+
+        static char[] trimChars = new char[] { '\t', ' ' };
+
+        public MintScript(string[] text, byte[] version)
+        {
+            string scriptDeclare = text[0];
+            if (!scriptDeclare.StartsWith("script "))
+            {
+                MessageBox.Show("Error: Invalid Mint Script file.", "Mint Workshop", MessageBoxButtons.OK);
+                return;
+            }
+
+            XData = new XData(Endianness.Little);
+            Version = version;
+            Name = scriptDeclare.Substring(7);
+            SData = new List<byte>();
+            XRef = new List<byte[]>();
+            Classes = new List<MintClass>();
+
+            Regex classRegex = new Regex("\\b(class)\\b");
+            Regex varRegex = new Regex("\\b(var)\\b");
+            Regex funcRegex = new Regex("(\\(.*\\))");
+
+            for (int l = 0; l < text.Length; l++)
+            {
+                string line = text[l].TrimStart(trimChars);
+                if (classRegex.IsMatch(line))
+                {
+                    string[] classDeclaration = line.Split(' ');
+                    int classWord = classDeclaration.ToList().IndexOf("class");
+                    MintClass newClass = new MintClass(classDeclaration[classWord + 1], 0, this);
+                    for (int i = 0; i < classWord; i++)
+                    {
+                        if (classDeclaration[i].StartsWith("flag"))
+                            newClass.Flags |= uint.Parse(classDeclaration[i].Remove(0, 4));
+                        else if (FlagLabels.ClassFlags.ContainsValue(classDeclaration[i]))
+                            newClass.Flags |= FlagLabels.ClassFlags.Keys.ToArray()[FlagLabels.ClassFlags.Values.ToList().IndexOf(classDeclaration[i])];
+                        else
+                            throw new Exception($"Unknown Class flag name \"{classDeclaration[i]}\"");
+                    }
+
+                    for (int cl = l; cl < text.Length; cl++)
+                    {
+                        string classLine = text[cl].TrimStart(trimChars);
+                        if (varRegex.IsMatch(classLine))
+                        {
+                            string[] varDeclaration = classLine.Split(' ');
+                            int varWord = varDeclaration.ToList().IndexOf("var");
+                            MintVariable newVar = new MintVariable(varDeclaration[varWord + 2], varDeclaration[varWord + 1], 0, newClass);
+                            for (int i = 0; i < varWord; i++)
+                            {
+                                if (varDeclaration[i].StartsWith("flag"))
+                                    newVar.Flags |= uint.Parse(varDeclaration[i].Remove(0, 4));
+                                else if (FlagLabels.VariableFlags.ContainsValue(varDeclaration[i]))
+                                    newVar.Flags |= FlagLabels.VariableFlags.Keys.ToArray()[FlagLabels.VariableFlags.Values.ToList().IndexOf(varDeclaration[i])];
+                                else
+                                    throw new Exception($"Unknown Variable flag name \"{varDeclaration[i]}\"");
+                            }
+                            newClass.Variables.Add(newVar);
+                        }
+                        else if (funcRegex.IsMatch(classLine))
+                        {
+                            string[] funcDeclaration = classLine.Split(' ');
+                            string name = "";
+                            uint funcFlags = 0;
+                            for (int i = 0; i < funcDeclaration.Length; i++)
+                            {
+                                if (funcDeclaration[i].StartsWith("flag"))
+                                    funcFlags |= uint.Parse(funcDeclaration[i].Remove(0, 4));
+                                else if (FlagLabels.FunctionFlags.ContainsValue(funcDeclaration[i]))
+                                    funcFlags |= FlagLabels.FunctionFlags.Keys.ToArray()[FlagLabels.FunctionFlags.Values.ToList().IndexOf(funcDeclaration[i])];
+                                else
+                                {
+                                    name = string.Join(" ", funcDeclaration.Skip(i));
+                                    break;
+                                }
+                            }
+
+                            MintFunction newFunc = new MintFunction(name, funcFlags, newClass);
+                            List<string> instructions = new List<string>();
+                            for (int fl = cl + 2; fl < text.Length; fl++)
+                            {
+                                string funcLine = text[fl].TrimStart(trimChars);
+                                if (funcLine.StartsWith("}"))
+                                {
+                                    cl = fl;
+                                    break;
+                                }
+                                instructions.Add(funcLine);
+                            }
+                            newFunc.Assemble(instructions.ToArray());
+                            newClass.Functions.Add(newFunc);
+                        }
+                        else if (classLine.StartsWith("const "))
+                        {
+                            string[] constDeclaration = classLine.Split(' ');
+                            uint value;
+                            if (constDeclaration[3].StartsWith("0x"))
+                                value = uint.Parse(constDeclaration[3].Substring(2), NumberStyles.HexNumber);
+                            else
+                                value = uint.Parse(constDeclaration[3]);
+
+                            newClass.Constants.Add(new MintClass.MintConstant(constDeclaration[1], value));
+                        }
+                        else if (classLine.StartsWith("unkvalue "))
+                        {
+                            string[] unkDeclaration = classLine.Split(' ');
+                            newClass.UnknownList.Add(uint.Parse(unkDeclaration[1]));
+                        }
+                        else if (classLine.StartsWith("}"))
+                        {
+                            l = cl;
+                            break;
+                        }
+                    }
+
+                    Classes.Add(newClass);
+                }
             }
         }
 
@@ -262,6 +385,106 @@ namespace MintWorkshop.Types
                 XData.UpdateFilesize(writer);
                 return stream.GetBuffer().Take((int)XData.Filesize).ToArray();
             }
+        }
+        
+        public string[] WriteText(ref Dictionary<byte[], string> hashes)
+        {
+            List<string> text = new List<string>();
+
+            text.Add($"script {Name}");
+            text.Add("{");
+
+            for (int c = 0; c < Classes.Count; c++)
+            {
+                uint cFlags = Classes[c].Flags;
+                string classFlags = "";
+                for (uint i = 1; i <= cFlags; i <<= 1)
+                {
+                    if ((cFlags & i) != 0)
+                    {
+                        if (FlagLabels.ClassFlags.ContainsKey(cFlags & i))
+                            classFlags += $"{FlagLabels.ClassFlags[cFlags & i]} ";
+                        else
+                            classFlags += $"flag{cFlags & i:X} ";
+                    }
+                }
+
+                text.Add($"\t{classFlags}class {Classes[c].Name}");
+                text.Add("\t{");
+
+                for (int i = 0; i < Classes[c].Variables.Count; i++)
+                {
+                    uint vFlags = Classes[c].Variables[i].Flags;
+                    string varFlags = "";
+                    for (uint f = 1; f <= vFlags; f <<= 1)
+                    {
+                        if ((vFlags & f) != 0)
+                        {
+                            if (FlagLabels.VariableFlags.ContainsKey(vFlags & f))
+                                varFlags += $"{FlagLabels.VariableFlags[vFlags & f]} ";
+                            else
+                                varFlags += $"flag{vFlags & f:X} ";
+                        }
+                    }
+
+                    text.Add($"\t\t{varFlags}var {Classes[c].Variables[i].Type} {Classes[c].Variables[i].Name}");
+                }
+                if (Classes[c].Variables.Count > 0)
+                    text.Add("\t\t");
+
+                for (int i = 0; i < Classes[c].Functions.Count; i++)
+                {
+                    uint fFlags = Classes[c].Functions[i].Flags;
+                    string funcFlags = "";
+                    for (uint f = 1; f <= fFlags; f <<= 1)
+                    {
+                        if ((fFlags & f) != 0)
+                        {
+                            if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
+                                funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
+                            else
+                                funcFlags += $"flag{fFlags & f:X} ";
+                        }
+                    }
+
+                    text.Add($"\t\t{funcFlags}{Classes[c].Functions[i].Name}");
+                    text.Add("\t\t{");
+
+                    string[] disasm = Classes[c].Functions[i].Disassemble(ref hashes).TrimEnd(new char[] { ' ', '\n', '\r' }).Split('\n');
+                    for (int d = 0; d < disasm.Length; d++)
+                        text.Add("\t\t\t" + disasm[d]);
+
+                    text.Add("\t\t}");
+                    text.Add("\t\t");
+                }
+                if (Classes[c].Functions.Count > 0)
+                    text.Add("\t\t");
+
+                for (int i = 0; i < Classes[c].Constants.Count; i++)
+                {
+                    text.Add($"\t\tconst {Classes[c].Constants[i].Name} = 0x{Classes[c].Constants[i].Value:X}");
+                }
+                if (Classes[c].Constants.Count > 0)
+                    text.Add("\t\t");
+
+                for (int i = 0; i < Classes[c].UnknownList.Count; i++)
+                {
+                    text.Add($"\t\tunkvalue {Classes[c].UnknownList[i]}");
+                }
+
+                while (text.Last().TrimStart(new char[] { '\t' }) == "")
+                {
+                    text.RemoveAt(text.Count - 1);
+                }
+
+                text.Add("\t}");
+                if (c < Classes.Count - 1)
+                    text.Add("\t");
+            }
+
+            text.Add("}");
+
+            return text.ToArray();
         }
     }
 }

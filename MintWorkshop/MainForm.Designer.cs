@@ -61,6 +61,7 @@
             this.replaceScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.editXRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optimizeScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.classCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.editClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -80,7 +81,6 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.optimizeScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -376,6 +376,13 @@
             this.editXRefsToolStripMenuItem.Text = "Edit XRefs";
             this.editXRefsToolStripMenuItem.Click += new System.EventHandler(this.editXRefsToolStripMenuItem_Click);
             // 
+            // optimizeScriptToolStripMenuItem
+            // 
+            this.optimizeScriptToolStripMenuItem.Name = "optimizeScriptToolStripMenuItem";
+            this.optimizeScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.optimizeScriptToolStripMenuItem.Text = "Optimize Script";
+            this.optimizeScriptToolStripMenuItem.Click += new System.EventHandler(this.optimizeScriptToolStripMenuItem_Click);
+            // 
             // classCtxMenu
             // 
             this.classCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -514,13 +521,6 @@
             this.convertToDecimalToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
-            // 
-            // optimizeScriptToolStripMenuItem
-            // 
-            this.optimizeScriptToolStripMenuItem.Name = "optimizeScriptToolStripMenuItem";
-            this.optimizeScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.optimizeScriptToolStripMenuItem.Text = "Optimize Script";
-            this.optimizeScriptToolStripMenuItem.Click += new System.EventHandler(this.optimizeScriptToolStripMenuItem_Click);
             // 
             // MainForm
             // 

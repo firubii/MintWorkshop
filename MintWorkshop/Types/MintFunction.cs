@@ -64,8 +64,7 @@ namespace MintWorkshop.Types
             }
         }
 
-        //This is completely unused but I'm keeping it here just because it's nice to have
-        public string Disassemble(ref Dictionary<byte[], string> hashes)
+        public string Disassemble(ref Dictionary<byte[], string> hashes, bool uppercase = false)
         {
             byte[] version = ParentClass.ParentScript.Version;
             if (!MintVersions.Versions.ContainsKey(version))
@@ -83,7 +82,12 @@ namespace MintWorkshop.Types
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
                 if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(i + inst.V()))
-                    jmpLoc.Add(i + inst.V(), $"loc_{i + inst.V():x8}");
+                {
+                    if (opcodes[Instructions[i + inst.V()].Opcode].Action.HasFlag(Mint.Action.Return))
+                        jmpLoc.Add(i + inst.V(), "return");
+                    else
+                        jmpLoc.Add(i + inst.V(), $"loc_{i + inst.V():x8}");
+                }
             }
 
             for (int i = 0; i < Instructions.Count; i++)
@@ -91,15 +95,27 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode)
                 {
-                    disasm += $"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unknown opcode!\n";
+                    disasm += $"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!";
+                    disasm += "\n";
                     continue;
                 }
-                
+
                 if (jmpLoc.ContainsKey(i))
-                    disasm += $"\n{jmpLoc[i]}:\n";
+                {
+                    disasm += "\n";
+                    disasm += $"{jmpLoc[i]}:";
+                    disasm += "\n";
+                }
 
                 Opcode op = opcodes[inst.Opcode];
-                disasm += op.Name + " ";
+
+                if (uppercase)
+                    disasm += op.Name.ToUpper();
+                else
+                    disasm += op.Name;
+
+                for (int s = op.Name.Length; s < 7; s++)
+                    disasm += " ";
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
                     switch (op.Arguments[a])
@@ -252,7 +268,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[(ushort)inst.V()];
                                 if (hashes.ContainsKey(h))
-                                    disasm += hashes[h];
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
                                 else
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
@@ -261,7 +283,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.Z];
                                 if (hashes.ContainsKey(h))
-                                    disasm += hashes[h];
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
                                 else
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
@@ -270,7 +298,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.X];
                                 if (hashes.ContainsKey(h))
-                                    disasm += hashes[h];
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
                                 else
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
@@ -279,7 +313,13 @@ namespace MintWorkshop.Types
                             {
                                 byte[] h = Xref[inst.Y];
                                 if (hashes.ContainsKey(h))
-                                    disasm += hashes[h];
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name))
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
                                 else
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
@@ -860,7 +900,7 @@ namespace MintWorkshop.Types
                         else
                         {
                             string xstring = string.Join(" ", line.Skip(a + 1).TakeWhile(x => x.IndexOf(x) < line.Length));
-                            if (xstring.StartsWith("this."))
+                            if (xstring.StartsWith("this.") || xstring == "this")
                             {
                                 xstring = ParentClass.Name + xstring.Remove(0, 4);
                             }

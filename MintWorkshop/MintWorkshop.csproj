@@ -101,6 +101,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Mint\FlagLabels.cs" />
     <Compile Include="Mint\MintVersions.cs" />
     <Compile Include="Mint\OpcodeInfo.cs" />
     <Compile Include="Program.cs" />
