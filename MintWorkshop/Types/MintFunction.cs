@@ -207,7 +207,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.Z ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -218,8 +218,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -243,7 +251,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.X ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -254,8 +262,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -279,7 +295,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.Y ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -290,8 +306,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -313,7 +337,7 @@ namespace MintWorkshop.Types
                                 bool utf16 = false;
                                 for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
                                 {
-                                    if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                    if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
                                         if (Sdata[s - 1] == 0x00)
                                         {
@@ -324,8 +348,16 @@ namespace MintWorkshop.Types
                                     }
                                     else if (Sdata[s] == 0xFF)
                                     {
-                                        b.RemoveAt(b.Count - 1);
-                                        break;
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            if (Sdata[s - 2] == 0)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
                                     }
 
                                     b.Add(Sdata[s]);
@@ -553,7 +585,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.Z ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -564,8 +596,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -590,7 +630,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.X ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -601,8 +641,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -627,7 +675,7 @@ namespace MintWorkshop.Types
                                     bool utf16 = false;
                                     for (int s = (inst.Y ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
                                             if (Sdata[s - 1] == 0x00)
                                             {
@@ -638,8 +686,16 @@ namespace MintWorkshop.Types
                                         }
                                         else if (Sdata[s] == 0xFF)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            break;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
                                         }
 
                                         b.Add(Sdata[s]);
@@ -662,7 +718,7 @@ namespace MintWorkshop.Types
                                 bool utf16 = false;
                                 for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
                                 {
-                                    if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                    if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
                                         if (Sdata[s - 1] == 0x00)
                                         {
@@ -673,8 +729,16 @@ namespace MintWorkshop.Types
                                     }
                                     else if (Sdata[s] == 0xFF)
                                     {
-                                        b.RemoveAt(b.Count - 1);
-                                        break;
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            if (Sdata[s - 2] == 0) 
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
                                     }
 
                                     b.Add(Sdata[s]);
