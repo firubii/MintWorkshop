@@ -204,12 +204,30 @@ namespace MintWorkshop.Types
                                 if ((inst.Z & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.Z ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    disasm += $"\"{Encoding.UTF8.GetString(b.ToArray())}\"";
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
                                 }
                                 else
                                 {
@@ -222,12 +240,30 @@ namespace MintWorkshop.Types
                                 if ((inst.X & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.X ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    disasm += $"\"{Encoding.UTF8.GetString(b.ToArray())}\"";
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
                                 }
                                 else
                                 {
@@ -240,12 +276,30 @@ namespace MintWorkshop.Types
                                 if ((inst.Y & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.Y ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    disasm += $"\"{Encoding.UTF8.GetString(b.ToArray())}\"";
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
                                 }
                                 else
                                 {
@@ -256,12 +310,30 @@ namespace MintWorkshop.Types
                         case "vstr":
                             {
                                 List<byte> b = new List<byte>();
+                                bool utf16 = false;
                                 for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
                                 {
-                                    if (Sdata[s] == 0) break;
+                                    if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            utf16 = true;
+                                        }
+                                        break;
+                                    }
+                                    else if (Sdata[s] == 0xFF)
+                                    {
+                                        b.RemoveAt(b.Count - 1);
+                                        break;
+                                    }
+
                                     b.Add(Sdata[s]);
                                 }
-                                disasm += $"\"{Encoding.UTF8.GetString(b.ToArray())}\"";
+                                if (!utf16)
+                                    disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                else
+                                    disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
                                 break;
                             }
                         case "vxref":
@@ -478,12 +550,31 @@ namespace MintWorkshop.Types
                                 if ((inst.Z & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.Z ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray())}\"", TextColors.StringColor);
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 }
                                 else
                                 {
@@ -496,12 +587,31 @@ namespace MintWorkshop.Types
                                 if ((inst.X & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.X ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray())}\"", TextColors.StringColor);
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 }
                                 else
                                 {
@@ -514,12 +624,31 @@ namespace MintWorkshop.Types
                                 if ((inst.Y & 0x80) != 0)
                                 {
                                     List<byte> b = new List<byte>();
+                                    bool utf16 = false;
                                     for (int s = (inst.Y ^ 0x80) * 4; s < Sdata.Length; s++)
                                     {
-                                        if (Sdata[s] == 0) break;
+                                        if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            break;
+                                        }
+
                                         b.Add(Sdata[s]);
                                     }
-                                    textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray())}\"", TextColors.StringColor);
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 }
                                 else
                                 {
@@ -530,12 +659,31 @@ namespace MintWorkshop.Types
                         case "vstr":
                             {
                                 List<byte> b = new List<byte>();
+                                bool utf16 = false;
                                 for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
                                 {
-                                    if (Sdata[s] == 0) break;
+                                    if (Sdata[s] == 0x00 && (s & 0x1) == 1)
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            utf16 = true;
+                                        }
+                                        break;
+                                    }
+                                    else if (Sdata[s] == 0xFF)
+                                    {
+                                        b.RemoveAt(b.Count - 1);
+                                        break;
+                                    }
+
                                     b.Add(Sdata[s]);
                                 }
-                                textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray())}\"", TextColors.StringColor);
+
+                                if (!utf16)
+                                    textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                else
+                                    textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 break;
                             }
                         case "vxref":
@@ -810,7 +958,14 @@ namespace MintWorkshop.Types
                             MessageBox.Show($"Error: String has no ending:\nArgument: {str}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
                             return;
                         }
-                        b = Encoding.UTF8.GetBytes(str.TrimStart('\"').TrimEnd('\"')).ToList();
+
+                        if (str.StartsWith("u\""))
+                        {
+                            b = Encoding.Unicode.GetBytes(str.Substring(1).TrimStart('\"').TrimEnd('\"')).ToList();
+                            b.Add(0);
+                        }
+                        else
+                            b = Encoding.UTF8.GetBytes(str.TrimStart('\"').TrimEnd('\"')).ToList();
                         b.Add(0);
 
                         //Make absolutely sure that SData is 4-aligned before running through SData
