@@ -38,6 +38,8 @@ namespace MintWorkshop
                 config.Save(exeDir + "\\Config.xml");
 
             InitializeComponent();
+
+            this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
