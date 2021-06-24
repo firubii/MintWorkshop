@@ -49,17 +49,23 @@ namespace MintWorkshop.Types
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
             Opcode[] opcodes = MintVersions.Versions[ParentClass.ParentScript.Version];
+            bool hasReturn = opcodes.Select(x => x.Action.HasFlag(Mint.Action.Return)).Count() > 0;
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 Instruction i = new Instruction(reader.ReadBytes(4));
                 Instructions.Add(i);
 
-                // Detect fleave and fret instructions for stopping execution
-                // Mainly for future-proofing, all fleave and fret instructions use only argument Y
-                if ((i.Z == 0xFF && i.X == 0xFF && i.Y != 0xFF) || opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return))
+                if (hasReturn)
                 {
-                    //Console.WriteLine($"Finished reading function {ParentClass.Name}.{NameWithoutType()} at instruction {i.Opcode:X2} {i.Z:X2} {i.X:X2} {i.Y:X2}");
-                    break;
+                    if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return))
+                        break;
+                }
+                else
+                {
+                    // Detect fleave and fret instructions for stopping reading the function
+                    // Mainly for future-proofing, all fleave and fret instructions use only argument Y
+                    if (i.Z == 0xFF && i.X == 0xFF && i.Y != 0xFF)
+                        break;
                 }
             }
         }
@@ -81,12 +87,13 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
-                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(i + inst.V()))
+                int loc = i + inst.V();
+                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
                 {
-                    if (opcodes[Instructions[i + inst.V()].Opcode].Action.HasFlag(Mint.Action.Return))
-                        jmpLoc.Add(i + inst.V(), "return");
+                    if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
+                        jmpLoc.Add(loc, "return");
                     else
-                        jmpLoc.Add(i + inst.V(), $"loc_{i + inst.V():x8}");
+                        jmpLoc.Add(loc, $"loc_{loc:x8}");
                 }
             }
 
@@ -459,12 +466,13 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
-                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(i + inst.V()))
+                int loc = i + inst.V();
+                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
                 {
-                    if (opcodes[Instructions[i + inst.V()].Opcode].Action.HasFlag(Mint.Action.Return))
-                        jmpLoc.Add(i + inst.V(), "return");
+                    if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
+                        jmpLoc.Add(loc, "return");
                     else
-                        jmpLoc.Add(i + inst.V(), $"loc_{i + inst.V():x8}");
+                        jmpLoc.Add(loc, $"loc_{loc:x8}");
                 }
             }
 
