@@ -83,6 +83,7 @@
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.batchImportScriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyFullNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -450,11 +451,12 @@
             // 
             this.genericCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.findUsesOfObjectToolStripMenuItem,
+            this.copyFullNameToolStripMenuItem,
             this.toolStripSeparator5,
             this.editObjectToolStripMenuItem,
             this.deleteObjectToolStripMenuItem});
             this.genericCtxMenu.Name = "genericCtxMenu";
-            this.genericCtxMenu.Size = new System.Drawing.Size(177, 76);
+            this.genericCtxMenu.Size = new System.Drawing.Size(181, 120);
             // 
             // findUsesOfObjectToolStripMenuItem
             // 
@@ -539,6 +541,13 @@
             this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.batchImportScriptsToolStripMenuItem.Text = "Batch Import Scripts";
             this.batchImportScriptsToolStripMenuItem.Click += new System.EventHandler(this.batchImportScriptsToolStripMenuItem_Click);
+            // 
+            // copyFullNameToolStripMenuItem
+            // 
+            this.copyFullNameToolStripMenuItem.Name = "copyFullNameToolStripMenuItem";
+            this.copyFullNameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyFullNameToolStripMenuItem.Text = "Copy Full Name";
+            this.copyFullNameToolStripMenuItem.Click += new System.EventHandler(this.copyFullNameToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -626,6 +635,7 @@
         private System.Windows.Forms.ToolStripMenuItem optimizeScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem reloadHashesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem batchImportScriptsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyFullNameToolStripMenuItem;
     }
 }
 

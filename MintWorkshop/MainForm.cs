@@ -602,6 +602,31 @@ namespace MintWorkshop
             results.ShowDialog();
         }
 
+        private void copyFullNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
+            int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
+            int index = arcTree.SelectedNode.Index;
+            switch (arcTree.SelectedNode.Parent.Text)
+            {
+                case "Variables":
+                    {
+                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Variables[index].FullName());
+                        break;
+                    }
+                case "Functions":
+                    {
+                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Functions[index].FullName());
+                        break;
+                    }
+                case "Constants":
+                    {
+                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Name + "." + archive.Scripts[parentScript].Classes[classIndex].Constants[index].Name);
+                        break;
+                    }
+            }
+        }
+
         private void addScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string name = arcTree.SelectedNode.FullPath;
