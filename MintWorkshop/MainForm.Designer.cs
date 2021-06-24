@@ -37,6 +37,7 @@
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.reloadHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.saveTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -81,7 +82,7 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.reloadHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.batchImportScriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -165,6 +166,13 @@
             this.settingsToolStripMenuItem.Text = "Settings";
             this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
+            // reloadHashesToolStripMenuItem
+            // 
+            this.reloadHashesToolStripMenuItem.Name = "reloadHashesToolStripMenuItem";
+            this.reloadHashesToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
+            this.reloadHashesToolStripMenuItem.Text = "Reload Hashes";
+            this.reloadHashesToolStripMenuItem.Click += new System.EventHandler(this.reloadHashesToolStripMenuItem_Click);
+            // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
@@ -199,7 +207,8 @@
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.parseAsFloatToolStripMenuItem,
-            this.convertToDecimalToolStripMenuItem1});
+            this.convertToDecimalToolStripMenuItem1,
+            this.batchImportScriptsToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -207,14 +216,14 @@
             // parseAsFloatToolStripMenuItem
             // 
             this.parseAsFloatToolStripMenuItem.Name = "parseAsFloatToolStripMenuItem";
-            this.parseAsFloatToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.parseAsFloatToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.parseAsFloatToolStripMenuItem.Text = "Convert to Float";
             this.parseAsFloatToolStripMenuItem.Click += new System.EventHandler(this.parseAsFloatToolStripMenuItem_Click);
             // 
             // convertToDecimalToolStripMenuItem1
             // 
             this.convertToDecimalToolStripMenuItem1.Name = "convertToDecimalToolStripMenuItem1";
-            this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(181, 22);
             this.convertToDecimalToolStripMenuItem1.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem1.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
@@ -524,12 +533,12 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
-            // reloadHashesToolStripMenuItem
+            // batchImportScriptsToolStripMenuItem
             // 
-            this.reloadHashesToolStripMenuItem.Name = "reloadHashesToolStripMenuItem";
-            this.reloadHashesToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
-            this.reloadHashesToolStripMenuItem.Text = "Reload Hashes";
-            this.reloadHashesToolStripMenuItem.Click += new System.EventHandler(this.reloadHashesToolStripMenuItem_Click);
+            this.batchImportScriptsToolStripMenuItem.Name = "batchImportScriptsToolStripMenuItem";
+            this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.batchImportScriptsToolStripMenuItem.Text = "Batch Import Scripts";
+            this.batchImportScriptsToolStripMenuItem.Click += new System.EventHandler(this.batchImportScriptsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -616,6 +625,7 @@
         private System.Windows.Forms.ToolStripMenuItem convertToDecimalToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem optimizeScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem reloadHashesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem batchImportScriptsToolStripMenuItem;
     }
 }
 

@@ -831,5 +831,89 @@ namespace MintWorkshop
         {
             ReloadHashes();
         }
+
+        private void batchImportScriptsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Mint Script Files|*.mints;*.bin";
+            open.CheckFileExists = true;
+            open.Multiselect = true;
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                for (int i = 0; i < open.FileNames.Length; i++)
+                {
+                    string file = open.FileNames[i];
+                    if (archive.Scripts.ContainsKey(Path.GetFileNameWithoutExtension(file)))
+                    {
+                        MintScript newScript;
+                        if (Path.GetExtension(file) == ".mints")
+                        {
+                            newScript = new MintScript(File.ReadAllLines(file), archive.Version);
+                        }
+                        else
+                        {
+                            using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(file, FileMode.Open, FileAccess.Read)))
+                                newScript = new MintScript(reader, archive.Version);
+                        }
+
+                        if (archive.Scripts[Path.GetFileNameWithoutExtension(file)].Name != newScript.Name)
+                            continue;
+
+                        archive.Scripts[newScript.Name] = newScript;
+
+                        TreeNode node = FindNodeByName(arcTree.Nodes, newScript.Name.Split('.'), 0);
+                        if (node == null)
+                            continue;
+
+                        node.Nodes.Clear();
+                        for (int c = 0; c < newScript.Classes.Count; c++)
+                        {
+                            TreeNode cl = new TreeNode(newScript.Classes[c].Name.Split('.').Last(), 2, 2);
+                            cl.ContextMenuStrip = classCtxMenu;
+                            cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
+
+                            for (int v = 0; v < newScript.Classes[c].Variables.Count; v++)
+                            {
+                                cl.Nodes[0].Nodes.Add($"{newScript.Classes[c].Variables[v].Hash[0]:X2}{newScript.Classes[c].Variables[v].Hash[1]:X2}{newScript.Classes[c].Variables[v].Hash[2]:X2}{newScript.Classes[c].Variables[v].Hash[3]:X2}", newScript.Classes[c].Variables[v].Type + " " + newScript.Classes[c].Variables[v].Name, 3, 3);
+                                cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                            }
+                            for (int v = 0; v < newScript.Classes[c].Functions.Count; v++)
+                            {
+                                cl.Nodes[1].Nodes.Add($"{newScript.Classes[c].Functions[v].Hash[0]:X2}{newScript.Classes[c].Functions[v].Hash[1]:X2}{newScript.Classes[c].Functions[v].Hash[2]:X2}{newScript.Classes[c].Functions[v].Hash[3]:X2}", newScript.Classes[c].Functions[v].Name, 4, 4);
+                                cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                            }
+                            for (int v = 0; v < newScript.Classes[c].Constants.Count; v++)
+                            {
+                                cl.Nodes[2].Nodes.Add(new TreeNode(newScript.Classes[c].Constants[v].Name + " (0x" + newScript.Classes[c].Constants[v].Value.ToString("X") + ")", 5, 5));
+                                cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                            }
+
+                            node.Nodes.Add(cl);
+                        }
+                    }
+                }
+            }
+        }
+
+        private TreeNode FindNodeByName(TreeNodeCollection root, string[] name, int index)
+        {
+            if (index < name.Length - 1)
+            {
+                for (int i = 0; i < root.Count; i++)
+                {
+                    if (root[i].Text == name[index])
+                        return FindNodeByName(root[i].Nodes, name, index + 1);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < root.Count; i++)
+                {
+                    if (root[i].Text == name[index])
+                        return root[i];
+                }
+            }
+            return null;
+        }
     }
 }
