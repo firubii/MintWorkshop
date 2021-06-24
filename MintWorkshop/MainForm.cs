@@ -60,26 +60,7 @@ namespace MintWorkshop
                 using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(filePath, FileMode.Open, FileAccess.Read)))
                     archive = new Archive(reader);
 
-                hashes = new Dictionary<byte[], string>(new ByteArrayComparer());
-                if (File.Exists(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
-                {
-                    Console.WriteLine($"Hash file found for version {archive.GetSemanticVersion()}");
-                    using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string line = reader.ReadLine();
-                            if (!line.StartsWith("#"))
-                            {
-                                byte[] hash = HashCalculator.Calculate(line);
-                                if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
-                            }
-                        }
-                    }
-                    Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
-                }
-                foreach (KeyValuePair<byte[], string> pair in archive.GetHashes())
-                    if (!hashes.ContainsKey(pair.Key)) hashes.Add(pair.Key, pair.Value);
+                ReloadHashes();
 
                 TreeNode root = new TreeNode();
                 for (int i = 0; i < archive.Namespaces.Count; i++)
@@ -93,6 +74,31 @@ namespace MintWorkshop
 
                 arcTree.EndUpdate();
             }
+        }
+
+        private void ReloadHashes()
+        {
+            hashes.Clear();
+            hashes = new Dictionary<byte[], string>(new ByteArrayComparer());
+            if (File.Exists(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
+            {
+                Console.WriteLine($"Hash file found for version {archive.GetSemanticVersion()}");
+                using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (!line.StartsWith("#"))
+                        {
+                            byte[] hash = HashCalculator.Calculate(line);
+                            if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
+                        }
+                    }
+                }
+                Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
+            }
+            foreach (KeyValuePair<byte[], string> pair in archive.GetHashes())
+                if (!hashes.ContainsKey(pair.Key)) hashes.Add(pair.Key, pair.Value);
         }
 
         private void NamespaceNodeSearch(TreeNode node, string[] search, int searchIndex)
@@ -819,6 +825,11 @@ namespace MintWorkshop
                 else
                     MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
             }
+        }
+
+        private void reloadHashesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ReloadHashes();
         }
     }
 }
