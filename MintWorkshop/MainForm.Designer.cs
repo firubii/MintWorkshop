@@ -264,6 +264,7 @@
             this.arcTree.Size = new System.Drawing.Size(279, 634);
             this.arcTree.TabIndex = 1;
             this.arcTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.arcTree_AfterSelect);
+            this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
             // 
             // imageList
             // 
