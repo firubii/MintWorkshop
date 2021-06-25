@@ -660,6 +660,73 @@ namespace MintWorkshop
             }
         }
 
+        private void importScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
+            open.CheckFileExists = true;
+            open.AddExtension = true;
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                MintScript newScript;
+
+                if (Path.GetExtension(open.FileName) == ".mints")
+                {
+                    newScript = new MintScript(File.ReadAllLines(open.FileName), archive.Version);
+                }
+                else
+                {
+                    using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read)))
+                        newScript = new MintScript(reader, archive.Version);
+                }
+
+                archive.Scripts.Add(newScript.Name, newScript);
+
+                string parentName = arcTree.SelectedNode.Parent.FullPath;
+                int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
+                Archive.Namespace parent = archive.Namespaces[parentIndex];
+                parent.Scripts++;
+                parent.TotalScripts++;
+                archive.Namespaces[parentIndex] = parent;
+                for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                {
+                    Archive.Namespace n = archive.Namespaces[i];
+                    n.TotalScripts++;
+                    archive.Namespaces[i] = n;
+                }
+
+                TreeNode scriptNode = new TreeNode(newScript.Name.Split('.').Last(), 1, 1);
+                scriptNode.ContextMenuStrip = scriptCtxMenu;
+
+                for (int i = 0; i < newScript.Classes.Count; i++)
+                {
+                    TreeNode cl = new TreeNode(newScript.Classes[i].Name.Split('.').Last(), 2, 2);
+                    cl.ContextMenuStrip = classCtxMenu;
+                    cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
+
+                    for (int v = 0; v < newScript.Classes[i].Variables.Count; v++)
+                    {
+                        cl.Nodes[0].Nodes.Add($"{newScript.Classes[i].Variables[v].Hash[0]:X2}{newScript.Classes[i].Variables[v].Hash[1]:X2}{newScript.Classes[i].Variables[v].Hash[2]:X2}{newScript.Classes[i].Variables[v].Hash[3]:X2}", newScript.Classes[i].Variables[v].Type + " " + newScript.Classes[i].Variables[v].Name, 3, 3);
+                        cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                    }
+                    for (int v = 0; v < newScript.Classes[i].Functions.Count; v++)
+                    {
+                        cl.Nodes[1].Nodes.Add($"{newScript.Classes[i].Functions[v].Hash[0]:X2}{newScript.Classes[i].Functions[v].Hash[1]:X2}{newScript.Classes[i].Functions[v].Hash[2]:X2}{newScript.Classes[i].Functions[v].Hash[3]:X2}", newScript.Classes[i].Functions[v].Name, 4, 4);
+                        cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                    }
+                    for (int v = 0; v < newScript.Classes[i].Constants.Count; v++)
+                    {
+                        cl.Nodes[2].Nodes.Add(new TreeNode(newScript.Classes[i].Constants[v].Name + " (0x" + newScript.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
+                        cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                    }
+
+                    scriptNode.Nodes.Add(cl);
+                }
+
+                arcTree.SelectedNode.Nodes.Add(scriptNode);
+            }
+        }
+
         private void addNamespaceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string name = arcTree.SelectedNode.FullPath;
@@ -708,7 +775,7 @@ namespace MintWorkshop
             MintScript script = archive.Scripts[arcTree.SelectedNode.FullPath];
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
-            save.FileName = script.Name + ".mints";
+            save.FileName = script.Name;
             save.AddExtension = true;
             if (save.ShowDialog() == DialogResult.OK)
             {
@@ -728,14 +795,14 @@ namespace MintWorkshop
         {
             OpenFileDialog open = new OpenFileDialog();
             open.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
-            open.FileName = archive.Scripts[arcTree.SelectedNode.FullPath].Name + ".mints";
+            open.FileName = archive.Scripts[arcTree.SelectedNode.FullPath].Name;
             open.CheckFileExists = true;
             open.AddExtension = true;
             if (open.ShowDialog() == DialogResult.OK)
             {
                 MintScript newScript;
 
-                if (open.FilterIndex == 1)
+                if (Path.GetExtension(open.FileName) == ".mints")
                 {
                     newScript = new MintScript(File.ReadAllLines(open.FileName), archive.Version);
                 }

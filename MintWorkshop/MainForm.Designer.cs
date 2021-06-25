@@ -45,6 +45,7 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.parseAsFloatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.batchImportScriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl = new System.Windows.Forms.TabControl();
@@ -72,6 +73,7 @@
             this.addConstantToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.genericCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.findUsesOfObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyFullNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.editObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -82,8 +84,7 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.batchImportScriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.copyFullNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -227,6 +228,13 @@
             this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(181, 22);
             this.convertToDecimalToolStripMenuItem1.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem1.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
+            // 
+            // batchImportScriptsToolStripMenuItem
+            // 
+            this.batchImportScriptsToolStripMenuItem.Name = "batchImportScriptsToolStripMenuItem";
+            this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.batchImportScriptsToolStripMenuItem.Text = "Batch Import Scripts";
+            this.batchImportScriptsToolStripMenuItem.Click += new System.EventHandler(this.batchImportScriptsToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -456,7 +464,7 @@
             this.editObjectToolStripMenuItem,
             this.deleteObjectToolStripMenuItem});
             this.genericCtxMenu.Name = "genericCtxMenu";
-            this.genericCtxMenu.Size = new System.Drawing.Size(181, 120);
+            this.genericCtxMenu.Size = new System.Drawing.Size(177, 98);
             // 
             // findUsesOfObjectToolStripMenuItem
             // 
@@ -464,6 +472,13 @@
             this.findUsesOfObjectToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.findUsesOfObjectToolStripMenuItem.Text = "Find Uses of Object";
             this.findUsesOfObjectToolStripMenuItem.Click += new System.EventHandler(this.findUsesOfObjectToolStripMenuItem_Click);
+            // 
+            // copyFullNameToolStripMenuItem
+            // 
+            this.copyFullNameToolStripMenuItem.Name = "copyFullNameToolStripMenuItem";
+            this.copyFullNameToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.copyFullNameToolStripMenuItem.Text = "Copy Full Name";
+            this.copyFullNameToolStripMenuItem.Click += new System.EventHandler(this.copyFullNameToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
@@ -488,29 +503,30 @@
             // 
             this.namespaceCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addScriptToolStripMenuItem,
+            this.importScriptToolStripMenuItem,
             this.addNamespaceToolStripMenuItem,
             this.deleteNamespaceToolStripMenuItem});
             this.namespaceCtxMenu.Name = "namespaceCtxMenu";
-            this.namespaceCtxMenu.Size = new System.Drawing.Size(173, 70);
+            this.namespaceCtxMenu.Size = new System.Drawing.Size(181, 114);
             // 
             // addScriptToolStripMenuItem
             // 
             this.addScriptToolStripMenuItem.Name = "addScriptToolStripMenuItem";
-            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addScriptToolStripMenuItem.Text = "Add Script";
             this.addScriptToolStripMenuItem.Click += new System.EventHandler(this.addScriptToolStripMenuItem_Click);
             // 
             // addNamespaceToolStripMenuItem
             // 
             this.addNamespaceToolStripMenuItem.Name = "addNamespaceToolStripMenuItem";
-            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addNamespaceToolStripMenuItem.Text = "Add Namespace";
             this.addNamespaceToolStripMenuItem.Click += new System.EventHandler(this.addNamespaceToolStripMenuItem_Click);
             // 
             // deleteNamespaceToolStripMenuItem
             // 
             this.deleteNamespaceToolStripMenuItem.Name = "deleteNamespaceToolStripMenuItem";
-            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
             // editorCtxMenu
@@ -535,19 +551,12 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
-            // batchImportScriptsToolStripMenuItem
+            // importScriptToolStripMenuItem
             // 
-            this.batchImportScriptsToolStripMenuItem.Name = "batchImportScriptsToolStripMenuItem";
-            this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.batchImportScriptsToolStripMenuItem.Text = "Batch Import Scripts";
-            this.batchImportScriptsToolStripMenuItem.Click += new System.EventHandler(this.batchImportScriptsToolStripMenuItem_Click);
-            // 
-            // copyFullNameToolStripMenuItem
-            // 
-            this.copyFullNameToolStripMenuItem.Name = "copyFullNameToolStripMenuItem";
-            this.copyFullNameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.copyFullNameToolStripMenuItem.Text = "Copy Full Name";
-            this.copyFullNameToolStripMenuItem.Click += new System.EventHandler(this.copyFullNameToolStripMenuItem_Click);
+            this.importScriptToolStripMenuItem.Name = "importScriptToolStripMenuItem";
+            this.importScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.importScriptToolStripMenuItem.Text = "Import Script";
+            this.importScriptToolStripMenuItem.Click += new System.EventHandler(this.importScriptToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -636,6 +645,7 @@
         private System.Windows.Forms.ToolStripMenuItem reloadHashesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem batchImportScriptsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyFullNameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importScriptToolStripMenuItem;
     }
 }
 
