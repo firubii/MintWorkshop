@@ -46,6 +46,11 @@ namespace MintWorkshop
         {
             archive.Scripts.Clear();
             hashes.Clear();
+
+            for (int i = 1; i < tabControl.TabPages.Count; i++)
+            {
+                CloseEditor(i, true);
+            }
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -206,11 +211,11 @@ namespace MintWorkshop
             loading = false;
         }
 
-        void CloseEditor(int index)
+        void CloseEditor(int index, bool forceClose)
         {
             if (index > 0)
             {
-                if (tabControl.TabPages[index].Text.EndsWith("*"))
+                if (tabControl.TabPages[index].Text.EndsWith("*") && !forceClose)
                 {
                     if (MessageBox.Show("Are you sure you want to close this tab?" +
                                       "\nThis function has been edited, closing it without saving will lose any changes you have made.",
@@ -254,7 +259,7 @@ namespace MintWorkshop
             {
                 if (tabControl.GetTabRect(i).Contains(e.Location))
                 {
-                    CloseEditor(i);
+                    CloseEditor(i, false);
                     break;
                 }
             }
@@ -291,7 +296,7 @@ namespace MintWorkshop
 
         private void closeTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CloseEditor(tabControl.SelectedIndex);
+            CloseEditor(tabControl.SelectedIndex, false);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
