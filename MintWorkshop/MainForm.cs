@@ -42,6 +42,12 @@ namespace MintWorkshop
             this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
         }
 
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            archive.Scripts.Clear();
+            hashes.Clear();
+        }
+
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog open = new OpenFileDialog();
@@ -215,6 +221,10 @@ namespace MintWorkshop
                 loading = true;
                 if (tabControl.SelectedIndex == index)
                     tabControl.SelectedIndex = index - 1;
+
+                RichTextBox box = tabControl.TabPages[index].Controls[0] as RichTextBox;
+                box.Clear();
+                box.ClearUndo();
 
                 tabControl.TabPages.RemoveAt(index);
                 loading = false;

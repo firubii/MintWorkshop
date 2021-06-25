@@ -507,7 +507,7 @@
             this.addNamespaceToolStripMenuItem,
             this.deleteNamespaceToolStripMenuItem});
             this.namespaceCtxMenu.Name = "namespaceCtxMenu";
-            this.namespaceCtxMenu.Size = new System.Drawing.Size(181, 114);
+            this.namespaceCtxMenu.Size = new System.Drawing.Size(173, 92);
             // 
             // addScriptToolStripMenuItem
             // 
@@ -570,6 +570,7 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Mint Workshop";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
