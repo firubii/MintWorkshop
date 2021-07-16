@@ -79,12 +79,12 @@
             this.deleteObjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.namespaceCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteNamespaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -295,6 +295,7 @@
             this.imageList.Images.SetKeyName(3, "Field_16x.png");
             this.imageList.Images.SetKeyName(4, "Method_16x.png");
             this.imageList.Images.SetKeyName(5, "Constant_16x.png");
+            this.imageList.Images.SetKeyName(6, "NamespaceAdd_16x.png");
             // 
             // groupBox1
             // 
@@ -512,21 +513,28 @@
             // addScriptToolStripMenuItem
             // 
             this.addScriptToolStripMenuItem.Name = "addScriptToolStripMenuItem";
-            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addScriptToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.addScriptToolStripMenuItem.Text = "Add Script";
             this.addScriptToolStripMenuItem.Click += new System.EventHandler(this.addScriptToolStripMenuItem_Click);
+            // 
+            // importScriptToolStripMenuItem
+            // 
+            this.importScriptToolStripMenuItem.Name = "importScriptToolStripMenuItem";
+            this.importScriptToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.importScriptToolStripMenuItem.Text = "Import Script";
+            this.importScriptToolStripMenuItem.Click += new System.EventHandler(this.importScriptToolStripMenuItem_Click);
             // 
             // addNamespaceToolStripMenuItem
             // 
             this.addNamespaceToolStripMenuItem.Name = "addNamespaceToolStripMenuItem";
-            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.addNamespaceToolStripMenuItem.Text = "Add Namespace";
             this.addNamespaceToolStripMenuItem.Click += new System.EventHandler(this.addNamespaceToolStripMenuItem_Click);
             // 
             // deleteNamespaceToolStripMenuItem
             // 
             this.deleteNamespaceToolStripMenuItem.Name = "deleteNamespaceToolStripMenuItem";
-            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteNamespaceToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.deleteNamespaceToolStripMenuItem.Text = "Delete Namespace";
             // 
             // editorCtxMenu
@@ -550,13 +558,6 @@
             this.convertToDecimalToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
-            // 
-            // importScriptToolStripMenuItem
-            // 
-            this.importScriptToolStripMenuItem.Name = "importScriptToolStripMenuItem";
-            this.importScriptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.importScriptToolStripMenuItem.Text = "Import Script";
-            this.importScriptToolStripMenuItem.Click += new System.EventHandler(this.importScriptToolStripMenuItem_Click);
             // 
             // MainForm
             // 

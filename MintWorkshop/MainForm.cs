@@ -141,6 +141,15 @@ namespace MintWorkshop
                     return;
                 }
             }
+            if (searchIndex < search.Length - 1)
+            {
+                TreeNode namespaceNode = new TreeNode(search[searchIndex], 6, 6);
+                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
+                node.Nodes.Add(namespaceNode);
+                ScriptNodeSearch(node.Nodes[node.Nodes.IndexOf(namespaceNode)], search, searchIndex + 1);
+                return;
+            }
+
             TreeNode scriptNode = new TreeNode(search[searchIndex], 1, 1);
             scriptNode.ContextMenuStrip = scriptCtxMenu;
 
@@ -662,15 +671,18 @@ namespace MintWorkshop
 
                 string parentName = arcTree.SelectedNode.Parent.FullPath;
                 int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
-                Archive.Namespace parent = archive.Namespaces[parentIndex];
-                parent.Scripts++;
-                parent.TotalScripts++;
-                archive.Namespaces[parentIndex] = parent;
-                for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                if (parentIndex != -1)
                 {
-                    Archive.Namespace n = archive.Namespaces[i];
-                    n.TotalScripts++;
-                    archive.Namespaces[i] = n;
+                    Archive.Namespace parent = archive.Namespaces[parentIndex];
+                    parent.Scripts++;
+                    parent.TotalScripts++;
+                    archive.Namespaces[parentIndex] = parent;
+                    for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                    {
+                        Archive.Namespace n = archive.Namespaces[i];
+                        n.TotalScripts++;
+                        archive.Namespaces[i] = n;
+                    }
                 }
             }
         }
@@ -699,15 +711,18 @@ namespace MintWorkshop
 
                 string parentName = arcTree.SelectedNode.Parent.FullPath;
                 int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
-                Archive.Namespace parent = archive.Namespaces[parentIndex];
-                parent.Scripts++;
-                parent.TotalScripts++;
-                archive.Namespaces[parentIndex] = parent;
-                for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                if (parentIndex != -1)
                 {
-                    Archive.Namespace n = archive.Namespaces[i];
-                    n.TotalScripts++;
-                    archive.Namespaces[i] = n;
+                    Archive.Namespace parent = archive.Namespaces[parentIndex];
+                    parent.Scripts++;
+                    parent.TotalScripts++;
+                    archive.Namespaces[parentIndex] = parent;
+                    for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
+                    {
+                        Archive.Namespace n = archive.Namespaces[i];
+                        n.TotalScripts++;
+                        archive.Namespaces[i] = n;
+                    }
                 }
 
                 TreeNode scriptNode = new TreeNode(newScript.Name.Split('.').Last(), 1, 1);
@@ -763,7 +778,7 @@ namespace MintWorkshop
                 int sortIndex = preSort.FindIndex(s => s == namespaceName);
                 int index = nList.FindIndex(x => x.Name == preSort[sortIndex - 1]);
 
-                int parentIndex = nList.FindIndex(x => x.Name == name);
+                /*int parentIndex = nList.FindIndex(x => x.Name == name);
                 Archive.Namespace parentNamespace = nList[parentIndex];
                 parentNamespace.ChildNamespaces++;
                 nList[parentIndex] = parentNamespace;
@@ -775,9 +790,9 @@ namespace MintWorkshop
                 newNamespace.TotalScripts = nList[index].TotalScripts;
                 newNamespace.ChildNamespaces = 0;
 
-                nList.Insert(index + 1, newNamespace);
+                nList.Insert(index + 1, newNamespace);*/
 
-                TreeNode namespaceNode = new TreeNode(namespaceName.Split('.').Last(), 0, 0);
+                TreeNode namespaceNode = new TreeNode(namespaceName.Split('.').Last(), 6, 6);
                 namespaceNode.ContextMenuStrip = namespaceCtxMenu;
                 arcTree.SelectedNode.Nodes.Insert(sortIndex, namespaceNode);
 
