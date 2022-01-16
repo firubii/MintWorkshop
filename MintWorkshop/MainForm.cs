@@ -80,22 +80,78 @@ namespace MintWorkshop
 
                 filePath = open.FileName;
 
-                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(filePath, FileMode.Open, FileAccess.Read)))
-                    archive = new Archive(reader);
+                ProgressBar progress = new ProgressBar();
+                Task.Run(() =>
+                {
+                    Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
 
-                ReloadHashes();
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Reading Archive");
+                    });
+                    using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(filePath, FileMode.Open, FileAccess.Read)))
+                        archive = new Archive(reader);
 
-                TreeNode root = new TreeNode();
-                for (int i = 0; i < archive.Namespaces.Count; i++)
-                    NamespaceNodeSearch(root, archive.Namespaces[i].Name.Split('.'), 0);
-                for (int i = 0; i < archive.Scripts.Count; i++)
-                    ScriptNodeSearch(root, archive.Scripts.Keys.ElementAt(i).Split('.'), 0);
-                foreach (TreeNode n in root.Nodes)
-                    arcTree.Nodes.Add(n);
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Reading Hashes");
+                    });
+                    ReloadHashes();
 
-                this.Text = "Mint Workshop - " + filePath;
+                    TreeNode root = new TreeNode();
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(archive.Namespaces.Count);
+                        progress.SetTitle("Reading Namespaces");
+                    });
+                    for (int i = 0; i < archive.Namespaces.Count; i++)
+                    {
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetValue(i);
+                        });
+                        NamespaceNodeSearch(root, archive.Namespaces[i].Name.Split('.'), 0);
+                    }
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(archive.Scripts.Count);
+                        progress.SetTitle("Reading Scripts");
+                    });
+                    for (int i = 0; i < archive.Scripts.Count; i++)
+                    {
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetValue(i);
+                        });
+                        ScriptNodeSearch(root, archive.Scripts.Keys.ElementAt(i).Split('.'), 0);
+                    }
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(root.Nodes.Count);
+                        progress.SetTitle("Populating Archive Tree");
+                    });
+                    foreach (TreeNode n in root.Nodes)
+                    {
+                        Invoke((MethodInvoker)delegate
+                        {
+                            arcTree.Nodes.Add(n);
+                        });
+                    }
 
-                arcTree.EndUpdate();
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.Close();
+                        this.Text = "Mint Workshop - " + filePath;
+                        arcTree.EndUpdate();
+                    });
+                });
             }
         }
 

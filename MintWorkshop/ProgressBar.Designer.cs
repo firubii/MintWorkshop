@@ -35,16 +35,18 @@ namespace MintWorkshop
             // 
             // progress
             // 
-            this.progress.Location = new System.Drawing.Point(0, 23);
+            this.progress.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.progress.Location = new System.Drawing.Point(0, 24);
             this.progress.Maximum = 1;
             this.progress.Name = "progress";
-            this.progress.Size = new System.Drawing.Size(411, 36);
+            this.progress.Size = new System.Drawing.Size(411, 35);
             this.progress.TabIndex = 0;
             // 
             // status
             // 
             this.status.AutoSize = true;
-            this.status.Location = new System.Drawing.Point(0, 4);
+            this.status.Dock = System.Windows.Forms.DockStyle.Top;
+            this.status.Location = new System.Drawing.Point(0, 0);
             this.status.Name = "status";
             this.status.Size = new System.Drawing.Size(0, 13);
             this.status.TabIndex = 1;
