@@ -91,6 +91,8 @@ namespace MintWorkshop.Types
             for (int l = 0; l < text.Length; l++)
             {
                 string line = text[l].TrimStart(trimChars);
+                if (line.StartsWith("//"))
+                    continue;
                 if (classRegex.IsMatch(line))
                 {
                     string[] classDeclaration = line.Split(' ');
