@@ -18,11 +18,11 @@ namespace MintWorkshop.Types
         public uint Filesize { get; private set; }
         public uint Unknown0C { get; private set; }
 
-        public XData(Endianness endianness)
+        public XData(Endianness endianness, byte[] version)
         {
             Magic = XDATA_MAGIC;
             Endianness = endianness;
-            Version = new byte[] { 2, 0 };
+            Version = version;
             Filesize = 0;
             Unknown0C = 65001;
         }
@@ -30,6 +30,9 @@ namespace MintWorkshop.Types
         public XData(EndianBinaryReader reader)
         {
             Magic = Encoding.UTF8.GetString(reader.ReadBytes(4));
+            if (Magic != XDATA_MAGIC)
+                throw new InvalidDataException("Invalid XData");
+
             ushort bom = reader.ReadUInt16();
             //Invert reader endianness if the byte order mark doesn't match 0x1234
             if (bom == 0x3412)
@@ -46,6 +49,9 @@ namespace MintWorkshop.Types
 
             Filesize = reader.ReadUInt32();
             Unknown0C = reader.ReadUInt32();
+
+            if (Version.SequenceEqual(new byte[] { 4, 0 }))
+                reader.ReadUInt32();
         }
 
         public void Write(EndianBinaryWriter writer)
@@ -58,6 +64,9 @@ namespace MintWorkshop.Types
             writer.Write(Version);
             writer.Write(-1);
             writer.Write(Unknown0C);
+
+            if (Version.SequenceEqual(new byte[] { 4, 0 }))
+                writer.Write(-1);
         }
 
         public void UpdateFilesize(EndianBinaryWriter writer)
@@ -68,9 +77,29 @@ namespace MintWorkshop.Types
             writer.Write(Filesize);
         }
 
+        public void WriteFooter(EndianBinaryWriter writer)
+        {
+            if (!Version.SequenceEqual(new byte[] { 4, 0 }))
+                return;
+
+            writer.BaseStream.Seek(0, SeekOrigin.End);
+            while ((writer.BaseStream.Length & 0xF) != 0x0
+                && (writer.BaseStream.Length & 0xF) != 0x4
+                && (writer.BaseStream.Length & 0xF) != 0x8
+                && (writer.BaseStream.Length & 0xF) != 0xC)
+                writer.Write((byte)0);
+
+            writer.BaseStream.Seek(0x10, SeekOrigin.Begin);
+            writer.Write((uint)writer.BaseStream.Length);
+            writer.BaseStream.Seek(0, SeekOrigin.End);
+
+            writer.Write(new byte[] { 0x52, 0x4C, 0x4F, 0x43 });
+            writer.Write((long)0);
+        }
+
         public bool isValid()
         {
-            return Magic == XDATA_MAGIC && Version.SequenceEqual(new byte[] { 2, 0 });
+            return Magic == XDATA_MAGIC && (Version.SequenceEqual(new byte[] { 2, 0 }) || Version.SequenceEqual(new byte[] { 4, 0 }));
         }
     }
 }

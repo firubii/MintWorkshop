@@ -8,7 +8,7 @@ using MintWorkshop.Util;
 
 namespace MintWorkshop.Types
 {
-    public class Archive
+    public class Archive : IDisposable
     {
         public struct Namespace
         {
@@ -217,6 +217,13 @@ namespace MintWorkshop.Types
                 }
             }
             return hashes;
+        }
+
+        public void Dispose()
+        {
+            Namespaces.Clear();
+            Scripts.Clear();
+            IndexTable.Clear();
         }
     }
 }

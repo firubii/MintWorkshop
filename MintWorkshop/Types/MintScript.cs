@@ -24,7 +24,7 @@ namespace MintWorkshop.Types
 
         public MintScript(string name, byte[] version)
         {
-            XData = new XData(Endianness.Little);
+            XData = new XData(Endianness.Little, new byte[] { 2, 0 });
             Version = version;
             Name = name;
             SData = new List<byte>();
@@ -77,7 +77,7 @@ namespace MintWorkshop.Types
                 return;
             }
 
-            XData = new XData(Endianness.Little);
+            XData = new XData(Endianness.Little, new byte[] { 2, 0 });
             Version = version;
             Name = scriptDeclare.Substring(7);
             SData = new List<byte>();

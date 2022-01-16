@@ -44,13 +44,23 @@ namespace MintWorkshop
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            archive.Scripts.Clear();
             hashes.Clear();
 
             for (int i = 1; i < tabControl.TabPages.Count; i++)
             {
                 CloseEditor(i, true);
             }
+
+            arcTree.BeginUpdate();
+            CloseArchive();
+            arcTree.Dispose();
+        }
+
+        private void CloseArchive()
+        {
+            if (archive != null)
+                archive.Dispose();
+            arcTree.Nodes.Clear();
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -62,6 +72,8 @@ namespace MintWorkshop
             open.DefaultExt = ".bin";
             if (open.ShowDialog() == DialogResult.OK)
             {
+                CloseArchive();
+
                 closeAllTabsToolStripMenuItem_Click(null, new EventArgs());
                 arcTree.Nodes.Clear();
                 arcTree.BeginUpdate();
@@ -85,6 +97,13 @@ namespace MintWorkshop
 
                 arcTree.EndUpdate();
             }
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (archive != null)
+                archive.Dispose();
+            arcTree.Nodes.Clear();
         }
 
         private void ReloadHashes()
