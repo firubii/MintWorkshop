@@ -151,6 +151,9 @@ namespace MintWorkshop
                         progress.Close();
                         this.Text = "Mint Workshop - " + filePath;
                         arcTree.EndUpdate();
+                        saveToolStripMenuItem.Enabled = true;
+                        saveAsToolStripMenuItem.Enabled = true;
+                        closeToolStripMenuItem.Enabled = true;
                     });
                 });
             }
@@ -161,6 +164,11 @@ namespace MintWorkshop
             if (archive != null)
                 archive.Dispose();
             arcTree.Nodes.Clear();
+
+            this.Text = "Mint Workshop";
+            saveToolStripMenuItem.Enabled = false;
+            saveAsToolStripMenuItem.Enabled = false;
+            closeToolStripMenuItem.Enabled = false;
         }
 
         private void ReloadHashes()

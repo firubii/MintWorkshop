@@ -35,6 +35,7 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.reloadHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -85,7 +86,6 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -135,6 +135,7 @@
             // 
             // saveToolStripMenuItem
             // 
+            this.saveToolStripMenuItem.Enabled = false;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B)));
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
@@ -143,12 +144,21 @@
             // 
             // saveAsToolStripMenuItem
             // 
+            this.saveAsToolStripMenuItem.Enabled = false;
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
             this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.B)));
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
             this.saveAsToolStripMenuItem.Text = "Build As...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            // 
+            // closeToolStripMenuItem
+            // 
+            this.closeToolStripMenuItem.Enabled = false;
+            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.closeToolStripMenuItem.Text = "Close Archive";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // editorToolStripMenuItem
             // 
@@ -560,13 +570,6 @@
             this.convertToDecimalToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
-            // 
-            // closeToolStripMenuItem
-            // 
-            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.closeToolStripMenuItem.Text = "Close Archive";
-            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // MainForm
             // 
