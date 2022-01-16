@@ -111,6 +111,8 @@ namespace MintWorkshop.Types
                     for (int cl = l; cl < text.Length; cl++)
                     {
                         string classLine = text[cl].TrimStart(trimChars);
+                        if (classLine.StartsWith("//"))
+                            continue;
                         if (varRegex.IsMatch(classLine))
                         {
                             string[] varDeclaration = classLine.Split(' ');
@@ -150,6 +152,8 @@ namespace MintWorkshop.Types
                             for (int fl = cl + 2; fl < text.Length; fl++)
                             {
                                 string funcLine = text[fl].TrimStart(trimChars);
+                                if (funcLine.StartsWith("//"))
+                                    continue;
                                 if (funcLine.StartsWith("}"))
                                 {
                                     cl = fl;

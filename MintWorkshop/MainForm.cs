@@ -47,9 +47,7 @@ namespace MintWorkshop
             hashes.Clear();
 
             for (int i = 1; i < tabControl.TabPages.Count; i++)
-            {
                 CloseEditor(i, true);
-            }
 
             arcTree.BeginUpdate();
             CloseArchive();
@@ -58,6 +56,9 @@ namespace MintWorkshop
 
         private void CloseArchive()
         {
+            for (int i = 1; i < tabControl.TabPages.Count; i++)
+                CloseEditor(i, true);
+
             if (archive != null)
                 archive.Dispose();
             arcTree.Nodes.Clear();
