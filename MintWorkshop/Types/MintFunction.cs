@@ -228,7 +228,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -272,7 +272,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -316,7 +316,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -358,7 +358,7 @@ namespace MintWorkshop.Types
                                         if (Sdata[s - 1] == 0x00)
                                         {
                                             b.RemoveAt(b.Count - 1);
-                                            if (Sdata[s - 2] == 0)
+                                            if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                             {
                                                 b.RemoveAt(b.Count - 1);
                                                 utf16 = true;
@@ -607,7 +607,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -652,7 +652,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -697,7 +697,7 @@ namespace MintWorkshop.Types
                                             if (Sdata[s - 1] == 0x00)
                                             {
                                                 b.RemoveAt(b.Count - 1);
-                                                if (Sdata[s - 2] == 0)
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
                                                 {
                                                     b.RemoveAt(b.Count - 1);
                                                     utf16 = true;
@@ -740,7 +740,7 @@ namespace MintWorkshop.Types
                                         if (Sdata[s - 1] == 0x00)
                                         {
                                             b.RemoveAt(b.Count - 1);
-                                            if (Sdata[s - 2] == 0) 
+                                            if (Sdata[s - 2] == 0 && b.Count - 1 >= 0) 
                                             {
                                                 b.RemoveAt(b.Count - 1);
                                                 utf16 = true;
