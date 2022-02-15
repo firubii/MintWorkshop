@@ -670,7 +670,7 @@ namespace MintWorkshop
                                 {
                                     case "vxref":
                                         {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V()]))
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
                                                 h = true;
                                             break;
                                         }

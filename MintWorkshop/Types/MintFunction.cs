@@ -87,7 +87,7 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
-                int loc = i + inst.V();
+                int loc = i + inst.V(ParentClass.ParentScript.XData.Endianness);
                 if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
                 {
                     if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
@@ -160,9 +160,9 @@ namespace MintWorkshop.Types
                         case "v":
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
-                                    disasm += jmpLoc[i + inst.V()];
+                                    disasm += jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 else
-                                    disasm += inst.V();
+                                    disasm += inst.V(ParentClass.ParentScript.XData.Endianness);
                                 break;
                             }
                         case "sz":
@@ -203,7 +203,7 @@ namespace MintWorkshop.Types
                             }
                         case "vint":
                             {
-                                disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V()):X}";
+                                disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}";
                                 break;
                             }
                         case "strz":
@@ -342,7 +342,7 @@ namespace MintWorkshop.Types
                             {
                                 List<byte> b = new List<byte>();
                                 bool utf16 = false;
-                                for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
+                                for (uint s = (ushort)inst.V(ParentClass.ParentScript.XData.Endianness); s < Sdata.Length; s++)
                                 {
                                     if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
@@ -377,7 +377,7 @@ namespace MintWorkshop.Types
                             }
                         case "vxref":
                             {
-                                byte[] h = Xref[(ushort)inst.V()];
+                                byte[] h = Xref[(ushort)inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
@@ -466,7 +466,7 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
-                int loc = i + inst.V();
+                int loc = i + inst.V(ParentClass.ParentScript.XData.Endianness);
                 if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
                 {
                     if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
@@ -539,9 +539,9 @@ namespace MintWorkshop.Types
                         case "v":
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
-                                    textBox.AppendText(jmpLoc[i + inst.V()], TextColors.JumpLocColor);
+                                    textBox.AppendText(jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)], TextColors.JumpLocColor);
                                 else
-                                    textBox.AppendText($"{inst.V()}", TextColors.ConstantColor);
+                                    textBox.AppendText($"{inst.V(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
                                 break;
                             }
                         case "sz":
@@ -582,7 +582,7 @@ namespace MintWorkshop.Types
                             }
                         case "vint":
                             {
-                                textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V()):X}", TextColors.ConstantColor);
+                                textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}", TextColors.ConstantColor);
                                 break;
                             }
                         case "strz":
@@ -724,7 +724,7 @@ namespace MintWorkshop.Types
                             {
                                 List<byte> b = new List<byte>();
                                 bool utf16 = false;
-                                for (uint s = (ushort)inst.V(); s < Sdata.Length; s++)
+                                for (uint s = (ushort)inst.V(ParentClass.ParentScript.XData.Endianness); s < Sdata.Length; s++)
                                 {
                                     if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
@@ -760,7 +760,7 @@ namespace MintWorkshop.Types
                             }
                         case "vxref":
                             {
-                                byte[] h = Xref[(ushort)inst.V()];
+                                byte[] h = Xref[(ushort)inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
