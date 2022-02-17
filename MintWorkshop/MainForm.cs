@@ -673,25 +673,25 @@ namespace MintWorkshop
                             {
                                 switch (opcodes[inst.Opcode].Arguments[a])
                                 {
-                                    case "vxref":
+                                    case InstructionArg.XRefV:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
                                                 h = true;
                                             break;
                                         }
-                                    case "zxref":
+                                    case InstructionArg.XRefZ:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
                                                 h = true;
                                             break;
                                         }
-                                    case "xxref":
+                                    case InstructionArg.XRefX:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
                                                 h = true;
                                             break;
                                         }
-                                    case "yxref":
+                                    case InstructionArg.XRefY:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
                                                 h = true;

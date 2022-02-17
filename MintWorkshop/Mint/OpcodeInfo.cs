@@ -25,15 +25,19 @@ namespace MintWorkshop.Mint
         X = 2, //Byte 3
         Y = 4, //Byte 4
         V = 8, //Byte 3, Byte 4 as short
+        AllBytes = Z | X | Y,
+        AllData = AllBytes | V,
+        VSigned = V | Signed,
 
         //Argument Type
-        Register = 12,
-        SDataInt = 16,
-        SDataArr = 20,
-        SDataRegInt = 24,
-        SDataRegArr = 28,
-        XRef = 32,
-        Raw = 64,
+        Register = 16,
+        SDataInt = 32,
+        SDataArr = 64,
+        SDataRegInt = 128,
+        SDataRegArr = 256,
+        XRef = 512,
+
+        Signed = 2048,
 
         //Presets
         RegZ = Z | Register,
@@ -61,14 +65,12 @@ namespace MintWorkshop.Mint
         XRefZ = Z | XRef,
         XRefX = X | XRef,
         XRefY = Y | XRef,
-        XRefV = V | XRef,
-
-        Short = V | Raw
+        XRefV = V | XRef
     }
 
     public struct Opcode
     {
-        public Opcode(string name, string[] args, Action action = Action.None)
+        public Opcode(string name, InstructionArg[] args, Action action = Action.None)
         {
             this.Name = name;
             this.Action = action;
@@ -76,7 +78,7 @@ namespace MintWorkshop.Mint
         }
         public string Name;
         public Action Action;
-        public string[] Arguments;
+        public InstructionArg[] Arguments;
     }
 
     public struct Instruction

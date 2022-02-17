@@ -128,37 +128,37 @@ namespace MintWorkshop.Types
                 {
                     switch (op.Arguments[a])
                     {
-                        case "z":
+                        case InstructionArg.Z:
                             {
                                 disasm += inst.Z;
                                 break;
                             }
-                        case "x":
+                        case InstructionArg.X:
                             {
                                 disasm += inst.X;
                                 break;
                             }
-                        case "y":
+                        case InstructionArg.Y:
                             {
                                 disasm += inst.Y;
                                 break;
                             }
-                        case "rz":
+                        case InstructionArg.RegZ:
                             {
                                 disasm += $"r{inst.Z}";
                                 break;
                             }
-                        case "rx":
+                        case InstructionArg.RegX:
                             {
                                 disasm += $"r{inst.X}";
                                 break;
                             }
-                        case "ry":
+                        case InstructionArg.RegY:
                             {
                                 disasm += $"r{inst.Y}";
                                 break;
                             }
-                        case "v":
+                        case InstructionArg.VSigned:
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
                                     disasm += jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)];
@@ -166,7 +166,7 @@ namespace MintWorkshop.Types
                                     disasm += inst.V(ParentClass.ParentScript.XData.Endianness);
                                 break;
                             }
-                        case "sz":
+                        case InstructionArg.IntRegZ:
                             {
                                 if ((inst.Z & 0x80) != 0)
                                 {
@@ -178,7 +178,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "sx":
+                        case InstructionArg.IntRegX:
                             {
                                 if ((inst.X & 0x80) != 0)
                                 {
@@ -190,7 +190,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "sy":
+                        case InstructionArg.IntRegY:
                             {
                                 if ((inst.Y & 0x80) != 0)
                                 {
@@ -202,12 +202,12 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "vint":
+                        case InstructionArg.IntV:
                             {
                                 disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}";
                                 break;
                             }
-                        case "strz":
+                        case InstructionArg.ArrRegZ:
                             {
                                 if ((inst.Z & 0x80) != 0)
                                 {
@@ -251,7 +251,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "strx":
+                        case InstructionArg.ArrRegX:
                             {
                                 if ((inst.X & 0x80) != 0)
                                 {
@@ -295,7 +295,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "stry":
+                        case InstructionArg.ArrRegY:
                             {
                                 if ((inst.Y & 0x80) != 0)
                                 {
@@ -339,7 +339,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "vstr":
+                        case InstructionArg.ArrV:
                             {
                                 List<byte> b = new List<byte>();
                                 bool utf16 = false;
@@ -376,7 +376,7 @@ namespace MintWorkshop.Types
                                     disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
                                 break;
                             }
-                        case "vxref":
+                        case InstructionArg.XRefV:
                             {
                                 byte[] h = Xref[(ushort)inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 if (hashes.ContainsKey(h))
@@ -391,7 +391,7 @@ namespace MintWorkshop.Types
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
                             }
-                        case "zxref":
+                        case InstructionArg.XRefZ:
                             {
                                 byte[] h = Xref[inst.Z];
                                 if (hashes.ContainsKey(h))
@@ -406,7 +406,7 @@ namespace MintWorkshop.Types
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
                             }
-                        case "xxref":
+                        case InstructionArg.XRefX:
                             {
                                 byte[] h = Xref[inst.X];
                                 if (hashes.ContainsKey(h))
@@ -421,7 +421,7 @@ namespace MintWorkshop.Types
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
                             }
-                        case "yxref":
+                        case InstructionArg.XRefY:
                             {
                                 byte[] h = Xref[inst.Y];
                                 if (hashes.ContainsKey(h))
@@ -507,37 +507,37 @@ namespace MintWorkshop.Types
                 {
                     switch (op.Arguments[a])
                     {
-                        case "z":
+                        case InstructionArg.Z:
                             {
                                 textBox.AppendText($"{inst.Z}", TextColors.ConstantColor);
                                 break;
                             }
-                        case "x":
+                        case InstructionArg.X:
                             {
                                 textBox.AppendText($"{inst.X}", TextColors.ConstantColor);
                                 break;
                             }
-                        case "y":
+                        case InstructionArg.Y:
                             {
                                 textBox.AppendText($"{inst.Y}", TextColors.ConstantColor);
                                 break;
                             }
-                        case "rz":
+                        case InstructionArg.RegZ:
                             {
                                 textBox.AppendText($"r{inst.Z}", TextColors.RegisterColor);
                                 break;
                             }
-                        case "rx":
+                        case InstructionArg.RegX:
                             {
                                 textBox.AppendText($"r{inst.X}", TextColors.RegisterColor);
                                 break;
                             }
-                        case "ry":
+                        case InstructionArg.RegY:
                             {
                                 textBox.AppendText($"r{inst.Y}", TextColors.RegisterColor);
                                 break;
                             }
-                        case "v":
+                        case InstructionArg.VSigned:
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
                                     textBox.AppendText(jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)], TextColors.JumpLocColor);
@@ -545,7 +545,7 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"{inst.V(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
                                 break;
                             }
-                        case "sz":
+                        case InstructionArg.IntRegZ:
                             {
                                 if ((inst.Z & 0x80) != 0)
                                 {
@@ -557,7 +557,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "sx":
+                        case InstructionArg.IntRegX:
                             {
                                 if ((inst.X & 0x80) != 0)
                                 {
@@ -569,7 +569,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "sy":
+                        case InstructionArg.IntRegY:
                             {
                                 if ((inst.Y & 0x80) != 0)
                                 {
@@ -581,12 +581,12 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "vint":
+                        case InstructionArg.IntV:
                             {
                                 textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}", TextColors.ConstantColor);
                                 break;
                             }
-                        case "strz":
+                        case InstructionArg.ArrRegZ:
                             {
                                 if ((inst.Z & 0x80) != 0)
                                 {
@@ -631,7 +631,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "strx":
+                        case InstructionArg.ArrRegX:
                             {
                                 if ((inst.X & 0x80) != 0)
                                 {
@@ -676,7 +676,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "stry":
+                        case InstructionArg.ArrRegY:
                             {
                                 if ((inst.Y & 0x80) != 0)
                                 {
@@ -721,7 +721,7 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
-                        case "vstr":
+                        case InstructionArg.ArrV:
                             {
                                 List<byte> b = new List<byte>();
                                 bool utf16 = false;
@@ -759,7 +759,7 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 break;
                             }
-                        case "vxref":
+                        case InstructionArg.XRefV:
                             {
                                 byte[] h = Xref[(ushort)inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 if (hashes.ContainsKey(h))
@@ -774,7 +774,7 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
                             }
-                        case "zxref":
+                        case InstructionArg.XRefZ:
                             {
                                 byte[] h = Xref[inst.Z];
                                 if (hashes.ContainsKey(h))
@@ -789,7 +789,7 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
                             }
-                        case "xxref":
+                        case InstructionArg.XRefX:
                             {
                                 byte[] h = Xref[inst.X];
                                 if (hashes.ContainsKey(h))
@@ -804,7 +804,7 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
                                 break;
                             }
-                        case "yxref":
+                        case InstructionArg.XRefY:
                             {
                                 byte[] h = Xref[inst.Y];
                                 if (hashes.ContainsKey(h))
@@ -856,10 +856,20 @@ namespace MintWorkshop.Types
                         MessageBox.Show($"Error: Could not parse flags.", "Mint Assembler", MessageBoxButtons.OK);
                         return;
                     }
-                    Name = string.Join("", lines[0].Skip(8 + flag.Length).SkipWhile(x => x != ' ').Skip(1));
+                    SetName(string.Join("", lines[0].Skip(8 + flag.Length)));
 
                     lines.RemoveAt(0);
                 }
+                else
+                {
+                    SetName(lines[0]);
+                    lines.RemoveAt(0);
+                }
+            }
+            else
+            {
+                SetName(lines[0]);
+                lines.RemoveAt(0);
             }
 
             //Remove any excess spaces and empty lines
@@ -910,14 +920,14 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a] == "vint" || op.Arguments[a].StartsWith("s"))
+                    if (op.Arguments[a] == InstructionArg.IntV || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
                     {
                         string arg = line[a + 1].TrimEnd(',');
                         byte[] b;
 
                         if (arg.StartsWith("r"))
                         {
-                            if (op.Arguments[a].StartsWith("s")) continue;
+                            if (op.Arguments[a].HasFlag(InstructionArg.SDataRegInt)) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected integer, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -985,7 +995,7 @@ namespace MintWorkshop.Types
                             sdata.AddRange(b);
 
                         int buildVal = sIndex;
-                        if (op.Arguments[a].StartsWith("s"))
+                        if (op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
                         {
                             buildVal /= 4;
                             buildVal ^= 0x80;
@@ -1006,14 +1016,14 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a] == "vstr" || op.Arguments[a].StartsWith("str"))
+                    if (op.Arguments[a] == InstructionArg.ArrV || op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
                     {
                         string arg = line[a + 1];
                         List<byte> b = new List<byte>();
 
                         if (arg.StartsWith("r"))
                         {
-                            if (op.Arguments[a].StartsWith("str")) continue;
+                            if (op.Arguments[a].HasFlag(InstructionArg.SDataRegArr)) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected string, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -1073,7 +1083,7 @@ namespace MintWorkshop.Types
                             sdata.Add(0xFF);
 
                         int buildVal = sIndex;
-                        if (op.Arguments[a].StartsWith("str"))
+                        if (op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
                         {
                             buildVal /= 4;
                             buildVal ^= 0x80;
@@ -1097,14 +1107,14 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a].EndsWith("xref"))
+                    if (op.Arguments[a].HasFlag(InstructionArg.XRef))
                     {
                         string arg = line[a + 1];
                         byte[] b = new byte[4];
 
                         if (arg.StartsWith("r"))
                         {
-                            if (!op.Arguments[a].StartsWith("v")) continue;
+                            if (op.Arguments[a] != InstructionArg.XRefV) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected XRef, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -1171,7 +1181,7 @@ namespace MintWorkshop.Types
                 {
                     for (int a = 0; a < op.Arguments.Length; a++)
                     {
-                        if (op.Arguments[a] == "v")
+                        if (op.Arguments[a] == InstructionArg.VSigned)
                         {
                             string arg = line[a + 1];
 
@@ -1200,47 +1210,30 @@ namespace MintWorkshop.Types
                 //Console.WriteLine(lines[i]);
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    switch (op.Arguments[a])
+                    switch (op.Arguments[a] & InstructionArg.AllData)
                     {
-                        case "z":
-                        case "rz":
-                        case "sz":
-                        case "strz":
-                        case "zxref":
+                        case InstructionArg.Z:
                             {
                                 inst.Z = byte.Parse(line[a + 1].TrimStart('r'));
                                 break;
                             }
-                        case "x":
-                        case "rx":
-                        case "sx":
-                        case "strx":
-                        case "xxref":
+                        case InstructionArg.X:
                             {
                                 inst.X = byte.Parse(line[a + 1].TrimStart('r'));
                                 break;
                             }
-                        case "y":
-                        case "ry":
-                        case "sy":
-                        case "stry":
-                        case "yxref":
+                        case InstructionArg.Y:
                             {
                                 inst.Y = byte.Parse(line[a + 1].TrimStart('r'));
                                 break;
                             }
-                        case "v":
+                        case InstructionArg.V:
                             {
-                                byte[] v = BitConverter.GetBytes(short.Parse(line[a + 1]));
-                                inst.X = v[0];
-                                inst.Y = v[1];
-                                break;
-                            }
-                        case "vint":
-                        case "vstr":
-                        case "vxref":
-                            {
-                                byte[] v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
+                                byte[] v;
+                                if (op.Arguments[a].HasFlag(InstructionArg.Signed))
+                                    v = BitConverter.GetBytes(short.Parse(line[a + 1]));
+                                else
+                                    v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
                                 inst.X = v[0];
                                 inst.Y = v[1];
                                 break;
