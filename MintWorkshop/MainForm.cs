@@ -284,11 +284,23 @@ namespace MintWorkshop
 
                 if (archive.Version[0] >= 2)
                 {
-                    box.AppendText("[");
-                    box.AppendText("Flags", TextColors.SDataColor);
-                    box.AppendText(":");
-                    box.AppendText(function.Flags.ToString(), TextColors.ConstantColor);
-                    box.AppendText("] ");
+                    uint fFlags = function.Flags;
+                    string funcFlags = "";
+                    if (archive.Version[0] >= 2) //Only 2.x uses function flags
+                    {
+                        for (uint f = 1; f <= fFlags; f <<= 1)
+                        {
+                            if ((fFlags & f) != 0)
+                            {
+                                if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
+                                    funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
+                                else
+                                    funcFlags += $"flag{fFlags & f:X} ";
+                            }
+                        }
+                    }
+
+                    box.AppendText(funcFlags, TextColors.SDataColor);
                 }
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MintWorkshop.Mint;
@@ -844,31 +845,33 @@ namespace MintWorkshop.Types
             List<byte> sdata = ParentClass.ParentScript.SData;
             List<byte[]> xref = ParentClass.ParentScript.XRef;
 
-            if (ParentClass.ParentScript.Version[0] >= 2)
+            if (new Regex("(\\(.*\\))").IsMatch(lines[0]))
             {
-                if (lines[0].StartsWith("[Flags:"))
+                if (ParentClass.ParentScript.Version[0] >= 2)
                 {
-                    string flag = string.Join("", lines[0].Skip(7).TakeWhile(x => x != ']'));
-                    if (uint.TryParse(flag, out uint f))
-                        Flags = f;
-                    else
+                    string[] funcDeclaration = lines[0].Split(' ');
+                    string name = "";
+                    uint funcFlags = 0;
+                    for (int i = 0; i < funcDeclaration.Length; i++)
                     {
-                        MessageBox.Show($"Error: Could not parse flags.", "Mint Assembler", MessageBoxButtons.OK);
-                        return;
+                        if (funcDeclaration[i].StartsWith("flag"))
+                            funcFlags |= uint.Parse(funcDeclaration[i].Remove(0, 4));
+                        else if (FlagLabels.FunctionFlags.ContainsValue(funcDeclaration[i]))
+                            funcFlags |= FlagLabels.FunctionFlags.Keys.ToArray()[FlagLabels.FunctionFlags.Values.ToList().IndexOf(funcDeclaration[i])];
+                        else
+                        {
+                            name = string.Join(" ", funcDeclaration.Skip(i));
+                            break;
+                        }
                     }
-                    SetName(string.Join("", lines[0].Skip(8 + flag.Length)));
-
-                    lines.RemoveAt(0);
+                    Flags = funcFlags;
+                    SetName(name);
                 }
                 else
                 {
                     SetName(lines[0]);
-                    lines.RemoveAt(0);
                 }
-            }
-            else
-            {
-                SetName(lines[0]);
+
                 lines.RemoveAt(0);
             }
 
