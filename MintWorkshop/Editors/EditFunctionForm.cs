@@ -22,6 +22,12 @@ namespace MintWorkshop.Editors
             FunctionFlags = baseFunction.Flags;
 
             InitializeComponent();
+            if (baseFunction.ParentClass.ParentScript.Version[0] < 2)
+            {
+                funcFlags.Visible = false;
+                label2.Visible = false;
+            }
+
             funcFlags.Maximum = uint.MaxValue;
 
             funcName.Text = FunctionName;

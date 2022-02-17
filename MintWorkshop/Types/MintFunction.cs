@@ -41,7 +41,8 @@ namespace MintWorkshop.Types
             uint nameOffs = reader.ReadUInt32();
             Hash = reader.ReadBytes(4);
             uint dataOffs = reader.ReadUInt32();
-            Flags = reader.ReadUInt32();
+            if (ParentClass.ParentScript.Version[0] >= 2)
+                Flags = reader.ReadUInt32();
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
@@ -843,19 +844,22 @@ namespace MintWorkshop.Types
             List<byte> sdata = ParentClass.ParentScript.SData;
             List<byte[]> xref = ParentClass.ParentScript.XRef;
 
-            if (lines[0].StartsWith("[Flags:"))
+            if (ParentClass.ParentScript.Version[0] >= 2)
             {
-                string flag = string.Join("", lines[0].Skip(7).TakeWhile(x => x != ']'));
-                if (uint.TryParse(flag, out uint f))
-                    Flags = f;
-                else
+                if (lines[0].StartsWith("[Flags:"))
                 {
-                    MessageBox.Show($"Error: Could not parse flags.", "Mint Assembler", MessageBoxButtons.OK);
-                    return;
-                }
-                Name = string.Join("", lines[0].Skip(8 + flag.Length).SkipWhile(x => x != ' ').Skip(1));
+                    string flag = string.Join("", lines[0].Skip(7).TakeWhile(x => x != ']'));
+                    if (uint.TryParse(flag, out uint f))
+                        Flags = f;
+                    else
+                    {
+                        MessageBox.Show($"Error: Could not parse flags.", "Mint Assembler", MessageBoxButtons.OK);
+                        return;
+                    }
+                    Name = string.Join("", lines[0].Skip(8 + flag.Length).SkipWhile(x => x != ' ').Skip(1));
 
-                lines.RemoveAt(0);
+                    lines.RemoveAt(0);
+                }
             }
 
             //Remove any excess spaces and empty lines

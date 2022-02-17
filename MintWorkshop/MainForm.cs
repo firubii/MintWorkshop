@@ -282,11 +282,14 @@ namespace MintWorkshop
                 box.TextChanged += textBoxEdited;
                 box.ContextMenuStrip = editorCtxMenu;
 
-                box.AppendText("[");
-                box.AppendText("Flags", TextColors.SDataColor);
-                box.AppendText(":");
-                box.AppendText(function.Flags.ToString(), TextColors.ConstantColor);
-                box.AppendText("] ");
+                if (archive.Version[0] >= 2)
+                {
+                    box.AppendText("[");
+                    box.AppendText("Flags", TextColors.SDataColor);
+                    box.AppendText(":");
+                    box.AppendText(function.Flags.ToString(), TextColors.ConstantColor);
+                    box.AppendText("] ");
+                }
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");
 
@@ -513,7 +516,8 @@ namespace MintWorkshop
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 newFunc.SetName(edit.FunctionName);
-                newFunc.Flags = edit.FunctionFlags;
+                if (archive.Version[0] >= 2)
+                    newFunc.Flags = edit.FunctionFlags;
                 archive.Scripts[parentScript].Classes[index].Functions.Add(newFunc);
 
                 arcTree.SelectedNode.Nodes[1].Nodes.Add($"{newFunc.Hash[0]:X2}{newFunc.Hash[1]:X2}{newFunc.Hash[2]:X2}{newFunc.Hash[3]:X2}", newFunc.Name, 4, 4);
@@ -564,7 +568,8 @@ namespace MintWorkshop
                         if (edit.ShowDialog() == DialogResult.OK)
                         {
                             archive.Scripts[parentScript].Classes[classIndex].Functions[index].SetName(edit.FunctionName);
-                            archive.Scripts[parentScript].Classes[classIndex].Functions[index].Flags = edit.FunctionFlags;
+                            if (archive.Version[0] >= 2)
+                                archive.Scripts[parentScript].Classes[classIndex].Functions[index].Flags = edit.FunctionFlags;
 
                             arcTree.SelectedNode.Text = edit.FunctionName;
                         }

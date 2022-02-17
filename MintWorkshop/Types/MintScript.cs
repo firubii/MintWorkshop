@@ -286,7 +286,8 @@ namespace MintWorkshop.Types
                         writer.Write(-1);
                         writer.Write(Classes[i].Functions[v].Hash);
                         writer.Write((uint)writer.BaseStream.Position + 8);
-                        writer.Write(Classes[i].Functions[v].Flags);
+                        if (Version[0] >= 2) //Only 2.x uses function flags
+                            writer.Write(Classes[i].Functions[v].Flags);
                         for (int f = 0; f < Classes[i].Functions[v].Instructions.Count; f++)
                         {
                             Instruction inst = Classes[i].Functions[v].Instructions[f];
@@ -427,14 +428,17 @@ namespace MintWorkshop.Types
                 {
                     uint fFlags = Classes[c].Functions[i].Flags;
                     string funcFlags = "";
-                    for (uint f = 1; f <= fFlags; f <<= 1)
+                    if (Version[0] >= 2) //Only 2.x uses function flags
                     {
-                        if ((fFlags & f) != 0)
+                        for (uint f = 1; f <= fFlags; f <<= 1)
                         {
-                            if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
-                                funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
-                            else
-                                funcFlags += $"flag{fFlags & f:X} ";
+                            if ((fFlags & f) != 0)
+                            {
+                                if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
+                                    funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
+                                else
+                                    funcFlags += $"flag{fFlags & f:X} ";
+                            }
                         }
                     }
 
