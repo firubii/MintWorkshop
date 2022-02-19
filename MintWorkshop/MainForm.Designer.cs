@@ -86,8 +86,14 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label1 = new System.Windows.Forms.Label();
+            this.littleEndian = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.mintVerSelect = new System.Windows.Forms.ComboBox();
+            this.xVerSelect = new System.Windows.Forms.ComboBox();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
+            this.tabProperties.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -275,6 +281,11 @@
             // 
             // tabProperties
             // 
+            this.tabProperties.Controls.Add(this.xVerSelect);
+            this.tabProperties.Controls.Add(this.mintVerSelect);
+            this.tabProperties.Controls.Add(this.label1);
+            this.tabProperties.Controls.Add(this.littleEndian);
+            this.tabProperties.Controls.Add(this.label3);
             this.tabProperties.Location = new System.Drawing.Point(4, 22);
             this.tabProperties.Name = "tabProperties";
             this.tabProperties.Padding = new System.Windows.Forms.Padding(3);
@@ -571,6 +582,64 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(75, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "XData Version";
+            // 
+            // littleEndian
+            // 
+            this.littleEndian.AutoSize = true;
+            this.littleEndian.Enabled = false;
+            this.littleEndian.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.littleEndian.Location = new System.Drawing.Point(87, 60);
+            this.littleEndian.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
+            this.littleEndian.Name = "littleEndian";
+            this.littleEndian.Size = new System.Drawing.Size(84, 17);
+            this.littleEndian.TabIndex = 4;
+            this.littleEndian.Text = "Little Endian";
+            this.littleEndian.UseVisualStyleBackColor = false;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 36);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(65, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "Mint Version";
+            // 
+            // mintVerSelect
+            // 
+            this.mintVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.mintVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.mintVerSelect.Enabled = false;
+            this.mintVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.mintVerSelect.FormattingEnabled = true;
+            this.mintVerSelect.Location = new System.Drawing.Point(87, 33);
+            this.mintVerSelect.Name = "mintVerSelect";
+            this.mintVerSelect.Size = new System.Drawing.Size(121, 21);
+            this.mintVerSelect.TabIndex = 6;
+            // 
+            // xVerSelect
+            // 
+            this.xVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.xVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.xVerSelect.Enabled = false;
+            this.xVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.xVerSelect.FormattingEnabled = true;
+            this.xVerSelect.Items.AddRange(new object[] {
+            "2.0",
+            "4.0"});
+            this.xVerSelect.Location = new System.Drawing.Point(87, 6);
+            this.xVerSelect.Name = "xVerSelect";
+            this.xVerSelect.Size = new System.Drawing.Size(121, 21);
+            this.xVerSelect.TabIndex = 7;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -587,6 +656,8 @@
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.tabControl.ResumeLayout(false);
+            this.tabProperties.ResumeLayout(false);
+            this.tabProperties.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -661,6 +732,11 @@
         private System.Windows.Forms.ToolStripMenuItem copyFullNameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importScriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
+        private System.Windows.Forms.ComboBox xVerSelect;
+        private System.Windows.Forms.ComboBox mintVerSelect;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox littleEndian;
+        private System.Windows.Forms.Label label3;
     }
 }
 

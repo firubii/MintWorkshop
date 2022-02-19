@@ -39,6 +39,11 @@ namespace MintWorkshop
 
             InitializeComponent();
 
+            List<string> versions = new List<string>();
+            foreach (KeyValuePair<byte[], Opcode[]> pair in MintVersions.Versions)
+                versions.Add($"{pair.Key[0]}.{pair.Key[1]}.{pair.Key[2]}.{pair.Key[3]}");
+            mintVerSelect.Items.AddRange(versions.ToArray());
+
             this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
         }
 
@@ -150,6 +155,7 @@ namespace MintWorkshop
                         progress.Close();
                         this.Text = "Mint Workshop - " + filePath;
                         arcTree.EndUpdate();
+                        UpdateArchiveProperties();
                         saveToolStripMenuItem.Enabled = true;
                         saveAsToolStripMenuItem.Enabled = true;
                         closeToolStripMenuItem.Enabled = true;
@@ -168,6 +174,13 @@ namespace MintWorkshop
             saveToolStripMenuItem.Enabled = false;
             saveAsToolStripMenuItem.Enabled = false;
             closeToolStripMenuItem.Enabled = false;
+        }
+
+        private void UpdateArchiveProperties()
+        {
+            xVerSelect.SelectedItem = $"{archive.XData.Version[0]}.{archive.XData.Version[1]}";
+            mintVerSelect.SelectedItem = archive.GetSemanticVersion();
+            littleEndian.Checked = archive.XData.Endianness == Endianness.Little;
         }
 
         private void ReloadHashes()
