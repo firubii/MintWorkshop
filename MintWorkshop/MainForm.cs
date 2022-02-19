@@ -67,7 +67,7 @@ namespace MintWorkshop
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog open = new OpenFileDialog();
-            open.Filter = "Binary Files|*.bin";
+            open.Filter = "Binary Files|*.bin;*.bin.cmp";
             open.CheckFileExists = true;
             open.AddExtension = true;
             open.DefaultExt = ".bin";
@@ -92,8 +92,7 @@ namespace MintWorkshop
                         progress.SetMax(1);
                         progress.SetTitle("Reading Archive");
                     });
-                    using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(filePath, FileMode.Open, FileAccess.Read)))
-                        archive = new Archive(reader);
+                    archive = new Archive(filePath);
 
                     Invoke((MethodInvoker)delegate
                     {
@@ -419,12 +418,22 @@ namespace MintWorkshop
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog save = new SaveFileDialog();
-            save.Filter = "Binary Files|*.bin";
+            save.Filter = "Binary Files|*.bin;*.bin.cmp";
             save.AddExtension = true;
             save.DefaultExt = ".bin";
             if (save.ShowDialog() == DialogResult.OK)
             {
                 filePath = save.FileName;
+
+                if (archive.LZ77Compressed)
+                {
+                    archive.LZ77Compressed =
+                        MessageBox.Show("Build with compression?\nThis is required to work in HAL's 3DS games.",
+                        "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes;
+                }
+
+                if (archive.LZ77Compressed && !filePath.EndsWith(".cmp"))
+                    filePath += ".cmp";
 
                 if (config.OptimizeOnBuild)
                 foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)

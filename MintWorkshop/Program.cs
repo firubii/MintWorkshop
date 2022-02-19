@@ -8,6 +8,8 @@ namespace MintWorkshop
 {
     static class Program
     {
+        public static Form MainForm;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -16,7 +18,7 @@ namespace MintWorkshop
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.Run(MainForm = new MainForm());
         }
     }
 }

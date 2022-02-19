@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using BrawlLib.Internal;
+using BrawlLib.Internal.IO;
+using BrawlLib.SSBB.ResourceNodes;
+using BrawlLib.Wii;
+using BrawlLib.Wii.Compression;
 using MintWorkshop.Util;
 
 namespace MintWorkshop.Types
@@ -27,6 +32,8 @@ namespace MintWorkshop.Types
             public int ChildNamespaces;
         }
 
+        public bool LZ77Compressed { get; set; } = false;
+
         public XData XData { get; private set; }
         public byte[] Version { get; private set; }
         public uint RootNamespaces { get; private set; }
@@ -35,7 +42,31 @@ namespace MintWorkshop.Types
         public Dictionary<string, MintScript> Scripts { get; private set; }
         public List<int> IndexTable { get; private set; }
 
+        public Archive(string filePath)
+        {
+            EndianBinaryReader reader = new EndianBinaryReader(new FileStream(filePath, FileMode.Open, FileAccess.Read));
+            if (reader.ReadByte() == 0x11)
+            {
+                Console.WriteLine("LZ77 Extended compression detected. Decompressing...");
+                LZ77Compressed = true;
+                DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(filePath)), CompressionType.ExtendedLZ77);
+                FileStream stream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                stream.Lock(0, stream.Length);
+                reader = new EndianBinaryReader(stream);
+            }
+
+            Read(reader);
+            if (LZ77Compressed)
+                (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+            reader.Dispose();
+        }
+
         public Archive(EndianBinaryReader reader)
+        {
+            Read(reader);
+        }
+
+        public void Read(EndianBinaryReader reader)
         {
             XData = new XData(reader);
             if (!XData.isValid()) return;
@@ -115,8 +146,28 @@ namespace MintWorkshop.Types
 
         public void Write(string path)
         {
-            using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write)))
-                Write(writer);
+            if (LZ77Compressed)
+            {
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
+                        Write(writer);
+                    byte[] buffer = stream.GetBuffer();
+                    unsafe
+                    {
+                        fixed (byte* b = &buffer[0])
+                        {
+                            using (FileStream file = new FileStream(path, FileMode.Create, FileAccess.Write))
+                                Compressor.Compact(CompressionType.ExtendedLZ77, new VoidPtr { address = b }, buffer.Length, file, new RawDataNode { _mainForm = Program.MainForm, Name = "Mint Archive" });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write)))
+                    Write(writer);
+            }
         }
 
         public void Write(EndianBinaryWriter writer)
