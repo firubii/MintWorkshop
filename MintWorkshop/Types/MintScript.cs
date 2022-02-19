@@ -286,7 +286,7 @@ namespace MintWorkshop.Types
                         writer.Write(-1);
                         writer.Write(Classes[i].Functions[v].Hash);
                         writer.Write((uint)writer.BaseStream.Position + 8);
-                        if (Version[0] >= 2) //Only 2.x uses function flags
+                        if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
                             writer.Write(Classes[i].Functions[v].Flags);
                         for (int f = 0; f < Classes[i].Functions[v].Instructions.Count; f++)
                         {
@@ -428,7 +428,7 @@ namespace MintWorkshop.Types
                 {
                     uint fFlags = Classes[c].Functions[i].Flags;
                     string funcFlags = "";
-                    if (Version[0] >= 2) //Only 2.x uses function flags
+                    if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
                     {
                         for (uint f = 1; f <= fFlags; f <<= 1)
                         {

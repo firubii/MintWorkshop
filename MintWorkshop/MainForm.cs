@@ -67,6 +67,15 @@ namespace MintWorkshop
             if (archive != null)
                 archive.Dispose();
             arcTree.Nodes.Clear();
+
+            this.Text = "Mint Workshop";
+            saveToolStripMenuItem.Enabled = false;
+            saveAsToolStripMenuItem.Enabled = false;
+            closeToolStripMenuItem.Enabled = false;
+            xVerSelect.Text = "";
+            mintVerSelect.Text = "";
+            littleEndian.Checked = false;
+            lz77Cmp.Enabled = false;
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -166,21 +175,18 @@ namespace MintWorkshop
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (archive != null)
-                archive.Dispose();
-            arcTree.Nodes.Clear();
-
-            this.Text = "Mint Workshop";
-            saveToolStripMenuItem.Enabled = false;
-            saveAsToolStripMenuItem.Enabled = false;
-            closeToolStripMenuItem.Enabled = false;
+            CloseArchive();
         }
 
         private void UpdateArchiveProperties()
         {
+            loading = true;
             xVerSelect.SelectedItem = $"{archive.XData.Version[0]}.{archive.XData.Version[1]}";
             mintVerSelect.SelectedItem = archive.GetSemanticVersion();
             littleEndian.Checked = archive.XData.Endianness == Endianness.Little;
+            lz77Cmp.Enabled = true;
+            lz77Cmp.Checked = archive.LZ77Compressed;
+            loading = false;
         }
 
         private void ReloadHashes()
@@ -294,21 +300,18 @@ namespace MintWorkshop
                 box.TextChanged += textBoxEdited;
                 box.ContextMenuStrip = editorCtxMenu;
 
-                if (archive.Version[0] >= 2)
+                if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
                 {
                     uint fFlags = function.Flags;
                     string funcFlags = "";
-                    if (archive.Version[0] >= 2) //Only 2.x uses function flags
+                    for (uint f = 1; f <= fFlags; f <<= 1)
                     {
-                        for (uint f = 1; f <= fFlags; f <<= 1)
+                        if ((fFlags & f) != 0)
                         {
-                            if ((fFlags & f) != 0)
-                            {
-                                if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
-                                    funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
-                                else
-                                    funcFlags += $"flag{fFlags & f:X} ";
-                            }
+                            if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
+                                funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
+                            else
+                                funcFlags += $"flag{fFlags & f:X} ";
                         }
                     }
 
@@ -550,7 +553,7 @@ namespace MintWorkshop
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 newFunc.SetName(edit.FunctionName);
-                if (archive.Version[0] >= 2)
+                if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
                     newFunc.Flags = edit.FunctionFlags;
                 archive.Scripts[parentScript].Classes[index].Functions.Add(newFunc);
 
@@ -602,7 +605,7 @@ namespace MintWorkshop
                         if (edit.ShowDialog() == DialogResult.OK)
                         {
                             archive.Scripts[parentScript].Classes[classIndex].Functions[index].SetName(edit.FunctionName);
-                            if (archive.Version[0] >= 2)
+                            if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
                                 archive.Scripts[parentScript].Classes[classIndex].Functions[index].Flags = edit.FunctionFlags;
 
                             arcTree.SelectedNode.Text = edit.FunctionName;
@@ -1159,6 +1162,12 @@ namespace MintWorkshop
                 }
             }
             return null;
+        }
+
+        private void lz77Cmp_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!loading)
+                archive.LZ77Compressed = lz77Cmp.Checked;
         }
     }
 }

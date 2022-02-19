@@ -55,6 +55,7 @@ namespace MintWorkshop.Types
                 reader = new EndianBinaryReader(stream);
             }
 
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
             Read(reader);
             if (LZ77Compressed)
                 (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);

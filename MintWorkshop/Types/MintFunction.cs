@@ -42,7 +42,7 @@ namespace MintWorkshop.Types
             uint nameOffs = reader.ReadUInt32();
             Hash = reader.ReadBytes(4);
             uint dataOffs = reader.ReadUInt32();
-            if (ParentClass.ParentScript.Version[0] >= 2)
+            if (ParentClass.ParentScript.Version[0] >= 2 || ParentClass.ParentScript.Version[1] >= 1)
                 Flags = reader.ReadUInt32();
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
@@ -847,7 +847,7 @@ namespace MintWorkshop.Types
 
             if (new Regex("(\\(.*\\))").IsMatch(lines[0]))
             {
-                if (ParentClass.ParentScript.Version[0] >= 2)
+                if (ParentClass.ParentScript.Version[0] >= 2 || ParentClass.ParentScript.Version[1] >= 1)
                 {
                     string[] funcDeclaration = lines[0].Split(' ');
                     string name = "";

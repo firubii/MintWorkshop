@@ -91,6 +91,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.mintVerSelect = new System.Windows.Forms.ComboBox();
             this.xVerSelect = new System.Windows.Forms.ComboBox();
+            this.lz77Cmp = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabProperties.SuspendLayout();
@@ -281,6 +282,7 @@
             // 
             // tabProperties
             // 
+            this.tabProperties.Controls.Add(this.lz77Cmp);
             this.tabProperties.Controls.Add(this.xVerSelect);
             this.tabProperties.Controls.Add(this.mintVerSelect);
             this.tabProperties.Controls.Add(this.label1);
@@ -640,6 +642,20 @@
             this.xVerSelect.Size = new System.Drawing.Size(121, 21);
             this.xVerSelect.TabIndex = 7;
             // 
+            // lz77Cmp
+            // 
+            this.lz77Cmp.AutoSize = true;
+            this.lz77Cmp.Enabled = false;
+            this.lz77Cmp.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.lz77Cmp.Location = new System.Drawing.Point(87, 83);
+            this.lz77Cmp.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
+            this.lz77Cmp.Name = "lz77Cmp";
+            this.lz77Cmp.Size = new System.Drawing.Size(112, 17);
+            this.lz77Cmp.TabIndex = 8;
+            this.lz77Cmp.Text = "LZ77 Compressed";
+            this.lz77Cmp.UseVisualStyleBackColor = false;
+            this.lz77Cmp.CheckedChanged += new System.EventHandler(this.lz77Cmp_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -737,6 +753,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox littleEndian;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox lz77Cmp;
     }
 }
 

@@ -22,7 +22,7 @@ namespace MintWorkshop.Editors
             FunctionFlags = baseFunction.Flags;
 
             InitializeComponent();
-            if (baseFunction.ParentClass.ParentScript.Version[0] < 2)
+            if (baseFunction.ParentClass.ParentScript.Version[0] < 2 && baseFunction.ParentClass.ParentScript.Version[1] < 1)
             {
                 funcFlags.Visible = false;
                 label2.Visible = false;
