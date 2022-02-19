@@ -1,5 +1,5 @@
 # MintWorkshop
-A GUI editor for HAL's Mint bytecode found in modern Kirby games and the BoxBoy series
+A GUI editor for HAL's Mint bytecode found in modern Kirby games, the BoxBoy series, and the mobile version of Part-Time UFO
 
 **For information regarding Mint versions and instructions, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1A_08ytw1oIBhqBzpkxDIU86RwmYAjG4DopogqCQllMo).**
 
@@ -8,6 +8,7 @@ A GUI editor for HAL's Mint bytecode found in modern Kirby games and the BoxBoy 
 * A nice color-coded disassembly view
 * Adding, editing, and removing classes, variables, functions, and constants
 * Loading hashes from an external file (`hashes_<version>.txt`) and automatically generating hashes
+* LZ77 Extended (de)compression for Mint archives found in HAL's 3DS games
 
 ## Supported Mint Versions and Games
 * 1.0.5
@@ -38,8 +39,6 @@ A GUI editor for HAL's Mint bytecode found in modern Kirby games and the BoxBoy 
 # Usage
 After starting the program, use `File -> Open` or `Ctrl+O` to select a Mint archive to open.
 
-**Note: MintWorkshop will not automatically decompress or compress Mint archives found in the 3DS games, you must use a separate tool for that!**
-
 Wait for the program to read the archive data and populate the tree view on the left. After it has finished, you can expand the nodes to explore the archive.
 
 Right-click on namespaces, scripts, classes, variables, functions, and constants to edit them or add to their contents.
@@ -52,3 +51,7 @@ Press `Editor->Close Tab` or `Ctrl+W` to close the currently selected editor tab
 Press `File->Build` or `Ctrl+B` to build the archive in place, where the original opened file is.
 
 Press `File->Build As` or `Ctrl+Shift+B` to build the archive somewhere else. The place where you build this to is saved and will be used by the `Build` operation.
+
+# Credits
+
+This project uses **BrawlLib** from **BrawlCrate** for LZ77 Extended compression: https://github.com/soopercool101/BrawlCrate
