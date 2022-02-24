@@ -315,7 +315,7 @@ namespace MintWorkshop.Types
                         writer.Write(Classes[i].Constants[v].Value);
                     }
 
-                    if (!ByteArrayComparer.Equal(Version, new byte[] { 1, 0, 5, 0 }))
+                    if (Version[0] >= 2 || Version[1] >= 1)
                     {
                         writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
