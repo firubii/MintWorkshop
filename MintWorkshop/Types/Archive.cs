@@ -227,6 +227,7 @@ namespace MintWorkshop.Types
             writer.BaseStream.Seek(0x24, SeekOrigin.Begin);
             writer.Write((uint)writer.BaseStream.Length);
             writer.BaseStream.Seek(0, SeekOrigin.End);
+            writer.Write((long)0);
 
             while ((writer.BaseStream.Length & 0xF) != 0x0)
                 writer.Write((byte)0);

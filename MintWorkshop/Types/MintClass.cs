@@ -95,7 +95,7 @@ namespace MintWorkshop.Types
             }
 
             UnknownList = new List<uint>();
-            if (!ByteArrayComparer.Equal(ParentScript.Version, new byte[] { 1, 0, 5, 0 }))
+            if (ParentScript.Version[0] >= 2 || ParentScript.Version[1] >= 1)
             {
                 reader.BaseStream.Seek(unkOffs, SeekOrigin.Begin);
                 uint unkCount = reader.ReadUInt32();
@@ -103,8 +103,8 @@ namespace MintWorkshop.Types
                 for (int i = 0; i < unkCount; i++)
                     UnknownList.Add(reader.ReadUInt32());
             }
-            /*if (unkCount > 0)
-                Console.WriteLine($"{Name} - {unkCount} Unknowns: {string.Join(",", UnknownList)}");*/
+            if (UnknownList.Count > 0)
+                Console.WriteLine($"UnkData found at {Name} - {UnknownList.Count} Unknowns: {string.Join(",", UnknownList)}");
         }
 
         public void SetName(string name)

@@ -186,6 +186,7 @@ namespace MintWorkshop
             littleEndian.Checked = archive.XData.Endianness == Endianness.Little;
             lz77Cmp.Enabled = true;
             lz77Cmp.Checked = archive.LZ77Compressed;
+            indexTable.Text = string.Join(" ", archive.IndexTable);
             loading = false;
         }
 

@@ -1237,8 +1237,16 @@ namespace MintWorkshop.Types
                                     v = BitConverter.GetBytes(short.Parse(line[a + 1]));
                                 else
                                     v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
-                                inst.X = v[0];
-                                inst.Y = v[1];
+                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Little)
+                                {
+                                    inst.X = v[0];
+                                    inst.Y = v[1];
+                                }
+                                else
+                                {
+                                    inst.X = v[1];
+                                    inst.Y = v[0];
+                                }
                                 break;
                             }
                     }

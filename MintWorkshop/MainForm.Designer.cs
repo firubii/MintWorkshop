@@ -51,6 +51,12 @@
             this.instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabProperties = new System.Windows.Forms.TabPage();
+            this.lz77Cmp = new System.Windows.Forms.CheckBox();
+            this.xVerSelect = new System.Windows.Forms.ComboBox();
+            this.mintVerSelect = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.littleEndian = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.arcTree = new System.Windows.Forms.TreeView();
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -86,12 +92,8 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
-            this.littleEndian = new System.Windows.Forms.CheckBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.mintVerSelect = new System.Windows.Forms.ComboBox();
-            this.xVerSelect = new System.Windows.Forms.ComboBox();
-            this.lz77Cmp = new System.Windows.Forms.CheckBox();
+            this.indexTable = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabProperties.SuspendLayout();
@@ -282,6 +284,8 @@
             // 
             // tabProperties
             // 
+            this.tabProperties.Controls.Add(this.label2);
+            this.tabProperties.Controls.Add(this.indexTable);
             this.tabProperties.Controls.Add(this.lz77Cmp);
             this.tabProperties.Controls.Add(this.xVerSelect);
             this.tabProperties.Controls.Add(this.mintVerSelect);
@@ -293,8 +297,80 @@
             this.tabProperties.Padding = new System.Windows.Forms.Padding(3);
             this.tabProperties.Size = new System.Drawing.Size(793, 608);
             this.tabProperties.TabIndex = 0;
-            this.tabProperties.Text = "Properties";
+            this.tabProperties.Text = "Archive Properties";
             this.tabProperties.UseVisualStyleBackColor = true;
+            // 
+            // lz77Cmp
+            // 
+            this.lz77Cmp.AutoSize = true;
+            this.lz77Cmp.Enabled = false;
+            this.lz77Cmp.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.lz77Cmp.Location = new System.Drawing.Point(87, 83);
+            this.lz77Cmp.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
+            this.lz77Cmp.Name = "lz77Cmp";
+            this.lz77Cmp.Size = new System.Drawing.Size(112, 17);
+            this.lz77Cmp.TabIndex = 8;
+            this.lz77Cmp.Text = "LZ77 Compressed";
+            this.lz77Cmp.UseVisualStyleBackColor = false;
+            this.lz77Cmp.CheckedChanged += new System.EventHandler(this.lz77Cmp_CheckedChanged);
+            // 
+            // xVerSelect
+            // 
+            this.xVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.xVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.xVerSelect.Enabled = false;
+            this.xVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.xVerSelect.FormattingEnabled = true;
+            this.xVerSelect.Items.AddRange(new object[] {
+            "2.0",
+            "4.0"});
+            this.xVerSelect.Location = new System.Drawing.Point(87, 6);
+            this.xVerSelect.Name = "xVerSelect";
+            this.xVerSelect.Size = new System.Drawing.Size(121, 21);
+            this.xVerSelect.TabIndex = 7;
+            // 
+            // mintVerSelect
+            // 
+            this.mintVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.mintVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.mintVerSelect.Enabled = false;
+            this.mintVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.mintVerSelect.FormattingEnabled = true;
+            this.mintVerSelect.Location = new System.Drawing.Point(87, 33);
+            this.mintVerSelect.Name = "mintVerSelect";
+            this.mintVerSelect.Size = new System.Drawing.Size(121, 21);
+            this.mintVerSelect.TabIndex = 6;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(75, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "XData Version";
+            // 
+            // littleEndian
+            // 
+            this.littleEndian.AutoSize = true;
+            this.littleEndian.Enabled = false;
+            this.littleEndian.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.littleEndian.Location = new System.Drawing.Point(87, 60);
+            this.littleEndian.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
+            this.littleEndian.Name = "littleEndian";
+            this.littleEndian.Size = new System.Drawing.Size(84, 17);
+            this.littleEndian.TabIndex = 4;
+            this.littleEndian.Text = "Little Endian";
+            this.littleEndian.UseVisualStyleBackColor = false;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(6, 36);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(65, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "Mint Version";
             // 
             // arcTree
             // 
@@ -584,77 +660,22 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
-            // label1
+            // indexTable
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(75, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "XData Version";
+            this.indexTable.Location = new System.Drawing.Point(87, 107);
+            this.indexTable.Name = "indexTable";
+            this.indexTable.ReadOnly = true;
+            this.indexTable.Size = new System.Drawing.Size(700, 20);
+            this.indexTable.TabIndex = 9;
             // 
-            // littleEndian
+            // label2
             // 
-            this.littleEndian.AutoSize = true;
-            this.littleEndian.Enabled = false;
-            this.littleEndian.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.littleEndian.Location = new System.Drawing.Point(87, 60);
-            this.littleEndian.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
-            this.littleEndian.Name = "littleEndian";
-            this.littleEndian.Size = new System.Drawing.Size(84, 17);
-            this.littleEndian.TabIndex = 4;
-            this.littleEndian.Text = "Little Endian";
-            this.littleEndian.UseVisualStyleBackColor = false;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 36);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(65, 13);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Mint Version";
-            // 
-            // mintVerSelect
-            // 
-            this.mintVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.mintVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.mintVerSelect.Enabled = false;
-            this.mintVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.mintVerSelect.FormattingEnabled = true;
-            this.mintVerSelect.Location = new System.Drawing.Point(87, 33);
-            this.mintVerSelect.Name = "mintVerSelect";
-            this.mintVerSelect.Size = new System.Drawing.Size(121, 21);
-            this.mintVerSelect.TabIndex = 6;
-            // 
-            // xVerSelect
-            // 
-            this.xVerSelect.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.xVerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.xVerSelect.Enabled = false;
-            this.xVerSelect.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.xVerSelect.FormattingEnabled = true;
-            this.xVerSelect.Items.AddRange(new object[] {
-            "2.0",
-            "4.0"});
-            this.xVerSelect.Location = new System.Drawing.Point(87, 6);
-            this.xVerSelect.Name = "xVerSelect";
-            this.xVerSelect.Size = new System.Drawing.Size(121, 21);
-            this.xVerSelect.TabIndex = 7;
-            // 
-            // lz77Cmp
-            // 
-            this.lz77Cmp.AutoSize = true;
-            this.lz77Cmp.Enabled = false;
-            this.lz77Cmp.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.lz77Cmp.Location = new System.Drawing.Point(87, 83);
-            this.lz77Cmp.Margin = new System.Windows.Forms.Padding(50, 3, 50, 3);
-            this.lz77Cmp.Name = "lz77Cmp";
-            this.lz77Cmp.Size = new System.Drawing.Size(112, 17);
-            this.lz77Cmp.TabIndex = 8;
-            this.lz77Cmp.Text = "LZ77 Compressed";
-            this.lz77Cmp.UseVisualStyleBackColor = false;
-            this.lz77Cmp.CheckedChanged += new System.EventHandler(this.lz77Cmp_CheckedChanged);
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 110);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(63, 13);
+            this.label2.TabIndex = 10;
+            this.label2.Text = "Index Table";
             // 
             // MainForm
             // 
@@ -754,6 +775,8 @@
         private System.Windows.Forms.CheckBox littleEndian;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox lz77Cmp;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox indexTable;
     }
 }
 

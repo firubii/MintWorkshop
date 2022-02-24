@@ -211,12 +211,13 @@ namespace MintWorkshop.Types
 
                 writer.Write(-1);
                 writer.Write(0x20);
-                writer.Write(0x24 + SData.Count);
-                uint classListOffs = (uint)(0x24 + SData.Count + 4 + (XRef.Count * 4));
+                writer.Write(0x24 + SData.Count + 4);
+                uint classListOffs = (uint)(0x24 + SData.Count + 8 + (XRef.Count * 4));
                 writer.Write(classListOffs);
                 
                 writer.Write(SData.Count);
                 writer.Write(SData.ToArray());
+                writer.Write((uint)0);
 
                 writer.Write(XRef.Count);
                 for (int i = 0; i < XRef.Count; i++)
