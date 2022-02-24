@@ -51,6 +51,8 @@
             this.instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabProperties = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
+            this.indexTable = new System.Windows.Forms.TextBox();
             this.lz77Cmp = new System.Windows.Forms.CheckBox();
             this.xVerSelect = new System.Windows.Forms.ComboBox();
             this.mintVerSelect = new System.Windows.Forms.ComboBox();
@@ -92,8 +94,7 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.indexTable = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.dumpHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabProperties.SuspendLayout();
@@ -231,7 +232,8 @@
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.parseAsFloatToolStripMenuItem,
             this.convertToDecimalToolStripMenuItem1,
-            this.batchImportScriptsToolStripMenuItem});
+            this.batchImportScriptsToolStripMenuItem,
+            this.dumpHashesToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -299,6 +301,23 @@
             this.tabProperties.TabIndex = 0;
             this.tabProperties.Text = "Archive Properties";
             this.tabProperties.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 110);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(63, 13);
+            this.label2.TabIndex = 10;
+            this.label2.Text = "Index Table";
+            // 
+            // indexTable
+            // 
+            this.indexTable.Location = new System.Drawing.Point(87, 107);
+            this.indexTable.Name = "indexTable";
+            this.indexTable.ReadOnly = true;
+            this.indexTable.Size = new System.Drawing.Size(700, 20);
+            this.indexTable.TabIndex = 9;
             // 
             // lz77Cmp
             // 
@@ -660,22 +679,12 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
-            // indexTable
+            // dumpHashesToolStripMenuItem
             // 
-            this.indexTable.Location = new System.Drawing.Point(87, 107);
-            this.indexTable.Name = "indexTable";
-            this.indexTable.ReadOnly = true;
-            this.indexTable.Size = new System.Drawing.Size(700, 20);
-            this.indexTable.TabIndex = 9;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 110);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(63, 13);
-            this.label2.TabIndex = 10;
-            this.label2.Text = "Index Table";
+            this.dumpHashesToolStripMenuItem.Name = "dumpHashesToolStripMenuItem";
+            this.dumpHashesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.dumpHashesToolStripMenuItem.Text = "Dump Hashes";
+            this.dumpHashesToolStripMenuItem.Click += new System.EventHandler(this.dumpHashesToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -777,6 +786,7 @@
         private System.Windows.Forms.CheckBox lz77Cmp;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox indexTable;
+        private System.Windows.Forms.ToolStripMenuItem dumpHashesToolStripMenuItem;
     }
 }
 

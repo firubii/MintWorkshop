@@ -1277,14 +1277,14 @@ namespace MintWorkshop.Types
 
         public string NameWithoutType()
         {
-            int i = 0;
+            int i = Name.StartsWith("const ") ? 6 : 0;
             while (Name[i] != ' ') i++;
             return Name.Remove(0, i + 1);
         }
 
         public string NameWithoutSignature()
         {
-            int i = 0;
+            int i = Name.StartsWith("const ") ? 6 : 0;
             while (Name[i] != ' ') i++;
             int p = 0;
             while (Name[p] != '(') p++;

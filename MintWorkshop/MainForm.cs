@@ -1170,5 +1170,32 @@ namespace MintWorkshop
             if (!loading)
                 archive.LZ77Compressed = lz77Cmp.Checked;
         }
+
+        private void dumpHashesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Text Files|*.txt";
+            save.AddExtension = true;
+            save.DefaultExt = ".txt";
+            save.FileName = $"{Path.GetFileNameWithoutExtension(filePath)}.txt";
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                using (StreamWriter writer = new StreamWriter(new FileStream(save.FileName, FileMode.Create, FileAccess.Write)))
+                {
+                    foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+                    {
+                        for (int c = 0; c < pair.Value.Classes.Count; c++)
+                        {
+                            writer.WriteLine(pair.Value.Classes[c].Name);
+                            for (int i = 0; i < pair.Value.Classes[c].Variables.Count; i++)
+                                writer.WriteLine(pair.Value.Classes[c].Variables[i].FullName());
+                            for (int i = 0; i < pair.Value.Classes[c].Functions.Count; i++)
+                                writer.WriteLine(pair.Value.Classes[c].Functions[i].FullName());
+                        }
+                    }
+                }
+                MessageBox.Show($"Exported hashes to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
+            }
+        }
     }
 }
