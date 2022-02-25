@@ -23,10 +23,11 @@ A GUI editor for HAL's Mint bytecode found in modern Kirby games, the BoxBoy ser
 * 1.1.3
   * BoxBoxBoy!
   * Kirby: Planet Robobot
+* 1.1.8
+  * Kirby's Blowout Blast
 * 1.1.12
   * Bye-Bye BoxBoy!
   * Team Kirby Clash Deluxe
-  * Kirby's Blowout Blast
 * 2.1.4
   * Kirby: Battle Royale
   * Part-Time UFO (iOS/Android)
