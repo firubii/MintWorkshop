@@ -209,20 +209,32 @@ namespace MintWorkshop.Types
             {
                 XData.Write(writer);
 
+                uint fileStart = (uint)writer.BaseStream.Position;
                 writer.Write(-1);
                 writer.Write(0x20);
-                writer.Write(0x24 + SData.Count + 4);
-                uint classListOffs = (uint)(0x24 + SData.Count + 8 + (XRef.Count * 4));
-                writer.Write(classListOffs);
+                writer.Write(-1);
+                writer.Write(-1);
                 
                 writer.Write(SData.Count);
                 writer.Write(SData.ToArray());
                 writer.Write((uint)0);
+                while ((writer.BaseStream.Length & 0xF) != 0x0
+                    && (writer.BaseStream.Length & 0xF) != 0x4
+                    && (writer.BaseStream.Length & 0xF) != 0x8
+                    && (writer.BaseStream.Length & 0xF) != 0xC)
+                        writer.Write((byte)0);
 
+                writer.BaseStream.Seek(fileStart + 0x8, SeekOrigin.Begin);
+                writer.Write((uint)writer.BaseStream.Length);
+                writer.BaseStream.Seek(0, SeekOrigin.End);
                 writer.Write(XRef.Count);
                 for (int i = 0; i < XRef.Count; i++)
                     writer.Write(XRef[i]);
 
+                writer.BaseStream.Seek(fileStart + 0xC, SeekOrigin.Begin);
+                writer.Write((uint)writer.BaseStream.Length);
+                writer.BaseStream.Seek(0, SeekOrigin.End);
+                uint classListOffs = (uint)writer.BaseStream.Position;
                 writer.Write(Classes.Count);
                 for (int i = 0; i < Classes.Count; i++)
                     writer.Write(-1);
