@@ -99,6 +99,12 @@
     <Compile Include="Editors\EditXRefForm.Designer.cs">
       <DependentUpon>EditXRefForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="HashSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HashSelector.Designer.cs">
+      <DependentUpon>HashSelector.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -151,6 +157,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Editors\EditXRefForm.resx">
       <DependentUpon>EditXRefForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="HashSelector.resx">
+      <DependentUpon>HashSelector.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

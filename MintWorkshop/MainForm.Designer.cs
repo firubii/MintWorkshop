@@ -47,6 +47,8 @@
             this.parseAsFloatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.batchImportScriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.searchForHashUsageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.dumpHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl = new System.Windows.Forms.TabControl();
@@ -94,7 +96,7 @@
             this.editorCtxMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.parseAsFloatToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.convertToDecimalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.dumpHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.findUsesOfObjectToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabProperties.SuspendLayout();
@@ -233,6 +235,7 @@
             this.parseAsFloatToolStripMenuItem,
             this.convertToDecimalToolStripMenuItem1,
             this.batchImportScriptsToolStripMenuItem,
+            this.searchForHashUsageToolStripMenuItem,
             this.dumpHashesToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
@@ -241,23 +244,37 @@
             // parseAsFloatToolStripMenuItem
             // 
             this.parseAsFloatToolStripMenuItem.Name = "parseAsFloatToolStripMenuItem";
-            this.parseAsFloatToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.parseAsFloatToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.parseAsFloatToolStripMenuItem.Text = "Convert to Float";
             this.parseAsFloatToolStripMenuItem.Click += new System.EventHandler(this.parseAsFloatToolStripMenuItem_Click);
             // 
             // convertToDecimalToolStripMenuItem1
             // 
             this.convertToDecimalToolStripMenuItem1.Name = "convertToDecimalToolStripMenuItem1";
-            this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(181, 22);
+            this.convertToDecimalToolStripMenuItem1.Size = new System.Drawing.Size(191, 22);
             this.convertToDecimalToolStripMenuItem1.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem1.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
             // batchImportScriptsToolStripMenuItem
             // 
             this.batchImportScriptsToolStripMenuItem.Name = "batchImportScriptsToolStripMenuItem";
-            this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.batchImportScriptsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.batchImportScriptsToolStripMenuItem.Text = "Batch Import Scripts";
             this.batchImportScriptsToolStripMenuItem.Click += new System.EventHandler(this.batchImportScriptsToolStripMenuItem_Click);
+            // 
+            // searchForHashUsageToolStripMenuItem
+            // 
+            this.searchForHashUsageToolStripMenuItem.Name = "searchForHashUsageToolStripMenuItem";
+            this.searchForHashUsageToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.searchForHashUsageToolStripMenuItem.Text = "Search for Hash usage";
+            this.searchForHashUsageToolStripMenuItem.Click += new System.EventHandler(this.searchForHashUsageToolStripMenuItem_Click);
+            // 
+            // dumpHashesToolStripMenuItem
+            // 
+            this.dumpHashesToolStripMenuItem.Name = "dumpHashesToolStripMenuItem";
+            this.dumpHashesToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.dumpHashesToolStripMenuItem.Text = "Dump Hashes";
+            this.dumpHashesToolStripMenuItem.Click += new System.EventHandler(this.dumpHashesToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -527,6 +544,7 @@
             // classCtxMenu
             // 
             this.classCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.findUsesOfObjectToolStripMenuItem1,
             this.editClassToolStripMenuItem,
             this.deleteClassToolStripMenuItem,
             this.toolStripSeparator1,
@@ -534,45 +552,45 @@
             this.addFunctionToolStripMenuItem,
             this.addConstantToolStripMenuItem});
             this.classCtxMenu.Name = "classCtxMenu";
-            this.classCtxMenu.Size = new System.Drawing.Size(148, 120);
+            this.classCtxMenu.Size = new System.Drawing.Size(181, 164);
             // 
             // editClassToolStripMenuItem
             // 
             this.editClassToolStripMenuItem.Name = "editClassToolStripMenuItem";
-            this.editClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.editClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.editClassToolStripMenuItem.Text = "Edit Class";
             this.editClassToolStripMenuItem.Click += new System.EventHandler(this.editClassToolStripMenuItem_Click);
             // 
             // deleteClassToolStripMenuItem
             // 
             this.deleteClassToolStripMenuItem.Name = "deleteClassToolStripMenuItem";
-            this.deleteClassToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.deleteClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteClassToolStripMenuItem.Text = "Delete Class";
             this.deleteClassToolStripMenuItem.Click += new System.EventHandler(this.deleteClassToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(144, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // addVariableToolStripMenuItem
             // 
             this.addVariableToolStripMenuItem.Name = "addVariableToolStripMenuItem";
-            this.addVariableToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.addVariableToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addVariableToolStripMenuItem.Text = "Add Variable";
             this.addVariableToolStripMenuItem.Click += new System.EventHandler(this.addVariableToolStripMenuItem_Click);
             // 
             // addFunctionToolStripMenuItem
             // 
             this.addFunctionToolStripMenuItem.Name = "addFunctionToolStripMenuItem";
-            this.addFunctionToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.addFunctionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFunctionToolStripMenuItem.Text = "Add Function";
             this.addFunctionToolStripMenuItem.Click += new System.EventHandler(this.addFunctionToolStripMenuItem_Click);
             // 
             // addConstantToolStripMenuItem
             // 
             this.addConstantToolStripMenuItem.Name = "addConstantToolStripMenuItem";
-            this.addConstantToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.addConstantToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addConstantToolStripMenuItem.Text = "Add Constant";
             this.addConstantToolStripMenuItem.Click += new System.EventHandler(this.addConstantToolStripMenuItem_Click);
             // 
@@ -679,12 +697,12 @@
             this.convertToDecimalToolStripMenuItem.Text = "Convert to Decimal";
             this.convertToDecimalToolStripMenuItem.Click += new System.EventHandler(this.convertToDecimalToolStripMenuItem_Click);
             // 
-            // dumpHashesToolStripMenuItem
+            // findUsesOfObjectToolStripMenuItem1
             // 
-            this.dumpHashesToolStripMenuItem.Name = "dumpHashesToolStripMenuItem";
-            this.dumpHashesToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.dumpHashesToolStripMenuItem.Text = "Dump Hashes";
-            this.dumpHashesToolStripMenuItem.Click += new System.EventHandler(this.dumpHashesToolStripMenuItem_Click);
+            this.findUsesOfObjectToolStripMenuItem1.Name = "findUsesOfObjectToolStripMenuItem1";
+            this.findUsesOfObjectToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.findUsesOfObjectToolStripMenuItem1.Text = "Find Uses of Object";
+            this.findUsesOfObjectToolStripMenuItem1.Click += new System.EventHandler(this.findUsesOfObjectToolStripMenuItem1_Click);
             // 
             // MainForm
             // 
@@ -787,6 +805,8 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox indexTable;
         private System.Windows.Forms.ToolStripMenuItem dumpHashesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem searchForHashUsageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem findUsesOfObjectToolStripMenuItem1;
     }
 }
 

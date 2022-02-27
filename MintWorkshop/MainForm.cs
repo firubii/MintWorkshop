@@ -360,6 +360,78 @@ namespace MintWorkshop
             }
         }
 
+        private void SearchForHash(byte[] searchHash)
+        {
+            List<string> scripts = new List<string>();
+            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+            {
+                bool hasHash = false;
+                for (int i = 0; i < pair.Value.XRef.Count; i++)
+                {
+                    if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[i]))
+                    {
+                        hasHash = true;
+                        break;
+                    }
+                }
+                if (!hasHash)
+                    continue;
+
+                Opcode[] opcodes = MintVersions.Versions[archive.Version];
+                for (int c = 0; c < pair.Value.Classes.Count; c++)
+                {
+                    for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
+                    {
+                        for (int i = 0; i < pair.Value.Classes[c].Functions[f].Instructions.Count; i++)
+                        {
+                            bool h = false;
+                            Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
+                            for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
+                            {
+                                switch (opcodes[inst.Opcode].Arguments[a])
+                                {
+                                    case InstructionArg.XRefV:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefZ:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefX:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefY:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
+                                                h = true;
+                                            break;
+                                        }
+                                    default:
+                                        break;
+                                }
+                            }
+                            if (h)
+                            {
+                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SearchResultForm results = new SearchResultForm(scripts.ToArray());
+            results.ShowDialog();
+        }
+
         private void arcTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (arcTree.SelectedNode == null || arcTree.SelectedNode.Parent == null)
@@ -683,74 +755,14 @@ namespace MintWorkshop
                     }
             }
 
-            List<string> scripts = new List<string>();
-            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
-            {
-                bool hasHash = false;
-                for (int i = 0; i < pair.Value.XRef.Count; i++)
-                {
-                    if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[i]))
-                    {
-                        hasHash = true;
-                        break;
-                    }
-                }
-                if (!hasHash)
-                    continue;
+            SearchForHash(searchHash);
+        }
 
-                Opcode[] opcodes = MintVersions.Versions[archive.Version];
-                for (int c = 0; c < pair.Value.Classes.Count; c++)
-                {
-                    for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
-                    {
-                        for (int i = 0; i < pair.Value.Classes[c].Functions[f].Instructions.Count; i++)
-                        {
-                            bool h = false;
-                            Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
-                            for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
-                            {
-                                switch (opcodes[inst.Opcode].Arguments[a])
-                                {
-                                    case InstructionArg.XRefV:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
-                                                h = true;
-                                            break;
-                                        }
-                                    case InstructionArg.XRefZ:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
-                                                h = true;
-                                            break;
-                                        }
-                                    case InstructionArg.XRefX:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
-                                                h = true;
-                                            break;
-                                        }
-                                    case InstructionArg.XRefY:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
-                                                h = true;
-                                            break;
-                                        }
-                                    default:
-                                        break;
-                                }
-                            }
-                            if (h)
-                            {
-                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName());
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            SearchResultForm results = new SearchResultForm(scripts.ToArray());
-            results.ShowDialog();
+        private void findUsesOfObjectToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            string parentScript = arcTree.SelectedNode.Parent.FullPath;
+            int classIndex = arcTree.SelectedNode.Index;
+            SearchForHash(archive.Scripts[parentScript].Classes[classIndex].Hash);
         }
 
         private void copyFullNameToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1195,6 +1207,15 @@ namespace MintWorkshop
                     }
                 }
                 MessageBox.Show($"Exported hashes to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
+            }
+        }
+
+        private void searchForHashUsageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HashSelector hashSearch = new HashSelector(hashes.Values.ToArray());
+            if (hashSearch.ShowDialog() == DialogResult.OK)
+            {
+                SearchForHash(HashCalculator.Calculate(hashSearch.selectedHash));
             }
         }
     }
