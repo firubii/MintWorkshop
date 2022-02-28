@@ -153,7 +153,7 @@ namespace MintWorkshop.Types
                 {
                     using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
                         Write(writer);
-                    byte[] buffer = stream.GetBuffer();
+                    byte[] buffer = stream.GetBuffer().Take((int)XData.Filesize).ToArray();
                     unsafe
                     {
                         fixed (byte* b = &buffer[0])
@@ -229,8 +229,11 @@ namespace MintWorkshop.Types
             writer.BaseStream.Seek(0, SeekOrigin.End);
             writer.Write((long)0);
 
-            while ((writer.BaseStream.Length & 0xF) != 0x0)
-                writer.Write((byte)0);
+            while ((writer.BaseStream.Length & 0xF) != 0x0
+                && (writer.BaseStream.Length & 0xF) != 0x4
+                && (writer.BaseStream.Length & 0xF) != 0x8
+                && (writer.BaseStream.Length & 0xF) != 0xC)
+                    writer.Write((byte)0);
 
             for (int i = 0; i < Namespaces.Count; i++)
             {

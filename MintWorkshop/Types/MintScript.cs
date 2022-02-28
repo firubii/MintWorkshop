@@ -252,16 +252,12 @@ namespace MintWorkshop.Types
                     uint cl = (uint)writer.BaseStream.Position;
                     classNameOffs.Add(cl);
 
-                    uint varListOffs = cl + 0x1C;
-                    uint funcListOffs = (uint)(varListOffs + 4 + (Classes[i].Variables.Count * 4) + (Classes[i].Variables.Count * 0x10));
-                    List<uint> funcOffsList = new List<uint>();
-
                     writer.Write(-1);
                     writer.Write(Classes[i].Hash);
                     writer.Write(-1);
                     writer.Write(-1);
                     writer.Write(-1);
-                    if (!ByteArrayComparer.Equal(Version, new byte[] { 1, 0, 5, 0 }))
+                    if (Version[0] >= 2 || Version[1] >= 1)
                         writer.Write(-1);
                     writer.Write(Classes[i].Flags);
 
@@ -269,6 +265,7 @@ namespace MintWorkshop.Types
                     writer.Write((uint)writer.BaseStream.Length);
                     writer.BaseStream.Seek(0, SeekOrigin.End);
 
+                    uint varListOffs = (uint)writer.BaseStream.Position;
                     writer.Write(Classes[i].Variables.Count);
                     List<uint> vOffs = new List<uint>();
                     for (int v = 0; v < Classes[i].Variables.Count; v++)
@@ -286,6 +283,8 @@ namespace MintWorkshop.Types
                     writer.Write((uint)writer.BaseStream.Length);
                     writer.BaseStream.Seek(0, SeekOrigin.End);
 
+                    uint funcListOffs = (uint)writer.BaseStream.Position;
+                    List<uint> funcOffsList = new List<uint>();
                     writer.Write(Classes[i].Functions.Count);
                     for (int v = 0; v < Classes[i].Functions.Count; v++)
                         writer.Write(-1);
@@ -298,9 +297,13 @@ namespace MintWorkshop.Types
                         funcOffsList.Add((uint)writer.BaseStream.Length);
                         writer.Write(-1);
                         writer.Write(Classes[i].Functions[v].Hash);
-                        writer.Write((uint)writer.BaseStream.Position + 8);
                         if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
+                        {
+                            writer.Write((uint)writer.BaseStream.Position + 8);
                             writer.Write(Classes[i].Functions[v].Flags);
+                        }
+                        else
+                            writer.Write((uint)writer.BaseStream.Position + 4);
                         for (int f = 0; f < Classes[i].Functions[v].Instructions.Count; f++)
                         {
                             Instruction inst = Classes[i].Functions[v].Instructions[f];

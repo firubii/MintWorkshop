@@ -52,7 +52,9 @@ namespace MintWorkshop.Types
             uint varOffs = reader.ReadUInt32();
             uint funcOffs = reader.ReadUInt32();
             uint constOffs = reader.ReadUInt32();
-            uint unkOffs = reader.ReadUInt32();
+            uint unkOffs = 0;
+            if (ParentScript.Version[0] >= 2 || ParentScript.Version[1] >= 1)
+                unkOffs = reader.ReadUInt32();
             Flags = reader.ReadUInt32();
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
@@ -102,9 +104,9 @@ namespace MintWorkshop.Types
                 UnknownList = new List<uint>();
                 for (int i = 0; i < unkCount; i++)
                     UnknownList.Add(reader.ReadUInt32());
+                if (UnknownList.Count > 0)
+                    Console.WriteLine($"UnkData found at {Name} - {UnknownList.Count} Unknowns: {string.Join(",", UnknownList)}");
             }
-            if (UnknownList.Count > 0)
-                Console.WriteLine($"UnkData found at {Name} - {UnknownList.Count} Unknowns: {string.Join(",", UnknownList)}");
         }
 
         public void SetName(string name)
