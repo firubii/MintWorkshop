@@ -41,23 +41,32 @@ namespace MintWorkshop.Types
 
             uint nameOffs = reader.ReadUInt32();
             Hash = reader.ReadBytes(4);
+            if (ParentClass.ParentScript.Version[0] >= 7)
+                reader.BaseStream.Seek(8, SeekOrigin.Current);
             uint dataOffs = reader.ReadUInt32();
             if (ParentClass.ParentScript.Version[0] >= 2 || ParentClass.ParentScript.Version[1] >= 1)
                 Flags = reader.ReadUInt32();
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+            Console.WriteLine(FullName());
 
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
-            Opcode[] opcodes = MintVersions.Versions[ParentClass.ParentScript.Version];
-            bool hasReturn = opcodes.Select(x => x.Action.HasFlag(Mint.Action.Return)).Count() > 0;
-            while (reader.BaseStream.Position < reader.BaseStream.Length)
+            Opcode[] opcodes = new Opcode[] { };
+            bool hasReturn = false;
+            if (MintVersions.Versions.ContainsKey(ParentClass.ParentScript.Version))
+            {
+                opcodes = MintVersions.Versions[ParentClass.ParentScript.Version];
+                hasReturn = opcodes.Select(x => x.Action.HasFlag(Mint.Action.Return)).Count() > 0;
+            }
+            while (reader.BaseStream.Position < reader.BaseStream.Length - 4)
             {
                 Instruction i = new Instruction(reader.ReadBytes(4));
+                //Console.WriteLine($"{i.Opcode:X2} {i.Z:X2} {i.X:X2} {i.Y:X2}");
                 Instructions.Add(i);
 
-                if (hasReturn)
+                if (hasReturn && i.Opcode < opcodes.Length)
                 {
                     if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return))
                         break;
@@ -102,7 +111,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
-                if (opcodes.Length - 1 < inst.Opcode)
+                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[i].Name) || opcodes[i].Arguments == null)
                 {
                     disasm += $"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!";
                     disasm += "\n";
@@ -481,7 +490,7 @@ namespace MintWorkshop.Types
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
-                if (opcodes.Length - 1 < inst.Opcode)
+                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[inst.Opcode].Name) || opcodes[inst.Opcode].Arguments == null)
                 {
                     textBox.AppendText($"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!", Color.White, Color.Red);
                     textBox.AppendText("\n");

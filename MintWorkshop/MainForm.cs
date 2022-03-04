@@ -386,6 +386,8 @@ namespace MintWorkshop
                         {
                             bool h = false;
                             Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
+                            if (opcodes[inst.Opcode].Arguments == null)
+                                continue;
                             for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
                             {
                                 switch (opcodes[inst.Opcode].Arguments[a])
@@ -476,6 +478,12 @@ namespace MintWorkshop
 
         private void saveTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (archive.Version[0] == 7)
+            {
+                MessageBox.Show("Basil support is currently a WIP, and cannot be saved right now.", "MintWorkshop", MessageBoxButtons.OK);
+                return;
+            }
+
             if (tabControl.SelectedIndex != 0)
             {
                 TreeNode node = arcTree.Nodes.Find(tabControl.SelectedTab.Name, true)[0];
@@ -497,6 +505,12 @@ namespace MintWorkshop
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (archive.Version[0] == 7)
+            {
+                MessageBox.Show("Basil support is currently a WIP, and cannot be built right now.", "MintWorkshop", MessageBoxButtons.OK);
+                return;
+            }
+
             if (config.OptimizeOnBuild)
             foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
                 pair.Value.Optimize();
@@ -506,6 +520,12 @@ namespace MintWorkshop
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (archive.Version[0] == 7)
+            {
+                MessageBox.Show("Basil support is currently a WIP, and cannot be saved right now.", "MintWorkshop", MessageBoxButtons.OK);
+                return;
+            }
+
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Binary Files|*.bin;*.bin.cmp";
             save.AddExtension = true;

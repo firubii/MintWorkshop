@@ -76,6 +76,8 @@ namespace MintWorkshop.Mint
             this.Action = action;
             this.Arguments = args;
         }
+        public static Opcode None() => new Opcode(null, null, Action.None);
+
         public string Name;
         public Action Action;
         public InstructionArg[] Arguments;

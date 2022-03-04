@@ -78,6 +78,9 @@ namespace MintWorkshop.Util
 
         public static void AppendText(this RichTextBox box, string text, Color color, Color backColor)
         {
+            if (string.IsNullOrEmpty(text))
+                return;
+
             box.SelectionStart = box.TextLength;
             box.SelectionLength = 0;
 

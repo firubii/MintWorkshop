@@ -18,6 +18,7 @@ namespace MintWorkshop.Types
         public byte[] Version { get; private set; }
 
         public string Name { get; set; }
+        public byte[] Hash { get; private set; } //Only for Mint 7.0.2
         public List<byte> SData { get; set; }
         public List<byte[]> XRef { get; set; }
         public List<MintClass> Classes { get; private set; }
@@ -37,24 +38,28 @@ namespace MintWorkshop.Types
             XData = new XData(reader);
             Version = version;
 
-            reader.BaseStream.Seek(0x10, SeekOrigin.Begin);
-            reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
+            uint nameOffs = reader.ReadUInt32();
+            if (version[0] >= 7)
+                Hash = reader.ReadBytes(4);
+            else
+                Hash = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
+            uint sdataOffs = reader.ReadUInt32();
+            uint xrefOffs = reader.ReadUInt32();
+            uint classOffs = reader.ReadUInt32();
+
+            reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
 
-            reader.BaseStream.Seek(0x14, SeekOrigin.Begin);
-            reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
+            reader.BaseStream.Seek(sdataOffs, SeekOrigin.Begin);
             SData = new List<byte>();
             SData.AddRange(reader.ReadBytes(reader.ReadInt32()));
 
-            reader.BaseStream.Seek(0x18, SeekOrigin.Begin);
-            reader.BaseStream.Seek(reader.ReadUInt32(), SeekOrigin.Begin);
+            reader.BaseStream.Seek(xrefOffs, SeekOrigin.Begin);
             uint xrefCount = reader.ReadUInt32();
             XRef = new List<byte[]>();
             for (int i = 0; i < xrefCount; i++)
                 XRef.Add(reader.ReadBytes(4));
 
-            reader.BaseStream.Seek(0x1C, SeekOrigin.Begin);
-            uint classOffs = reader.ReadUInt32();
             reader.BaseStream.Seek(classOffs, SeekOrigin.Begin);
             uint classCount = reader.ReadUInt32();
             Classes = new List<MintClass>();
