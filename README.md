@@ -1,7 +1,7 @@
 # MintWorkshop
-A GUI editor for HAL's Mint bytecode found in modern Kirby games, the BoxBoy series, and the mobile version of Part-Time UFO
+A GUI editor for HAL's Mint bytecode and its updated form found in modern Kirby games, the BoxBoy series, and the mobile version of Part-Time UFO
 
-**For information regarding Mint versions and instructions, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1A_08ytw1oIBhqBzpkxDIU86RwmYAjG4DopogqCQllMo).**
+**For information regarding Mint and Basil versions and instructions, see [this spreadsheet](https://docs.google.com/spreadsheets/d/1A_08ytw1oIBhqBzpkxDIU86RwmYAjG4DopogqCQllMo).**
 
 ## Features
 * Reads and rebuilds Mint archives that properly function ingame
@@ -36,6 +36,10 @@ A GUI editor for HAL's Mint bytecode found in modern Kirby games, the BoxBoy ser
   * Super Kirby Clash
 * 2.4
   * Kirby Fighters 2
+
+## Supported Basil Versions and Games
+* 7.0.2 (Incomplete)
+  * Kirby and the Forgotten Land
 
 # Usage
 After starting the program, use `File -> Open` or `Ctrl+O` to select a Mint archive to open.
