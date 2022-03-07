@@ -256,10 +256,18 @@ namespace MintWorkshop
             TreeNode scriptNode = new TreeNode(search[searchIndex], 1, 1);
             scriptNode.ContextMenuStrip = scriptCtxMenu;
 
-            MintScript s = archive.Scripts[string.Join(".", search)];
+            string scriptName = string.Join(".", search);
+            MintScript s = archive.Scripts[scriptName];
             for (int i = 0; i < s.Classes.Count; i++)
             {
-                TreeNode cl = new TreeNode(s.Classes[i].Name.Split('.').Last(), 2, 2);
+                TreeNode cl;
+                if (s.Classes[i].Name == scriptName)
+                    cl = new TreeNode(s.Classes[i].Name.Split('.').Last(), 2, 2);
+                else if (s.Classes[i].Name.StartsWith(scriptName))
+                    cl = new TreeNode(s.Classes[i].Name.Substring(scriptName.Length + 1), 2, 2);
+                else
+                    cl = new TreeNode(s.Classes[i].Name, 2, 2);
+
                 cl.ContextMenuStrip = classCtxMenu;
                 cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
 

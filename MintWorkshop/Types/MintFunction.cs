@@ -49,11 +49,13 @@ namespace MintWorkshop.Types
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
-            Console.WriteLine(FullName());
+            //Console.WriteLine(FullName());
 
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
             Opcode[] opcodes = new Opcode[] { };
+            int index = -1;
+            int ingoreRetUntil = -1;
             bool hasReturn = false;
             if (MintVersions.Versions.ContainsKey(ParentClass.ParentScript.Version))
             {
@@ -62,16 +64,29 @@ namespace MintWorkshop.Types
             }
             while (reader.BaseStream.Position < reader.BaseStream.Length - 4)
             {
-                Instruction i = new Instruction(reader.ReadBytes(4));
+                index++;
+                Instruction i;
+                byte op = reader.ReadByte();
+                reader.BaseStream.Position--;
+                if (op < opcodes.Length)
+                    i = new Instruction(reader.ReadBytes(opcodes[op].Size));
+                else
+                    i = new Instruction(reader.ReadBytes(4));
                 //Console.WriteLine($"{i.Opcode:X2} {i.Z:X2} {i.X:X2} {i.Y:X2}");
                 Instructions.Add(i);
 
-                if (hasReturn && i.Opcode < opcodes.Length)
+                if (i.Opcode < opcodes.Length)
                 {
-                    if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return))
+                    if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return) && ingoreRetUntil <= index)
                         break;
+                    else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Jump))
+                    {
+                        int targetIndex = index + i.V(ParentClass.ParentScript.XData.Endianness);
+                        if (targetIndex > ingoreRetUntil)
+                            ingoreRetUntil = targetIndex;
+                    }
                 }
-                else
+                else if (!hasReturn && ingoreRetUntil <= index)
                 {
                     // Detect fleave and fret instructions for stopping reading the function
                     // Mainly for future-proofing, all fleave and fret instructions use only argument Y
@@ -153,6 +168,21 @@ namespace MintWorkshop.Types
                                 disasm += inst.Y;
                                 break;
                             }
+                        case InstructionArg.A:
+                            {
+                                disasm += inst.A;
+                                break;
+                            }
+                        case InstructionArg.B:
+                            {
+                                disasm += inst.B;
+                                break;
+                            }
+                        case InstructionArg.C:
+                            {
+                                disasm += inst.C;
+                                break;
+                            }
                         case InstructionArg.RegZ:
                             {
                                 disasm += $"r{inst.Z}";
@@ -166,6 +196,21 @@ namespace MintWorkshop.Types
                         case InstructionArg.RegY:
                             {
                                 disasm += $"r{inst.Y}";
+                                break;
+                            }
+                        case InstructionArg.RegA:
+                            {
+                                disasm += $"r{inst.A}";
+                                break;
+                            }
+                        case InstructionArg.RegB:
+                            {
+                                disasm += $"r{inst.B}";
+                                break;
+                            }
+                        case InstructionArg.RegC:
+                            {
+                                disasm += $"r{inst.C}";
                                 break;
                             }
                         case InstructionArg.VSigned:
@@ -212,9 +257,50 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
+                        case InstructionArg.IntRegA:
+                            {
+                                if ((inst.A & 0x80) != 0)
+                                {
+                                    disasm += $"0x{BitConverter.ToUInt32(Sdata, (inst.A ^ 0x80) * 4):X}";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.A}";
+                                }
+                                break;
+                            }
+                        case InstructionArg.IntRegB:
+                            {
+                                if ((inst.B & 0x80) != 0)
+                                {
+                                    disasm += $"0x{BitConverter.ToUInt32(Sdata, (inst.B ^ 0x80) * 4):X}";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.B}";
+                                }
+                                break;
+                            }
+                        case InstructionArg.IntRegC:
+                            {
+                                if ((inst.C & 0x80) != 0)
+                                {
+                                    disasm += $"0x{BitConverter.ToUInt32(Sdata, (inst.C ^ 0x80) * 4):X}";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.C}";
+                                }
+                                break;
+                            }
                         case InstructionArg.IntV:
                             {
                                 disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}";
+                                break;
+                            }
+                        case InstructionArg.IntE:
+                            {
+                                disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.E(ParentClass.ParentScript.XData.Endianness)):X}";
                                 break;
                             }
                         case InstructionArg.ArrRegZ:
@@ -349,11 +435,180 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
+                        case InstructionArg.ArrRegA:
+                            {
+                                if ((inst.A & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.A ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.A}";
+                                }
+                                break;
+                            }
+                        case InstructionArg.ArrRegB:
+                            {
+                                if ((inst.B & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.B ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.B}";
+                                }
+                                break;
+                            }
+                        case InstructionArg.ArrRegC:
+                            {
+                                if ((inst.C & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.C ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+                                    if (!utf16)
+                                        disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                    else
+                                        disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                }
+                                else
+                                {
+                                    disasm += $"r{inst.C}";
+                                }
+                                break;
+                            }
                         case InstructionArg.ArrV:
                             {
                                 List<byte> b = new List<byte>();
                                 bool utf16 = false;
                                 for (uint s = (ushort)inst.V(ParentClass.ParentScript.XData.Endianness); s < Sdata.Length; s++)
+                                {
+                                    if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            utf16 = true;
+                                        }
+                                        break;
+                                    }
+                                    else if (Sdata[s] == 0xFF)
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                    }
+
+                                    b.Add(Sdata[s]);
+                                }
+                                if (!utf16)
+                                    disasm += $"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                else
+                                    disasm += $"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"";
+                                break;
+                            }
+                        case InstructionArg.ArrE:
+                            {
+                                List<byte> b = new List<byte>();
+                                bool utf16 = false;
+                                for (uint s = (ushort)inst.E(ParentClass.ParentScript.XData.Endianness); s < Sdata.Length; s++)
                                 {
                                     if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
@@ -401,6 +656,21 @@ namespace MintWorkshop.Types
                                     disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
                                 break;
                             }
+                        case InstructionArg.XRefE:
+                            {
+                                byte[] h = Xref[(ushort)inst.E(ParentClass.ParentScript.XData.Endianness)];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
+                                else
+                                    disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                                break;
+                            }
                         case InstructionArg.XRefZ:
                             {
                                 byte[] h = Xref[inst.Z];
@@ -434,6 +704,51 @@ namespace MintWorkshop.Types
                         case InstructionArg.XRefY:
                             {
                                 byte[] h = Xref[inst.Y];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
+                                else
+                                    disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                                break;
+                            }
+                        case InstructionArg.XRefA:
+                            {
+                                byte[] h = Xref[inst.A];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
+                                else
+                                    disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                                break;
+                            }
+                        case InstructionArg.XRefB:
+                            {
+                                byte[] h = Xref[inst.B];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    disasm += x;
+                                }
+                                else
+                                    disasm += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                                break;
+                            }
+                        case InstructionArg.XRefC:
+                            {
+                                byte[] h = Xref[inst.C];
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
@@ -490,18 +805,18 @@ namespace MintWorkshop.Types
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
-                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[inst.Opcode].Name) || opcodes[inst.Opcode].Arguments == null)
-                {
-                    textBox.AppendText($"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!", Color.White, Color.Red);
-                    textBox.AppendText("\n");
-                    continue;
-                }
-
                 if (jmpLoc.ContainsKey(i))
                 {
                     textBox.AppendText("\n");
                     textBox.AppendText($"{jmpLoc[i]}:", TextColors.JumpLocColor);
                     textBox.AppendText("\n");
+                }
+
+                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[inst.Opcode].Name) || opcodes[inst.Opcode].Arguments == null)
+                {
+                    textBox.AppendText($"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!", Color.White, Color.Red);
+                    textBox.AppendText("\n");
+                    continue;
                 }
 
                 Opcode op = opcodes[inst.Opcode];
@@ -532,6 +847,21 @@ namespace MintWorkshop.Types
                                 textBox.AppendText($"{inst.Y}", TextColors.ConstantColor);
                                 break;
                             }
+                        case InstructionArg.A:
+                            {
+                                textBox.AppendText($"{inst.A}", TextColors.ConstantColor);
+                                break;
+                            }
+                        case InstructionArg.B:
+                            {
+                                textBox.AppendText($"{inst.B}", TextColors.ConstantColor);
+                                break;
+                            }
+                        case InstructionArg.C:
+                            {
+                                textBox.AppendText($"{inst.C}", TextColors.ConstantColor);
+                                break;
+                            }
                         case InstructionArg.RegZ:
                             {
                                 textBox.AppendText($"r{inst.Z}", TextColors.RegisterColor);
@@ -545,6 +875,21 @@ namespace MintWorkshop.Types
                         case InstructionArg.RegY:
                             {
                                 textBox.AppendText($"r{inst.Y}", TextColors.RegisterColor);
+                                break;
+                            }
+                        case InstructionArg.RegA:
+                            {
+                                textBox.AppendText($"r{inst.A}", TextColors.RegisterColor);
+                                break;
+                            }
+                        case InstructionArg.RegB:
+                            {
+                                textBox.AppendText($"r{inst.B}", TextColors.RegisterColor);
+                                break;
+                            }
+                        case InstructionArg.RegC:
+                            {
+                                textBox.AppendText($"r{inst.C}", TextColors.RegisterColor);
                                 break;
                             }
                         case InstructionArg.VSigned:
@@ -591,9 +936,60 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
+                        case InstructionArg.IntRegA:
+                            {
+                                if ((inst.A & 0x80) != 0)
+                                {
+                                    textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (inst.A ^ 0x80) * 4):X}", TextColors.ConstantColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.A}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
+                        case InstructionArg.IntRegB:
+                            {
+                                if ((inst.B & 0x80) != 0)
+                                {
+                                    textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (inst.B ^ 0x80) * 4):X}", TextColors.ConstantColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.B}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
+                        case InstructionArg.IntRegC:
+                            {
+                                if ((inst.C & 0x80) != 0)
+                                {
+                                    textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (inst.C ^ 0x80) * 4):X}", TextColors.ConstantColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.C}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
                         case InstructionArg.IntV:
                             {
                                 textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness)):X}", TextColors.ConstantColor);
+                                break;
+                            }
+                        case InstructionArg.IntE:
+                            {
+                                textBox.AppendText($"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.E(ParentClass.ParentScript.XData.Endianness)):X}", TextColors.ConstantColor);
+                                break;
+                            }
+                        case InstructionArg.FloatV:
+                            {
+                                textBox.AppendText($"{BitConverter.ToSingle(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness))}f", TextColors.ConstantColor);
+                                break;
+                            }
+                        case InstructionArg.FloatE:
+                            {
+                                textBox.AppendText($"{BitConverter.ToSingle(Sdata, (ushort)inst.E(ParentClass.ParentScript.XData.Endianness))}f", TextColors.ConstantColor);
                                 break;
                             }
                         case InstructionArg.ArrRegZ:
@@ -731,6 +1127,141 @@ namespace MintWorkshop.Types
                                 }
                                 break;
                             }
+                        case InstructionArg.ArrRegA:
+                            {
+                                if ((inst.A & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.A ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.A}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
+                        case InstructionArg.ArrRegB:
+                            {
+                                if ((inst.B & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.B ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.B}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
+                        case InstructionArg.ArrRegC:
+                            {
+                                if ((inst.C & 0x80) != 0)
+                                {
+                                    List<byte> b = new List<byte>();
+                                    bool utf16 = false;
+                                    for (int s = (inst.C ^ 0x80) * 4; s < Sdata.Length; s++)
+                                    {
+                                        if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                        else if (Sdata[s] == 0xFF)
+                                        {
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
+                                                break;
+                                            }
+                                        }
+
+                                        b.Add(Sdata[s]);
+                                    }
+
+                                    if (!utf16)
+                                        textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                    else
+                                        textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                }
+                                else
+                                {
+                                    textBox.AppendText($"r{inst.C}", TextColors.RegisterColor);
+                                }
+                                break;
+                            }
                         case InstructionArg.ArrV:
                             {
                                 List<byte> b = new List<byte>();
@@ -769,9 +1300,62 @@ namespace MintWorkshop.Types
                                     textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
                                 break;
                             }
+                        case InstructionArg.ArrE:
+                            {
+                                List<byte> b = new List<byte>();
+                                bool utf16 = false;
+                                for (uint s = (ushort)inst.E(ParentClass.ParentScript.XData.Endianness); s < Sdata.Length; s++)
+                                {
+                                    if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            utf16 = true;
+                                        }
+                                        break;
+                                    }
+                                    else if (Sdata[s] == 0xFF)
+                                    {
+                                        if (Sdata[s - 1] == 0x00)
+                                        {
+                                            b.RemoveAt(b.Count - 1);
+                                            if (Sdata[s - 2] == 0 && b.Count - 1 >= 0)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
+                                            break;
+                                        }
+                                    }
+
+                                    b.Add(Sdata[s]);
+                                }
+
+                                if (!utf16)
+                                    textBox.AppendText($"\"{Encoding.UTF8.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                else
+                                    textBox.AppendText($"u\"{Encoding.Unicode.GetString(b.ToArray()).TrimEnd('\0')}\"", TextColors.StringColor);
+                                break;
+                            }
                         case InstructionArg.XRefV:
                             {
                                 byte[] h = Xref[(ushort)inst.V(ParentClass.ParentScript.XData.Endianness)];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
+                                else
+                                    textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
+                                break;
+                            }
+                        case InstructionArg.XRefE:
+                            {
+                                byte[] h = Xref[(ushort)inst.E(ParentClass.ParentScript.XData.Endianness)];
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
@@ -817,6 +1401,51 @@ namespace MintWorkshop.Types
                         case InstructionArg.XRefY:
                             {
                                 byte[] h = Xref[inst.Y];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
+                                else
+                                    textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
+                                break;
+                            }
+                        case InstructionArg.XRefA:
+                            {
+                                byte[] h = Xref[inst.A];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
+                                else
+                                    textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
+                                break;
+                            }
+                        case InstructionArg.XRefB:
+                            {
+                                byte[] h = Xref[inst.B];
+                                if (hashes.ContainsKey(h))
+                                {
+                                    string x = hashes[h];
+                                    if (x.StartsWith(ParentClass.Name + ".") || x == ParentClass.Name)
+                                        x = "this" + x.Remove(0, ParentClass.Name.Length);
+
+                                    textBox.AppendText(x, TextColors.XRefColor);
+                                }
+                                else
+                                    textBox.AppendText($"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}", TextColors.XRefColor);
+                                break;
+                            }
+                        case InstructionArg.XRefC:
+                            {
+                                byte[] h = Xref[inst.C];
                                 if (hashes.ContainsKey(h))
                                 {
                                     string x = hashes[h];
