@@ -12,6 +12,7 @@ namespace MintWorkshop.Mint
     {
         None,
         Jump,
+        Skip,
         Return
     }
 

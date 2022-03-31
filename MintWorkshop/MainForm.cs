@@ -394,6 +394,8 @@ namespace MintWorkshop
                         {
                             bool h = false;
                             Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
+                            if (inst.Opcode >= opcodes.Length)
+                                continue;
                             if (opcodes[inst.Opcode].Arguments == null)
                                 continue;
                             for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)

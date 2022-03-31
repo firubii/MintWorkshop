@@ -85,6 +85,12 @@ namespace MintWorkshop.Types
                         if (targetIndex > ingoreRetUntil)
                             ingoreRetUntil = targetIndex;
                     }
+                    else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Skip) && ingoreRetUntil <= index + 1)
+                    {
+                        int targetIndex = index + 2;
+                        if (targetIndex > ingoreRetUntil)
+                            ingoreRetUntil = targetIndex;
+                    }
                 }
                 else if (!hasReturn && ingoreRetUntil <= index)
                 {
@@ -793,7 +799,7 @@ namespace MintWorkshop.Types
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
                 int loc = i + inst.V(ParentClass.ParentScript.XData.Endianness);
-                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
+                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc) && loc < Instructions.Count)
                 {
                     if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
                         jmpLoc.Add(loc, "return");
