@@ -329,7 +329,14 @@ namespace MintWorkshop
                 box.AppendText(function.Name);
                 box.AppendText("\n\n");
 
-                function.Disassemble(ref hashes, ref box, config.UppercaseMnemonics);
+                try
+                {
+                    function.Disassemble(ref hashes, ref box, config.UppercaseMnemonics);
+                }
+                catch
+                {
+                    box.AppendText("\nError: Could not disassemble past this point!", Color.White, Color.Red);
+                }
                 box.SelectionStart = 0;
                 box.ScrollToCaret();
                 box.ClearUndo();
