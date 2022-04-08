@@ -10,10 +10,10 @@ namespace MintWorkshop.Mint
     [Flags]
     public enum Action
     {
-        None,
-        Jump,
-        Skip,
-        Return
+        None = 0,
+        Jump = 1,
+        Skip = 2,
+        Return = 4
     }
 
     [Flags]

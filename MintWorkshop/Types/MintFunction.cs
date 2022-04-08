@@ -54,6 +54,7 @@ namespace MintWorkshop.Types
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
             Opcode[] opcodes = new Opcode[] { };
+            int readLimit = (ParentClass.ParentScript.Version[0] >= 7 && (Flags & 0x10) != 0) ? 4 : int.MaxValue;
             int index = 0;
             int ingoreRetUntil = -1;
             bool hasReturn = false;
@@ -103,6 +104,9 @@ namespace MintWorkshop.Types
                     index += opcodes[op].Size;
                 else
                     index += 4;
+
+                if (index > readLimit)
+                    break;
             }
         }
 
@@ -796,6 +800,17 @@ namespace MintWorkshop.Types
             List<byte[]> Xref = ParentClass.ParentScript.XRef;
             Opcode[] opcodes = MintVersions.Versions[version];
 
+            List<int> instOffsets = new List<int>();
+            int instOffs = 0;
+            for (int i = 0; i < Instructions.Count; i++)
+            {
+                instOffsets.Add(instOffs);
+                if (Instructions[i].Opcode < opcodes.Length)
+                    instOffs += opcodes[Instructions[i].Opcode].Size;
+                else
+                    instOffs += 4;
+            }
+
             Dictionary<int, string> jmpLoc = new Dictionary<int, string>();
             for (int i = 0; i < Instructions.Count; i++)
             {
@@ -803,26 +818,30 @@ namespace MintWorkshop.Types
                 if (opcodes.Length - 1 < inst.Opcode)
                     continue;
                 Opcode op = opcodes[inst.Opcode];
-                int loc = i + inst.V(ParentClass.ParentScript.XData.Endianness);
-                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc) && loc < Instructions.Count)
+                if (op.Action.HasFlag(Mint.Action.Jump))
                 {
-                    if (opcodes.Length - 1 < Instructions[loc].Opcode)
-                        continue;
+                    int loc = instOffsets[i] + (inst.V(ParentClass.ParentScript.XData.Endianness) * 4);
+                    int locIndex = instOffsets.IndexOf(loc);
+                    if (!jmpLoc.ContainsKey(loc) && locIndex < Instructions.Count && locIndex > 0)
+                    {
+                        if (Instructions[locIndex].Opcode >= opcodes.Length)
+                            continue;
 
-                    if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
-                        jmpLoc.Add(loc, "return");
-                    else
-                        jmpLoc.Add(loc, $"loc_{loc:x8}");
+                        if (opcodes[Instructions[locIndex].Opcode].Action.HasFlag(Mint.Action.Return))
+                            jmpLoc.Add(loc, "return");
+                        else
+                            jmpLoc.Add(loc, $"loc_{locIndex:x8}");
+                    }
                 }
             }
 
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
-                if (jmpLoc.ContainsKey(i))
+                if (jmpLoc.ContainsKey(instOffsets[i]))
                 {
                     textBox.AppendText("\n");
-                    textBox.AppendText($"{jmpLoc[i]}:", TextColors.JumpLocColor);
+                    textBox.AppendText($"{jmpLoc[instOffsets[i]]}:", TextColors.JumpLocColor);
                     textBox.AppendText("\n");
                 }
 
@@ -911,7 +930,7 @@ namespace MintWorkshop.Types
                             case InstructionArg.VSigned:
                                 {
                                     if (op.Action.HasFlag(Mint.Action.Jump))
-                                        textBox.AppendText(jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)], TextColors.JumpLocColor);
+                                        textBox.AppendText(jmpLoc[instOffsets[i] + (inst.V(ParentClass.ParentScript.XData.Endianness) * 4)], TextColors.JumpLocColor);
                                     else
                                         textBox.AppendText($"{inst.V(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
                                     break;
