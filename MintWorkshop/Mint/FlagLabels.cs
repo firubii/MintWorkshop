@@ -26,6 +26,7 @@ namespace MintWorkshop.Mint
             {  0x1, "init" },
             {  0x4, "async" },
             {  0x8, "null" },
+            { 0x10, "syscall" },
             { 0x80, "return" },
         };
     }
