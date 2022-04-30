@@ -1929,7 +1929,7 @@ namespace MintWorkshop.Types
                                 else
                                     v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
 
-                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Little)
+                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Big)
                                     v.Reverse();
 
                                 inst.X = v[0];
@@ -1959,7 +1959,7 @@ namespace MintWorkshop.Types
                                 else
                                     e = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
 
-                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Little)
+                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Big)
                                     e.Reverse();
 
                                 inst.B = e[0];
