@@ -27,7 +27,6 @@ namespace MintWorkshop.Mint
         Y = 0x4, //Byte 4
         V = 0x8, //Byte 3, Byte 4 as short
         AllBytes = Z | X | Y,
-        AllData = AllBytes | V,
         VSigned = V | Signed,
 
         //Extended Argument Locations
@@ -35,6 +34,8 @@ namespace MintWorkshop.Mint
         B = 0x20,
         C = 0x40,
         E = 0x80,
+        AllExtBytes = A | V | C,
+        AllData = AllBytes | AllExtBytes | V | E,
 
         //Argument Type
         Register = 0x100,
@@ -162,5 +163,10 @@ namespace MintWorkshop.Mint
         }
 
         public bool IsExtended => instData.Length > 4;
+
+        public void Write(EndianBinaryWriter writer)
+        {
+            writer.Write(instData);
+        }
     }
 }

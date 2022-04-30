@@ -214,12 +214,18 @@ namespace MintWorkshop.Types
             {
                 XData.Write(writer);
 
+                int padding = Version[0] >= 7 ? 0 : -1;
                 uint fileStart = (uint)writer.BaseStream.Position;
-                writer.Write(-1);
-                writer.Write(0x20);
-                writer.Write(-1);
-                writer.Write(-1);
-                
+                writer.Write(padding);
+                if (Version[0] >= 7)
+                    writer.Write(Hash);
+                uint hSdataOffset = (uint)writer.BaseStream.Position;
+                writer.Write(Version[0] >= 7 ? 0x28 : 0x20);
+                writer.Write(padding);
+                writer.Write(padding);
+                if (Version[0] >= 7)
+                    writer.Write(padding);
+
                 writer.Write(SData.Count);
                 writer.Write(SData.ToArray());
                 writer.Write((uint)0);
@@ -229,20 +235,20 @@ namespace MintWorkshop.Types
                     && (writer.BaseStream.Length & 0xF) != 0xC)
                         writer.Write((byte)0);
 
-                writer.BaseStream.Seek(fileStart + 0x8, SeekOrigin.Begin);
+                writer.BaseStream.Seek(hSdataOffset + 0x4, SeekOrigin.Begin);
                 writer.Write((uint)writer.BaseStream.Length);
                 writer.BaseStream.Seek(0, SeekOrigin.End);
                 writer.Write(XRef.Count);
                 for (int i = 0; i < XRef.Count; i++)
                     writer.Write(XRef[i]);
 
-                writer.BaseStream.Seek(fileStart + 0xC, SeekOrigin.Begin);
+                writer.BaseStream.Seek(hSdataOffset + 0x8, SeekOrigin.Begin);
                 writer.Write((uint)writer.BaseStream.Length);
                 writer.BaseStream.Seek(0, SeekOrigin.End);
                 uint classListOffs = (uint)writer.BaseStream.Position;
                 writer.Write(Classes.Count);
                 for (int i = 0; i < Classes.Count; i++)
-                    writer.Write(-1);
+                    writer.Write(padding);
 
                 List<uint> classNameOffs = new List<uint>();
                 List<uint[]> varNameOffs = new List<uint[]>();
@@ -257,85 +263,95 @@ namespace MintWorkshop.Types
                     uint cl = (uint)writer.BaseStream.Position;
                     classNameOffs.Add(cl);
 
-                    writer.Write(-1);
+                    writer.Write(padding);
                     writer.Write(Classes[i].Hash);
-                    writer.Write(-1);
-                    writer.Write(-1);
-                    writer.Write(-1);
+                    writer.Write(padding);
+                    writer.Write(padding);
+                    writer.Write(padding);
                     if (Version[0] >= 2 || Version[1] >= 1)
-                        writer.Write(-1);
+                        writer.Write(padding);
+                    if (Version[0] >= 7)
+                        writer.Write(padding);
                     writer.Write(Classes[i].Flags);
 
-                    writer.BaseStream.Seek(cl + 0x8, SeekOrigin.Begin);
-                    writer.Write((uint)writer.BaseStream.Length);
-                    writer.BaseStream.Seek(0, SeekOrigin.End);
-
-                    uint varListOffs = (uint)writer.BaseStream.Position;
-                    writer.Write(Classes[i].Variables.Count);
                     List<uint> vOffs = new List<uint>();
-                    for (int v = 0; v < Classes[i].Variables.Count; v++)
-                        writer.Write((uint)(varListOffs + 4 + (Classes[i].Variables.Count * 4) + (v * 0x10)));
-                    for (int v = 0; v < Classes[i].Variables.Count; v++)
+                    if (Version[0] < 7 || Classes[i].Variables.Count > 0)
                     {
-                        vOffs.Add((uint)writer.BaseStream.Position);
-                        writer.Write(-1);
-                        writer.Write(Classes[i].Variables[v].Hash);
-                        writer.Write(-1);
-                        writer.Write(Classes[i].Variables[v].Flags);
-                    }
-
-                    writer.BaseStream.Seek(cl + 0xC, SeekOrigin.Begin);
-                    writer.Write((uint)writer.BaseStream.Length);
-                    writer.BaseStream.Seek(0, SeekOrigin.End);
-
-                    uint funcListOffs = (uint)writer.BaseStream.Position;
-                    List<uint> funcOffsList = new List<uint>();
-                    writer.Write(Classes[i].Functions.Count);
-                    for (int v = 0; v < Classes[i].Functions.Count; v++)
-                        writer.Write(-1);
-                    for (int v = 0; v < Classes[i].Functions.Count; v++)
-                    {
-                        writer.BaseStream.Seek(funcListOffs + 4 + (v * 4), SeekOrigin.Begin);
+                        writer.BaseStream.Seek(cl + 0x8, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
                         writer.BaseStream.Seek(0, SeekOrigin.End);
 
-                        funcOffsList.Add((uint)writer.BaseStream.Length);
-                        writer.Write(-1);
-                        writer.Write(Classes[i].Functions[v].Hash);
-                        if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
+                        uint varListOffs = (uint)writer.BaseStream.Position;
+                        writer.Write(Classes[i].Variables.Count);
+                        for (int v = 0; v < Classes[i].Variables.Count; v++)
+                            writer.Write((uint)(varListOffs + 4 + (Classes[i].Variables.Count * 4) + (v * 0x10)));
+                        for (int v = 0; v < Classes[i].Variables.Count; v++)
                         {
-                            writer.Write((uint)writer.BaseStream.Position + 8);
-                            writer.Write(Classes[i].Functions[v].Flags);
-                        }
-                        else
-                            writer.Write((uint)writer.BaseStream.Position + 4);
-                        for (int f = 0; f < Classes[i].Functions[v].Instructions.Count; f++)
-                        {
-                            Instruction inst = Classes[i].Functions[v].Instructions[f];
-                            writer.Write(inst.Opcode);
-                            writer.Write(inst.Z);
-                            writer.Write(inst.X);
-                            writer.Write(inst.Y);
+                            vOffs.Add((uint)writer.BaseStream.Position);
+                            writer.Write(padding);
+                            writer.Write(Classes[i].Variables[v].Hash);
+                            writer.Write(padding);
+                            writer.Write(Classes[i].Variables[v].Flags);
                         }
                     }
 
-                    writer.BaseStream.Seek(cl + 0x10, SeekOrigin.Begin);
-                    writer.Write((uint)writer.BaseStream.Length);
-                    writer.BaseStream.Seek(0, SeekOrigin.End);
-
-                    writer.Write(Classes[i].Constants.Count);
-                    uint constListOffs = (uint)writer.BaseStream.Position;
-                    List<uint> cOffs = new List<uint>();
-                    for (int v = 0; v < Classes[i].Constants.Count; v++)
-                        writer.Write((uint)(constListOffs + (Classes[i].Constants.Count * 4) + (v * 8)));
-                    for (int v = 0; v < Classes[i].Constants.Count; v++)
+                    List<uint> funcOffsList = new List<uint>();
+                    if (Version[0] < 7 || Classes[i].Functions.Count > 0)
                     {
-                        cOffs.Add((uint)writer.BaseStream.Position);
-                        writer.Write(-1);
-                        writer.Write(Classes[i].Constants[v].Value);
+                        writer.BaseStream.Seek(cl + 0xC, SeekOrigin.Begin);
+                        writer.Write((uint)writer.BaseStream.Length);
+                        writer.BaseStream.Seek(0, SeekOrigin.End);
+
+                        uint funcListOffs = (uint)writer.BaseStream.Position;
+                        writer.Write(Classes[i].Functions.Count);
+                        for (int v = 0; v < Classes[i].Functions.Count; v++)
+                            writer.Write(padding);
+                        for (int v = 0; v < Classes[i].Functions.Count; v++)
+                        {
+                            writer.BaseStream.Seek(funcListOffs + 4 + (v * 4), SeekOrigin.Begin);
+                            writer.Write((uint)writer.BaseStream.Length);
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+
+                            funcOffsList.Add((uint)writer.BaseStream.Length);
+                            writer.Write(padding);
+                            writer.Write(Classes[i].Functions[v].Hash);
+                            if (Version[0] >= 7)
+                            {
+                                writer.Write(Classes[i].Functions[v].Unknown1);
+                                writer.Write(Classes[i].Functions[v].Unknown2);
+                            }
+                            if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
+                            {
+                                writer.Write((uint)writer.BaseStream.Position + 8);
+                                writer.Write(Classes[i].Functions[v].Flags);
+                            }
+                            else
+                                writer.Write((uint)writer.BaseStream.Position + 4);
+                            for (int f = 0; f < Classes[i].Functions[v].Instructions.Count; f++)
+                                Classes[i].Functions[v].Instructions[f].Write(writer);
+                        }
                     }
 
-                    if (Version[0] >= 2 || Version[1] >= 1)
+                    List<uint> cOffs = new List<uint>();
+                    if (Version[0] < 7 || Classes[i].Constants.Count > 0)
+                    {
+                        writer.BaseStream.Seek(cl + 0x10, SeekOrigin.Begin);
+                        writer.Write((uint)writer.BaseStream.Length);
+                        writer.BaseStream.Seek(0, SeekOrigin.End);
+
+                        writer.Write(Classes[i].Constants.Count);
+                        uint constListOffs = (uint)writer.BaseStream.Position;
+                        for (int v = 0; v < Classes[i].Constants.Count; v++)
+                            writer.Write((uint)(constListOffs + (Classes[i].Constants.Count * 4) + (v * 8)));
+                        for (int v = 0; v < Classes[i].Constants.Count; v++)
+                        {
+                            cOffs.Add((uint)writer.BaseStream.Position);
+                            writer.Write(padding);
+                            writer.Write(Classes[i].Constants[v].Value);
+                        }
+                    }
+
+                    if (((Version[0] >= 2 || Version[1] >= 1) && Version[0] < 7) || (Version[0] >= 7 && Classes[i].UnknownList.Count > 0))
                     {
                         writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
@@ -344,6 +360,17 @@ namespace MintWorkshop.Types
                         writer.Write(Classes[i].UnknownList.Count);
                         for (int v = 0; v < Classes[i].UnknownList.Count; v++)
                             writer.Write(Classes[i].UnknownList[v]);
+                    }
+
+                    if (Version[0] >= 7 && Classes[i].Unknown2List.Count > 0)
+                    {
+                        writer.BaseStream.Seek(cl + 0x18, SeekOrigin.Begin);
+                        writer.Write((uint)writer.BaseStream.Length);
+                        writer.BaseStream.Seek(0, SeekOrigin.End);
+
+                        writer.Write(Classes[i].Unknown2List.Count);
+                        for (int v = 0; v < Classes[i].Unknown2List.Count; v++)
+                            writer.Write(Classes[i].Unknown2List[v]);
                     }
 
                     varNameOffs.Add(vOffs.ToArray());
@@ -364,34 +391,43 @@ namespace MintWorkshop.Types
                     writer.BaseStream.Seek(0, SeekOrigin.End);
                     WriteUtil.WriteString(writer, Classes[i].Name);
 
-                    for (int v = 0; v < Classes[i].Variables.Count; v++)
+                    if (Version[0] < 7 || Classes[i].Variables.Count > 0)
                     {
-                        uint vo = varNameOffs[i][v];
-                        writer.BaseStream.Seek(vo, SeekOrigin.Begin);
-                        writer.Write((uint)writer.BaseStream.Length);
-                        writer.BaseStream.Seek(0, SeekOrigin.End);
-                        WriteUtil.WriteString(writer, Classes[i].Variables[v].Name);
+                        for (int v = 0; v < Classes[i].Variables.Count; v++)
+                        {
+                            uint vo = varNameOffs[i][v];
+                            writer.BaseStream.Seek(vo, SeekOrigin.Begin);
+                            writer.Write((uint)writer.BaseStream.Length);
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+                            WriteUtil.WriteString(writer, Classes[i].Variables[v].Name);
 
-                        writer.BaseStream.Seek(vo + 0x8, SeekOrigin.Begin);
-                        writer.Write((uint)writer.BaseStream.Length);
-                        writer.BaseStream.Seek(0, SeekOrigin.End);
-                        WriteUtil.WriteString(writer, Classes[i].Variables[v].Type);
+                            writer.BaseStream.Seek(vo + 0x8, SeekOrigin.Begin);
+                            writer.Write((uint)writer.BaseStream.Length);
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+                            WriteUtil.WriteString(writer, Classes[i].Variables[v].Type);
+                        }
                     }
 
-                    for (int v = 0; v < Classes[i].Functions.Count; v++)
+                    if (Version[0] < 7 || Classes[i].Functions.Count > 0)
                     {
-                        writer.BaseStream.Seek(funcNameOffs[i][v], SeekOrigin.Begin);
-                        writer.Write((uint)writer.BaseStream.Length);
-                        writer.BaseStream.Seek(0, SeekOrigin.End);
-                        WriteUtil.WriteString(writer, Classes[i].Functions[v].Name);
+                        for (int v = 0; v < Classes[i].Functions.Count; v++)
+                        {
+                            writer.BaseStream.Seek(funcNameOffs[i][v], SeekOrigin.Begin);
+                            writer.Write((uint)writer.BaseStream.Length);
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+                            WriteUtil.WriteString(writer, Classes[i].Functions[v].Name);
+                        }
                     }
 
-                    for (int v = 0; v < Classes[i].Constants.Count; v++)
+                    if (Version[0] < 7 || Classes[i].Constants.Count > 0)
                     {
-                        writer.BaseStream.Seek(constNameOffs[i][v], SeekOrigin.Begin);
-                        writer.Write((uint)writer.BaseStream.Length);
-                        writer.BaseStream.Seek(0, SeekOrigin.End);
-                        WriteUtil.WriteString(writer, Classes[i].Constants[v].Name);
+                        for (int v = 0; v < Classes[i].Constants.Count; v++)
+                        {
+                            writer.BaseStream.Seek(constNameOffs[i][v], SeekOrigin.Begin);
+                            writer.Write((uint)writer.BaseStream.Length);
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+                            WriteUtil.WriteString(writer, Classes[i].Constants[v].Name);
+                        }
                     }
                 }
 

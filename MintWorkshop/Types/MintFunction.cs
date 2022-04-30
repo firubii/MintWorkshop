@@ -19,6 +19,8 @@ namespace MintWorkshop.Types
 
         public string Name { get; private set; }
         public byte[] Hash { get; private set; }
+        public uint Unknown1 { get; private set; }
+        public uint Unknown2 { get; private set; }
         public List<Instruction> Instructions { get; private set; }
         public uint Flags { get; set; }
 
@@ -42,7 +44,10 @@ namespace MintWorkshop.Types
             uint nameOffs = reader.ReadUInt32();
             Hash = reader.ReadBytes(4);
             if (ParentClass.ParentScript.Version[0] >= 7)
-                reader.BaseStream.Seek(8, SeekOrigin.Current);
+            {
+                Unknown1 = reader.ReadUInt32();
+                Unknown2 = reader.ReadUInt32();
+            }
             uint dataOffs = reader.ReadUInt32();
             if (ParentClass.ParentScript.Version[0] >= 2 || ParentClass.ParentScript.Version[1] >= 1)
                 Flags = reader.ReadUInt32();
@@ -50,6 +55,9 @@ namespace MintWorkshop.Types
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
             //Console.WriteLine(FullName());
+
+            //if (unk1 != 0 || unk2 != 0)
+            //    Console.WriteLine($"{FullName()} - Unk1: {unk1}, Unk2: {unk2}");
 
             reader.BaseStream.Seek(dataOffs, SeekOrigin.Begin);
             Instructions = new List<Instruction>();
@@ -1568,26 +1576,33 @@ namespace MintWorkshop.Types
                 }
             }
 
+            //Verify each opcode name exists
+            List<int> instOffsets = new List<int>();
+            int offset = 0;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i][lines[i].Length - 1] == ':')
+                    continue;
+
+                string opName = lines[i].Split(' ')[0].ToLower();
+                if (opcodes.Where(x => x.Name == opName).Count() == 0)
+                {
+                    MessageBox.Show($"Error: Unknown opcode name!\nOpcode: {opName}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
+                    return;
+                }
+                instOffsets.Add(offset);
+                offset += opcodes.Where(x => x.Name == opName).FirstOrDefault().Size;
+            }
+
             //Get jump locations
             Dictionary<string, int> locs = new Dictionary<string, int>();
             for (int i = 0; i < lines.Count; i++)
             {
                 if (lines[i].EndsWith(":"))
                 {
-                    locs.Add(lines[i].Remove(lines[i].Length - 1, 1), i);
+                    locs.Add(lines[i].Substring(0, lines[i].Length - 1), i);
                     lines.RemoveAt(i);
                     i--;
-                }
-            }
-
-            //Verify each opcode name exists
-            for (int i = 0; i < lines.Count; i++)
-            {
-                string opName = lines[i].Split(' ')[0].ToLower();
-                if (opcodes.Where(x => x.Name == opName).Count() == 0)
-                {
-                    MessageBox.Show($"Error: Unknown opcode name!\nOpcode: {opName}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
-                    return;
                 }
             }
 
@@ -1681,10 +1696,9 @@ namespace MintWorkshop.Types
 
                         line[a + 1] = buildVal.ToString();
                         if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
-
-                        lines[i] = string.Join(" ", line);
                     }
                 }
+                lines[i] = string.Join(" ", line);
             }
 
             //Sdata Strings
@@ -1772,10 +1786,9 @@ namespace MintWorkshop.Types
                             line[s] = "";
 
                         if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
-
-                        lines[i] = string.Join(" ", line);
                     }
                 }
+                lines[i] = string.Join(" ", line);
             }
 
             //Xref
@@ -1809,10 +1822,10 @@ namespace MintWorkshop.Types
                             }
                             else
                             {
-                                b = new byte[] { byte.Parse(string.Join("", arg.Take(2)), NumberStyles.HexNumber),
-                                                 byte.Parse(string.Join("", arg.Skip(2).Take(2)), NumberStyles.HexNumber),
-                                                 byte.Parse(string.Join("", arg.Skip(4).Take(2)), NumberStyles.HexNumber),
-                                                 byte.Parse(string.Join("", arg.Skip(6).Take(2)), NumberStyles.HexNumber)
+                                b = new byte[] { byte.Parse(arg.Substring(0, 2), NumberStyles.HexNumber),
+                                                 byte.Parse(arg.Substring(2, 2), NumberStyles.HexNumber),
+                                                 byte.Parse(arg.Substring(4, 2), NumberStyles.HexNumber),
+                                                 byte.Parse(arg.Substring(6, 2), NumberStyles.HexNumber)
                                 };
                             }
                         }
@@ -1844,10 +1857,9 @@ namespace MintWorkshop.Types
 
                         line[a + 1] = buildVal.ToString();
                         if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
-
-                        lines[i] = string.Join(" ", line);
                     }
                 }
+                lines[i] = string.Join(" ", line);
             }
 
             //Jumps
@@ -1869,11 +1881,11 @@ namespace MintWorkshop.Types
                                 return;
                             }
 
-                            line[a + 1] = (locs[arg] - i).ToString();
+                            line[a + 1] = ((instOffsets[locs[arg]] - instOffsets[i])/4).ToString();
                             if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
-                            lines[i] = string.Join(" ", line);
                         }
                     }
+                    lines[i] = string.Join(" ", line);
                 }
             }
 
@@ -1884,7 +1896,11 @@ namespace MintWorkshop.Types
                 var o = opcodes.Where(x => x.Name == line[0].ToLower());
 
                 Opcode op = o.FirstOrDefault();
-                Instruction inst = new Instruction(new byte[] { (byte)opcodes.ToList().IndexOf(op), 0xFF, 0xFF, 0xFF });
+                byte[] iRaw = new byte[op.Size];
+                iRaw[0] = (byte)opcodes.ToList().IndexOf(op);
+                for (int b = 1; b < iRaw.Length; b++)
+                    iRaw[b] = 0xFF;
+                Instruction inst = new Instruction(iRaw);
                 //Console.WriteLine(lines[i]);
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
@@ -1912,16 +1928,42 @@ namespace MintWorkshop.Types
                                     v = BitConverter.GetBytes(short.Parse(line[a + 1]));
                                 else
                                     v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
+
                                 if (ParentClass.ParentScript.XData.Endianness == Endianness.Little)
-                                {
-                                    inst.X = v[0];
-                                    inst.Y = v[1];
-                                }
+                                    v.Reverse();
+
+                                inst.X = v[0];
+                                inst.Y = v[1];
+                                break;
+                            }
+                        case InstructionArg.A:
+                            {
+                                inst.A = byte.Parse(line[a + 1].TrimStart('r'));
+                                break;
+                            }
+                        case InstructionArg.B:
+                            {
+                                inst.A = byte.Parse(line[a + 1].TrimStart('r'));
+                                break;
+                            }
+                        case InstructionArg.C:
+                            {
+                                inst.A = byte.Parse(line[a + 1].TrimStart('r'));
+                                break;
+                            }
+                        case InstructionArg.E:
+                            {
+                                byte[] e;
+                                if (op.Arguments[a].HasFlag(InstructionArg.Signed))
+                                    e = BitConverter.GetBytes(short.Parse(line[a + 1]));
                                 else
-                                {
-                                    inst.X = v[1];
-                                    inst.Y = v[0];
-                                }
+                                    e = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
+
+                                if (ParentClass.ParentScript.XData.Endianness == Endianness.Little)
+                                    e.Reverse();
+
+                                inst.B = e[0];
+                                inst.C = e[1];
                                 break;
                             }
                     }

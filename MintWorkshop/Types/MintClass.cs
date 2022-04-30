@@ -30,6 +30,7 @@ namespace MintWorkshop.Types
         public List<MintFunction> Functions { get; private set; }
         public List<MintConstant> Constants { get; private set; }
         public List<uint> UnknownList { get; set; }
+        public List<uint> Unknown2List { get; set; }
         public uint Flags { get; set; }
 
         public MintClass(string name, uint flags, MintScript parent)
@@ -40,6 +41,7 @@ namespace MintWorkshop.Types
             Functions = new List<MintFunction>();
             Constants = new List<MintConstant>();
             UnknownList = new List<uint>();
+            Unknown2List = new List<uint>();
             Flags = flags;
         }
 
@@ -53,17 +55,15 @@ namespace MintWorkshop.Types
             uint funcOffs = reader.ReadUInt32();
             uint constOffs = reader.ReadUInt32();
             uint unkOffs = 0;
-            uint unk2 = 0;
+            uint unk2Offs = 0;
             if (ParentScript.Version[0] >= 2 || ParentScript.Version[1] >= 1)
                 unkOffs = reader.ReadUInt32();
             if (ParentScript.Version[0] >= 7)
-                unk2 = reader.ReadUInt32();
+                unk2Offs = reader.ReadUInt32();
             Flags = reader.ReadUInt32();
 
             reader.BaseStream.Seek(nameOffs, SeekOrigin.Begin);
             Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
-            if (unk2 > 0)
-                Console.WriteLine($"{Name} - unk2 = {unk2}");
 
             Variables = new List<MintVariable>();
             if (varOffs > 0)
@@ -111,15 +111,25 @@ namespace MintWorkshop.Types
             }
 
             UnknownList = new List<uint>();
-            if ((ParentScript.Version[0] >= 2 && ParentScript.Version[0] < 7) || ParentScript.Version[1] >= 1)
+            if (unkOffs > 0)
             {
                 reader.BaseStream.Seek(unkOffs, SeekOrigin.Begin);
                 uint unkCount = reader.ReadUInt32();
-                UnknownList = new List<uint>();
                 for (int i = 0; i < unkCount; i++)
                     UnknownList.Add(reader.ReadUInt32());
                 if (UnknownList.Count > 0)
                     Console.WriteLine($"UnkData found at {Name} - {UnknownList.Count} Unknowns: {string.Join(",", UnknownList)}");
+            }
+
+            Unknown2List = new List<uint>();
+            if (unk2Offs > 0)
+            {
+                reader.BaseStream.Seek(unk2Offs, SeekOrigin.Begin);
+                uint unk2Count = reader.ReadUInt32();
+                for (int i = 0; i < unk2Count; i++)
+                    Unknown2List.Add(reader.ReadUInt32());
+                if (Unknown2List.Count > 0)
+                    Console.WriteLine($"Unk2Data found at {Name} - {Unknown2List.Count} Unknowns: {string.Join(",", Unknown2List)}");
             }
         }
 

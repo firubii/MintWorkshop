@@ -433,6 +433,30 @@ namespace MintWorkshop
                                                 h = true;
                                             break;
                                         }
+                                    case InstructionArg.XRefE:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.E(archive.XData.Endianness)]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefA:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.A]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefB:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.B]))
+                                                h = true;
+                                            break;
+                                        }
+                                    case InstructionArg.XRefC:
+                                        {
+                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.C]))
+                                                h = true;
+                                            break;
+                                        }
                                     default:
                                         break;
                                 }
@@ -495,12 +519,6 @@ namespace MintWorkshop
 
         private void saveTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (archive.Version[0] == 7)
-            {
-                MessageBox.Show("Basil support is currently a WIP, and cannot be saved right now.", "MintWorkshop", MessageBoxButtons.OK);
-                return;
-            }
-
             if (tabControl.SelectedIndex != 0)
             {
                 TreeNode node = arcTree.Nodes.Find(tabControl.SelectedTab.Name, true)[0];
@@ -522,12 +540,6 @@ namespace MintWorkshop
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (archive.Version[0] == 7)
-            {
-                MessageBox.Show("Basil support is currently a WIP, and cannot be built right now.", "MintWorkshop", MessageBoxButtons.OK);
-                return;
-            }
-
             if (config.OptimizeOnBuild)
             foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
                 pair.Value.Optimize();
@@ -537,12 +549,6 @@ namespace MintWorkshop
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (archive.Version[0] == 7)
-            {
-                MessageBox.Show("Basil support is currently a WIP, and cannot be saved right now.", "MintWorkshop", MessageBoxButtons.OK);
-                return;
-            }
-
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Binary Files|*.bin;*.bin.cmp";
             save.AddExtension = true;
