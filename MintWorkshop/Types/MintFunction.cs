@@ -182,11 +182,11 @@ namespace MintWorkshop.Types
                 if (jmpLoc.ContainsKey(instOffsets[i]))
                 {
                     disasm += "\n";
-                    disasm += $"{jmpLoc[i]}:";
+                    disasm += $"{jmpLoc[instOffsets[i]]}:";
                     disasm += "\n";
                 }
 
-                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[i].Name) || opcodes[i].Arguments == null)
+                if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[inst.Opcode].Name) || opcodes[inst.Opcode].Arguments == null)
                 {
                     disasm += $"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!";
                     disasm += "\n";

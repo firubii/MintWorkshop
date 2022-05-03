@@ -1291,7 +1291,7 @@ namespace MintWorkshop.Mint
                     new Opcode("stofap", new InstructionArg[] {InstructionArg.RegZ, InstructionArg.RegX, InstructionArg.XRefE}, Action.None, true, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x6A, 0xFF, 0x00, 0x00}),
                     new Opcode("stof_u", new InstructionArg[] {InstructionArg.RegZ, InstructionArg.RegX, InstructionArg.XRefE}, Action.None, true, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x6A, 0xFF, 0x00, 0x00}),
                     new Opcode("unk_59", new InstructionArg[] {InstructionArg.RegY}, Action.None),
-                    new Opcode("unk_5a", new InstructionArg[] {InstructionArg.RegZ, InstructionArg.XRefV}),
+                    new Opcode("unk_5a", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}, Action.Jump),
                     new Opcode("eqi32b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
                     Opcode.None(),
                     Opcode.None(),

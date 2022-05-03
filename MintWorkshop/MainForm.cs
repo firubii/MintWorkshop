@@ -397,6 +397,7 @@ namespace MintWorkshop
                 {
                     for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
                     {
+                        Console.WriteLine(pair.Value.Classes[c].Functions[f].FullName());
                         for (int i = 0; i < pair.Value.Classes[c].Functions[f].Instructions.Count; i++)
                         {
                             bool h = false;
