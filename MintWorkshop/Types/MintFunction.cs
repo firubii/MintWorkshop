@@ -69,7 +69,7 @@ namespace MintWorkshop.Types
             if (MintVersions.Versions.ContainsKey(ParentClass.ParentScript.Version))
             {
                 opcodes = MintVersions.Versions[ParentClass.ParentScript.Version];
-                hasReturn = opcodes.Select(x => x.Action.HasFlag(Mint.Action.Return)).Count() > 0;
+                hasReturn = opcodes.Select(x => x.Action == Mint.Action.Return).Count() > 0;
             }
             while (reader.BaseStream.Position < reader.BaseStream.Length - 4)
             {
@@ -80,12 +80,12 @@ namespace MintWorkshop.Types
                     i = new Instruction(reader.ReadBytes(opcodes[op].Size));
                 else
                     i = new Instruction(reader.ReadBytes(4));
-                //Console.WriteLine($"{i.Opcode:X2} {i.Z:X2} {i.X:X2} {i.Y:X2}");
+                //Console.WriteLine(i);
                 Instructions.Add(i);
 
                 if (i.Opcode < opcodes.Length)
                 {
-                    if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Return) && ingoreRetUntil <= index)
+                    if (opcodes[i.Opcode].Action == Mint.Action.Return && ingoreRetUntil <= index)
                         break;
                     else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Skip))
                     {
@@ -96,8 +96,13 @@ namespace MintWorkshop.Types
                     else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Jump))
                     {
                         int targetIndex = index + (i.V(ParentClass.ParentScript.XData.Endianness) * 4);
+                        /*int targetIndex = index + (opcodes[i.Opcode].Arguments.Contains(InstructionArg.ESigned)
+                            ? i.E(ParentClass.ParentScript.XData.Endianness) + 1
+                            : i.V(ParentClass.ParentScript.XData.Endianness)) * 4;*/
                         if (targetIndex > ingoreRetUntil)
                             ingoreRetUntil = targetIndex;
+                        /*if (ingoreRetUntil < index)
+                            break;*/
                     }
                 }
                 else if (!hasReturn && ingoreRetUntil <= index)
@@ -135,13 +140,16 @@ namespace MintWorkshop.Types
                 Instruction inst = Instructions[i];
                 if (opcodes.Length - 1 < inst.Opcode) continue;
                 Opcode op = opcodes[inst.Opcode];
-                int loc = i + inst.V(ParentClass.ParentScript.XData.Endianness);
-                if (op.Action.HasFlag(Mint.Action.Jump) && !jmpLoc.ContainsKey(loc))
+                if (op.Action.HasFlag(Mint.Action.Jump))
                 {
-                    if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
-                        jmpLoc.Add(loc, "return");
-                    else
-                        jmpLoc.Add(loc, $"loc_{loc:x8}");
+                    int loc = i + (op.Arguments.Contains(InstructionArg.ESigned) ? inst.E(ParentClass.ParentScript.XData.Endianness) : inst.V(ParentClass.ParentScript.XData.Endianness));
+                    if (!jmpLoc.ContainsKey(loc))
+                    {
+                        if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
+                            jmpLoc.Add(loc, "return");
+                        else
+                            jmpLoc.Add(loc, $"loc_{loc:x8}");
+                    }
                 }
             }
 
@@ -241,6 +249,14 @@ namespace MintWorkshop.Types
                                     disasm += jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)];
                                 else
                                     disasm += inst.V(ParentClass.ParentScript.XData.Endianness);
+                                break;
+                            }
+                        case InstructionArg.ESigned:
+                            {
+                                if (op.Action.HasFlag(Mint.Action.Jump))
+                                    disasm += jmpLoc[i + inst.E(ParentClass.ParentScript.XData.Endianness)];
+                                else
+                                    disasm += inst.E(ParentClass.ParentScript.XData.Endianness);
                                 break;
                             }
                         case InstructionArg.IntRegZ:
@@ -828,7 +844,9 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes[inst.Opcode];
                 if (op.Action.HasFlag(Mint.Action.Jump))
                 {
-                    int loc = instOffsets[i] + (inst.V(ParentClass.ParentScript.XData.Endianness) * 4);
+                    int loc = instOffsets[i] + ((op.Arguments.Contains(InstructionArg.ESigned)
+                        ? inst.E(ParentClass.ParentScript.XData.Endianness) + 1
+                        : inst.V(ParentClass.ParentScript.XData.Endianness)) * 4);
                     int locIndex = instOffsets.IndexOf(loc);
                     if (!jmpLoc.ContainsKey(loc) && locIndex < Instructions.Count && locIndex > 0)
                     {
@@ -941,6 +959,14 @@ namespace MintWorkshop.Types
                                         textBox.AppendText(jmpLoc[instOffsets[i] + (inst.V(ParentClass.ParentScript.XData.Endianness) * 4)], TextColors.JumpLocColor);
                                     else
                                         textBox.AppendText($"{inst.V(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
+                                    break;
+                                }
+                            case InstructionArg.ESigned:
+                                {
+                                    if (op.Action.HasFlag(Mint.Action.Jump))
+                                        textBox.AppendText(jmpLoc[instOffsets[i] + ((inst.E(ParentClass.ParentScript.XData.Endianness) + 1) * 4)], TextColors.JumpLocColor);
+                                    else
+                                        textBox.AppendText($"{inst.E(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
                                     break;
                                 }
                             case InstructionArg.IntRegZ:
@@ -1613,7 +1639,7 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a] == InstructionArg.IntV || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
+                    if (op.Arguments[a].HasFlag(InstructionArg.SDataInt) || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
                     {
                         string arg = line[a + 1].TrimEnd(',');
                         byte[] b;
@@ -1708,7 +1734,7 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a] == InstructionArg.ArrV || op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
+                    if (op.Arguments[a].HasFlag(InstructionArg.SDataArr) || op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
                     {
                         string arg = line[a + 1];
                         List<byte> b = new List<byte>();
@@ -1871,7 +1897,7 @@ namespace MintWorkshop.Types
                 {
                     for (int a = 0; a < op.Arguments.Length; a++)
                     {
-                        if (op.Arguments[a] == InstructionArg.VSigned)
+                        if (op.Arguments[a] == InstructionArg.VSigned || op.Arguments[a] == InstructionArg.ESigned)
                         {
                             string arg = line[a + 1];
 
@@ -1881,7 +1907,7 @@ namespace MintWorkshop.Types
                                 return;
                             }
 
-                            line[a + 1] = ((instOffsets[locs[arg]] - instOffsets[i])/4).ToString();
+                            line[a + 1] = ((instOffsets[locs[arg]] - (instOffsets[i] + (op.Arguments[a] == InstructionArg.ESigned ? 4 : 0)))/4).ToString();
                             if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
                         }
                     }
@@ -1896,11 +1922,10 @@ namespace MintWorkshop.Types
                 var o = opcodes.Where(x => x.Name == line[0].ToLower());
 
                 Opcode op = o.FirstOrDefault();
-                byte[] iRaw = new byte[op.Size];
-                iRaw[0] = (byte)opcodes.ToList().IndexOf(op);
-                for (int b = 1; b < iRaw.Length; b++)
-                    iRaw[b] = 0xFF;
+                byte[] iRaw = new byte[op.BaseData.Length];
+                op.BaseData.CopyTo(iRaw, 0);
                 Instruction inst = new Instruction(iRaw);
+                inst.Opcode = (byte)opcodes.ToList().IndexOf(op);
                 //Console.WriteLine(lines[i]);
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
@@ -1930,7 +1955,7 @@ namespace MintWorkshop.Types
                                     v = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
 
                                 if (ParentClass.ParentScript.XData.Endianness == Endianness.Big)
-                                    v.Reverse();
+                                    v = v.Reverse().ToArray();
 
                                 inst.X = v[0];
                                 inst.Y = v[1];
@@ -1943,12 +1968,12 @@ namespace MintWorkshop.Types
                             }
                         case InstructionArg.B:
                             {
-                                inst.A = byte.Parse(line[a + 1].TrimStart('r'));
+                                inst.B = byte.Parse(line[a + 1].TrimStart('r'));
                                 break;
                             }
                         case InstructionArg.C:
                             {
-                                inst.A = byte.Parse(line[a + 1].TrimStart('r'));
+                                inst.C = byte.Parse(line[a + 1].TrimStart('r'));
                                 break;
                             }
                         case InstructionArg.E:
@@ -1960,7 +1985,7 @@ namespace MintWorkshop.Types
                                     e = BitConverter.GetBytes(ushort.Parse(line[a + 1]));
 
                                 if (ParentClass.ParentScript.XData.Endianness == Endianness.Big)
-                                    e.Reverse();
+                                    e = e.Reverse().ToArray();
 
                                 inst.B = e[0];
                                 inst.C = e[1];

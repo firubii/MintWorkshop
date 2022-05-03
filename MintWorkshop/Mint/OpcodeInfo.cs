@@ -36,6 +36,7 @@ namespace MintWorkshop.Mint
         E = 0x80,
         AllExtBytes = A | V | C,
         AllData = AllBytes | AllExtBytes | V | E,
+        ESigned = E | Signed,
 
         //Argument Type
         Register = 0x100,
@@ -117,12 +118,13 @@ namespace MintWorkshop.Mint
 
     public struct Opcode
     {
-        public Opcode(string name, InstructionArg[] args, Action action = Action.None, bool extended = false)
+        public Opcode(string name, InstructionArg[] args, Action action = Action.None, bool extended = false, byte[] baseData = null)
         {
             this.Name = name;
             this.Action = action;
             this.Arguments = args;
             this.Size = extended ? 8 : 4;
+            this.BaseData = baseData != null ? baseData : new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
         }
         public static Opcode None() => new Opcode(null, null);
 
@@ -130,6 +132,7 @@ namespace MintWorkshop.Mint
         public Action Action;
         public InstructionArg[] Arguments;
         public int Size;
+        public byte[] BaseData;
     }
 
     public struct Instruction
@@ -162,11 +165,19 @@ namespace MintWorkshop.Mint
             return BitConverter.ToInt16(new byte[] { B, C }, 0);
         }
 
-        public bool IsExtended => instData.Length > 4;
+        public int Length => instData.Length;
 
         public void Write(EndianBinaryWriter writer)
         {
             writer.Write(instData);
+        }
+
+        public override string ToString()
+        {
+            string s = "";
+            for (int i = 0; i < instData.Length; i++)
+                s += instData[i].ToString("X2");
+            return s;
         }
     }
 }

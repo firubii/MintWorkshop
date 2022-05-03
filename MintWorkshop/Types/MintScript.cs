@@ -274,8 +274,12 @@ namespace MintWorkshop.Types
                         writer.Write(padding);
                     writer.Write(Classes[i].Flags);
 
+                    bool writeVariables = true;
+                    //if (Version[0] >= 7)
+                    //    writeVariables = Classes[i].Variables.Count > 0;
+
                     List<uint> vOffs = new List<uint>();
-                    if (Version[0] < 7 || Classes[i].Variables.Count > 0)
+                    if (writeVariables)
                     {
                         writer.BaseStream.Seek(cl + 0x8, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
@@ -295,8 +299,12 @@ namespace MintWorkshop.Types
                         }
                     }
 
+                    bool writeFunctions = true;
+                    //if (Version[0] >= 7)
+                    //    writeFunctions = Classes[i].Functions.Count > 0;
+
                     List<uint> funcOffsList = new List<uint>();
-                    if (Version[0] < 7 || Classes[i].Functions.Count > 0)
+                    if (writeFunctions)
                     {
                         writer.BaseStream.Seek(cl + 0xC, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
@@ -332,8 +340,12 @@ namespace MintWorkshop.Types
                         }
                     }
 
+                    bool writeConstants = true;
+                    if (Version[0] >= 7)
+                        writeConstants = Classes[i].Constants.Count > 0;
+
                     List<uint> cOffs = new List<uint>();
-                    if (Version[0] < 7 || Classes[i].Constants.Count > 0)
+                    if (writeConstants)
                     {
                         writer.BaseStream.Seek(cl + 0x10, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
@@ -351,7 +363,13 @@ namespace MintWorkshop.Types
                         }
                     }
 
-                    if (((Version[0] >= 2 || Version[1] >= 1) && Version[0] < 7) || (Version[0] >= 7 && Classes[i].UnknownList.Count > 0))
+                    bool writeUnkSection = false;
+                    if (Version[0] >= 2 || Version[1] >= 1)
+                        writeUnkSection = true;
+                    else if (Version[0] >= 7)
+                        writeUnkSection = Classes[i].UnknownList.Count > 0;
+
+                    if (writeUnkSection)
                     {
                         writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
@@ -362,7 +380,11 @@ namespace MintWorkshop.Types
                             writer.Write(Classes[i].UnknownList[v]);
                     }
 
-                    if (Version[0] >= 7 && Classes[i].Unknown2List.Count > 0)
+                    bool writeUnk2Section = false;
+                    if (Version[0] >= 7)
+                        writeUnk2Section = Classes[i].Unknown2List.Count > 0;
+
+                    if (writeUnk2Section)
                     {
                         writer.BaseStream.Seek(cl + 0x18, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
