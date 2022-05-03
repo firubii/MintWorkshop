@@ -95,14 +95,16 @@ namespace MintWorkshop.Types
                     }
                     else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Jump))
                     {
-                        int targetIndex = index + (i.V(ParentClass.ParentScript.XData.Endianness) * 4);
-                        /*int targetIndex = index + (opcodes[i.Opcode].Arguments.Contains(InstructionArg.ESigned)
-                            ? i.E(ParentClass.ParentScript.XData.Endianness) + 1
-                            : i.V(ParentClass.ParentScript.XData.Endianness)) * 4;*/
+                        int targetIndex = index;
+                        if (opcodes[i.Opcode].Arguments.Contains(InstructionArg.ESigned))
+                            targetIndex += 4 + (i.E(ParentClass.ParentScript.XData.Endianness) * 4);
+                        else
+                            targetIndex +=  i.V(ParentClass.ParentScript.XData.Endianness) * 4;
+
                         if (targetIndex > ingoreRetUntil)
                             ingoreRetUntil = targetIndex;
-                        /*if (ingoreRetUntil < index)
-                            break;*/
+                        if (opcodes[i.Opcode].Name == "jmp" && targetIndex <= index && ingoreRetUntil <= index)
+                            break;
                     }
                 }
                 else if (!hasReturn && ingoreRetUntil <= index)
@@ -134,21 +136,42 @@ namespace MintWorkshop.Types
             Opcode[] opcodes = MintVersions.Versions[version];
             string disasm = "";
 
+            List<int> instOffsets = new List<int>();
+            int instOffs = 0;
+            for (int i = 0; i < Instructions.Count; i++)
+            {
+                instOffsets.Add(instOffs);
+                if (Instructions[i].Opcode < opcodes.Length)
+                    instOffs += opcodes[Instructions[i].Opcode].Size;
+                else
+                    instOffs += 4;
+            }
+
             Dictionary<int, string> jmpLoc = new Dictionary<int, string>();
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
-                if (opcodes.Length - 1 < inst.Opcode) continue;
+                if (opcodes.Length - 1 < inst.Opcode)
+                    continue;
                 Opcode op = opcodes[inst.Opcode];
                 if (op.Action.HasFlag(Mint.Action.Jump))
                 {
-                    int loc = i + (op.Arguments.Contains(InstructionArg.ESigned) ? inst.E(ParentClass.ParentScript.XData.Endianness) : inst.V(ParentClass.ParentScript.XData.Endianness));
-                    if (!jmpLoc.ContainsKey(loc))
+                    int loc = instOffsets[i];
+                    if (op.Arguments.Contains(InstructionArg.ESigned))
+                        loc += 4 + (inst.E(ParentClass.ParentScript.XData.Endianness) * 4);
+                    else
+                        loc += inst.V(ParentClass.ParentScript.XData.Endianness) * 4;
+
+                    int locIndex = instOffsets.IndexOf(loc);
+                    if (!jmpLoc.ContainsKey(loc) && locIndex < Instructions.Count && locIndex > 0)
                     {
-                        if (opcodes[Instructions[loc].Opcode].Action.HasFlag(Mint.Action.Return))
+                        if (Instructions[locIndex].Opcode >= opcodes.Length)
+                            continue;
+
+                        if (opcodes[Instructions[locIndex].Opcode].Action.HasFlag(Mint.Action.Return))
                             jmpLoc.Add(loc, "return");
                         else
-                            jmpLoc.Add(loc, $"loc_{loc:x8}");
+                            jmpLoc.Add(loc, $"loc_{locIndex:x8}");
                     }
                 }
             }
@@ -156,18 +179,18 @@ namespace MintWorkshop.Types
             for (int i = 0; i < Instructions.Count; i++)
             {
                 Instruction inst = Instructions[i];
+                if (jmpLoc.ContainsKey(instOffsets[i]))
+                {
+                    disasm += "\n";
+                    disasm += $"{jmpLoc[i]}:";
+                    disasm += "\n";
+                }
+
                 if (opcodes.Length - 1 < inst.Opcode || string.IsNullOrEmpty(opcodes[i].Name) || opcodes[i].Arguments == null)
                 {
                     disasm += $"{inst.Opcode:X2}{inst.Z:X2}{inst.X:X2}{inst.Y:X2} Unimplemented opcode!";
                     disasm += "\n";
                     continue;
-                }
-
-                if (jmpLoc.ContainsKey(i))
-                {
-                    disasm += "\n";
-                    disasm += $"{jmpLoc[i]}:";
-                    disasm += "\n";
                 }
 
                 Opcode op = opcodes[inst.Opcode];
@@ -246,7 +269,7 @@ namespace MintWorkshop.Types
                         case InstructionArg.VSigned:
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
-                                    disasm += jmpLoc[i + inst.V(ParentClass.ParentScript.XData.Endianness)];
+                                    disasm += jmpLoc[instOffsets[i] + (inst.V(ParentClass.ParentScript.XData.Endianness) * 4)];
                                 else
                                     disasm += inst.V(ParentClass.ParentScript.XData.Endianness);
                                 break;
@@ -254,7 +277,7 @@ namespace MintWorkshop.Types
                         case InstructionArg.ESigned:
                             {
                                 if (op.Action.HasFlag(Mint.Action.Jump))
-                                    disasm += jmpLoc[i + inst.E(ParentClass.ParentScript.XData.Endianness)];
+                                    disasm += jmpLoc[instOffsets[i] + 4 + (inst.E(ParentClass.ParentScript.XData.Endianness) * 4)];
                                 else
                                     disasm += inst.E(ParentClass.ParentScript.XData.Endianness);
                                 break;
@@ -351,10 +374,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -371,6 +397,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -395,10 +423,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -415,6 +446,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -439,10 +472,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -459,6 +495,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -483,10 +521,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -503,6 +544,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -527,10 +570,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -547,6 +593,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -571,10 +619,13 @@ namespace MintWorkshop.Types
                                     {
                                         if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
-                                            if (Sdata[s - 1] == 0x00)
+                                            if (s > 0 && b.Count > 0)
                                             {
-                                                b.RemoveAt(b.Count - 1);
-                                                utf16 = true;
+                                                if (Sdata[s - 1] == 0x00)
+                                                {
+                                                    b.RemoveAt(b.Count - 1);
+                                                    utf16 = true;
+                                                }
                                             }
                                             break;
                                         }
@@ -591,6 +642,8 @@ namespace MintWorkshop.Types
                                                 break;
                                             }
                                         }
+                                        else if (Sdata[s] == 0x00)
+                                            break;
 
                                         b.Add(Sdata[s]);
                                     }
@@ -613,10 +666,13 @@ namespace MintWorkshop.Types
                                 {
                                     if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
-                                        if (Sdata[s - 1] == 0x00)
+                                        if (s > 0 && b.Count > 0)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            utf16 = true;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
                                         }
                                         break;
                                     }
@@ -633,6 +689,8 @@ namespace MintWorkshop.Types
                                             break;
                                         }
                                     }
+                                    else if (Sdata[s] == 0x00)
+                                        break;
 
                                     b.Add(Sdata[s]);
                                 }
@@ -650,10 +708,13 @@ namespace MintWorkshop.Types
                                 {
                                     if (Sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                     {
-                                        if (Sdata[s - 1] == 0x00)
+                                        if (s > 0 && b.Count > 0)
                                         {
-                                            b.RemoveAt(b.Count - 1);
-                                            utf16 = true;
+                                            if (Sdata[s - 1] == 0x00)
+                                            {
+                                                b.RemoveAt(b.Count - 1);
+                                                utf16 = true;
+                                            }
                                         }
                                         break;
                                     }
@@ -670,6 +731,8 @@ namespace MintWorkshop.Types
                                             break;
                                         }
                                     }
+                                    else if (Sdata[s] == 0x00)
+                                        break;
 
                                     b.Add(Sdata[s]);
                                 }
@@ -844,9 +907,12 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes[inst.Opcode];
                 if (op.Action.HasFlag(Mint.Action.Jump))
                 {
-                    int loc = instOffsets[i] + ((op.Arguments.Contains(InstructionArg.ESigned)
-                        ? inst.E(ParentClass.ParentScript.XData.Endianness) + 1
-                        : inst.V(ParentClass.ParentScript.XData.Endianness)) * 4);
+                    int loc = instOffsets[i];
+                    if (op.Arguments.Contains(InstructionArg.ESigned))
+                        loc += 4 + (inst.E(ParentClass.ParentScript.XData.Endianness) * 4);
+                    else
+                        loc += inst.V(ParentClass.ParentScript.XData.Endianness) * 4;
+
                     int locIndex = instOffsets.IndexOf(loc);
                     if (!jmpLoc.ContainsKey(loc) && locIndex < Instructions.Count && locIndex > 0)
                     {
@@ -964,7 +1030,7 @@ namespace MintWorkshop.Types
                             case InstructionArg.ESigned:
                                 {
                                     if (op.Action.HasFlag(Mint.Action.Jump))
-                                        textBox.AppendText(jmpLoc[instOffsets[i] + ((inst.E(ParentClass.ParentScript.XData.Endianness) + 1) * 4)], TextColors.JumpLocColor);
+                                        textBox.AppendText(jmpLoc[instOffsets[i] + 4 + (inst.E(ParentClass.ParentScript.XData.Endianness) * 4)], TextColors.JumpLocColor);
                                     else
                                         textBox.AppendText($"{inst.E(ParentClass.ParentScript.XData.Endianness)}", TextColors.ConstantColor);
                                     break;
@@ -1682,7 +1748,8 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a].HasFlag(InstructionArg.SDataInt) || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
+                    if (op.Arguments[a].HasFlag(InstructionArg.SDataInt) || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt) ||
+                        op.Arguments[a].HasFlag(InstructionArg.SDataFloat) || op.Arguments[a].HasFlag(InstructionArg.SDataRegFloat))
                     {
                         string arg = line[a + 1].TrimEnd(',');
                         byte[] b;
@@ -1950,7 +2017,11 @@ namespace MintWorkshop.Types
                                 return;
                             }
 
-                            line[a + 1] = ((instOffsets[locs[arg]] - (instOffsets[i] + (op.Arguments[a] == InstructionArg.ESigned ? 4 : 0)))/4).ToString();
+                            if (op.Arguments[a] == InstructionArg.ESigned)
+                                line[a + 1] = ((instOffsets[locs[arg]] - (instOffsets[i] + 4))/4).ToString();
+                            else
+                                line[a + 1] = ((instOffsets[locs[arg]] - instOffsets[i]) / 4).ToString();
+
                             if (a < op.Arguments.Length - 1) line[a + 1] = line[a + 1] + ",";
                         }
                     }
