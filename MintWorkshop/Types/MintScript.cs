@@ -185,6 +185,11 @@ namespace MintWorkshop.Types
                             string[] unkDeclaration = classLine.Split(' ');
                             newClass.UnknownList.Add(uint.Parse(unkDeclaration[1]));
                         }
+                        else if (classLine.StartsWith("unk2value "))
+                        {
+                            string[] unkDeclaration = classLine.Split(' ');
+                            newClass.Unknown2List.Add(uint.Parse(unkDeclaration[1]));
+                        }
                         else if (classLine.StartsWith("}"))
                         {
                             l = cl;
@@ -544,6 +549,11 @@ namespace MintWorkshop.Types
                 for (int i = 0; i < Classes[c].UnknownList.Count; i++)
                 {
                     text.Add($"\t\tunkvalue {Classes[c].UnknownList[i]}");
+                }
+
+                for (int i = 0; i < Classes[c].Unknown2List.Count; i++)
+                {
+                    text.Add($"\t\tunk2value {Classes[c].Unknown2List[i]}");
                 }
 
                 while (text.Last().TrimStart(new char[] { '\t' }) == "")
