@@ -672,6 +672,11 @@ namespace MintWorkshop
                 newFunc.SetName(edit.FunctionName);
                 if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
                     newFunc.Flags = edit.FunctionFlags;
+                if (archive.Version[0] >= 7)
+                {
+                    newFunc.Unknown1 = edit.FunctionUnk1;
+                    newFunc.Unknown2 = edit.FunctionUnk2;
+                }
                 archive.Scripts[parentScript].Classes[index].Functions.Add(newFunc);
 
                 arcTree.SelectedNode.Nodes[1].Nodes.Add($"{newFunc.Hash[0]:X2}{newFunc.Hash[1]:X2}{newFunc.Hash[2]:X2}{newFunc.Hash[3]:X2}", newFunc.Name, 4, 4);
@@ -705,25 +710,32 @@ namespace MintWorkshop
             {
                 case "Variables":
                     {
-                        EditVariableForm edit = new EditVariableForm(archive.Scripts[parentScript].Classes[classIndex].Variables[index]);
+                        MintVariable var = archive.Scripts[parentScript].Classes[classIndex].Variables[index];
+                        EditVariableForm edit = new EditVariableForm(var);
                         if (edit.ShowDialog() == DialogResult.OK)
                         {
-                            archive.Scripts[parentScript].Classes[classIndex].Variables[index].SetName(edit.VariableName);
-                            archive.Scripts[parentScript].Classes[classIndex].Variables[index].Type = edit.VariableType;
-                            archive.Scripts[parentScript].Classes[classIndex].Variables[index].Flags = edit.VariableFlags;
+                            var.SetName(edit.VariableName);
+                            var.Type = edit.VariableType;
+                            var.Flags = edit.VariableFlags;
 
-                            arcTree.SelectedNode.Text = edit.VariableType + " " + edit.VariableName;
+                            arcTree.SelectedNode.Text = var.Type + " " + var.Name;
                         }
                         break;
                     }
                 case "Functions":
                     {
-                        EditFunctionForm edit = new EditFunctionForm(archive.Scripts[parentScript].Classes[classIndex].Functions[index]);
+                        MintFunction func = archive.Scripts[parentScript].Classes[classIndex].Functions[index];
+                        EditFunctionForm edit = new EditFunctionForm(func);
                         if (edit.ShowDialog() == DialogResult.OK)
                         {
-                            archive.Scripts[parentScript].Classes[classIndex].Functions[index].SetName(edit.FunctionName);
+                            func.SetName(edit.FunctionName);
                             if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
-                                archive.Scripts[parentScript].Classes[classIndex].Functions[index].Flags = edit.FunctionFlags;
+                                func.Flags = edit.FunctionFlags;
+                            if (archive.Version[0] >= 7)
+                            {
+                                func.Unknown1 = edit.FunctionUnk1;
+                                func.Unknown2 = edit.FunctionUnk2;
+                            }
 
                             arcTree.SelectedNode.Text = edit.FunctionName;
                         }

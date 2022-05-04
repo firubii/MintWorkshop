@@ -33,12 +33,18 @@
             this.label2 = new System.Windows.Forms.Label();
             this.funcName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.funcUnk1 = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
+            this.funcUnk2 = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.funcFlags)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.funcUnk1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.funcUnk2)).BeginInit();
             this.SuspendLayout();
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(18, 64);
+            this.okButton.Location = new System.Drawing.Point(18, 116);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(333, 23);
             this.okButton.TabIndex = 18;
@@ -78,11 +84,47 @@
             this.label1.TabIndex = 14;
             this.label1.Text = "Name";
             // 
+            // funcUnk1
+            // 
+            this.funcUnk1.Location = new System.Drawing.Point(83, 64);
+            this.funcUnk1.Name = "funcUnk1";
+            this.funcUnk1.Size = new System.Drawing.Size(268, 20);
+            this.funcUnk1.TabIndex = 20;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(15, 66);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(62, 13);
+            this.label3.TabIndex = 19;
+            this.label3.Text = "Unknown 1";
+            // 
+            // funcUnk2
+            // 
+            this.funcUnk2.Location = new System.Drawing.Point(83, 90);
+            this.funcUnk2.Name = "funcUnk2";
+            this.funcUnk2.Size = new System.Drawing.Size(268, 20);
+            this.funcUnk2.TabIndex = 22;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(15, 92);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(62, 13);
+            this.label4.TabIndex = 21;
+            this.label4.Text = "Unknown 2";
+            // 
             // EditFunctionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(365, 103);
+            this.ClientSize = new System.Drawing.Size(365, 155);
+            this.Controls.Add(this.funcUnk2);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.funcUnk1);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.funcFlags);
             this.Controls.Add(this.label2);
@@ -93,6 +135,8 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Edit Function";
             ((System.ComponentModel.ISupportInitialize)(this.funcFlags)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.funcUnk1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.funcUnk2)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -104,5 +148,9 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox funcName;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown funcUnk1;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown funcUnk2;
+        private System.Windows.Forms.Label label4;
     }
 }

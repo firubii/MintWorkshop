@@ -1876,6 +1876,7 @@ namespace MintWorkshop.Types
                             str += line[s];
                             if (line[s].EndsWith("\"") || line[s].EndsWith("\","))
                                 break;
+                            str += " ";
                         }
                         if (!str.EndsWith("\"") && !str.EndsWith("\","))
                         {
