@@ -951,9 +951,9 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes[inst.Opcode];
 
                 if (uppercase)
-                    textBox.AppendText(op.Name.ToUpper(), TextColors.MneumonicColor);
+                    textBox.AppendText(op.Name.ToUpper(), op.Name[0] == '_' ? TextColors.MneumonicExtColor : TextColors.MneumonicColor);
                 else
-                    textBox.AppendText(op.Name, TextColors.MneumonicColor);
+                    textBox.AppendText(op.Name, op.Name[0] == '_' ? TextColors.MneumonicExtColor : TextColors.MneumonicColor);
 
                 for (int s = op.Name.Length; s < 7; s++)
                     textBox.AppendText(" ");

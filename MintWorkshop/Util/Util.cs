@@ -14,6 +14,7 @@ namespace MintWorkshop.Util
     {
         public static Color ByteColor = Color.FromArgb(0, 0, 255);
         public static Color MneumonicColor = Color.FromArgb(0, 0, 128);
+        public static Color MneumonicExtColor = Color.FromArgb(0, 128, 255);
         public static Color RegisterColor = Color.FromArgb(155, 150, 50);
         public static Color ConstantColor = Color.FromArgb(0, 128, 54);
         public static Color StringColor = Color.FromArgb(100, 100, 100);

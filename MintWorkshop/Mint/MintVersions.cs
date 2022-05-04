@@ -1312,9 +1312,9 @@ namespace MintWorkshop.Mint
                     Opcode.None(),
                     new Opcode("_jmp",   new InstructionArg[] {InstructionArg.VSigned}, Action.Jump),
                     new Opcode("_regs",  new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
-                    new Opcode("rtstd",  new InstructionArg[] {InstructionArg.RegY}),
-                    new Opcode("rtvoid", new InstructionArg[] {InstructionArg.RegY}),
-                    new Opcode("rttype", new InstructionArg[] {InstructionArg.XRefV}),
+                    new Opcode("_ret32", new InstructionArg[] {InstructionArg.RegY}),
+                    new Opcode("_ret",   new InstructionArg[] {InstructionArg.RegY}),
+                    new Opcode("_rtype", new InstructionArg[] {InstructionArg.XRefV}),
                     new Opcode("yield",  new InstructionArg[] {InstructionArg.RegZ})
                 }
             }
