@@ -19,8 +19,8 @@ namespace MintWorkshop.Types
 
         public string Name { get; private set; }
         public byte[] Hash { get; private set; }
-        public uint Unknown1 { get; private set; }
-        public uint Unknown2 { get; private set; }
+        public uint Unknown1 { get; set; }
+        public uint Unknown2 { get; set; }
         public List<Instruction> Instructions { get; private set; }
         public uint Flags { get; set; }
 
@@ -362,6 +362,16 @@ namespace MintWorkshop.Types
                         case InstructionArg.IntE:
                             {
                                 disasm += $"0x{BitConverter.ToUInt32(Sdata, (ushort)inst.E(ParentClass.ParentScript.XData.Endianness)):X}";
+                                break;
+                            }
+                        case InstructionArg.FloatV:
+                            {
+                                disasm += $"{BitConverter.ToSingle(Sdata, (ushort)inst.V(ParentClass.ParentScript.XData.Endianness))}f";
+                                break;
+                            }
+                        case InstructionArg.FloatE:
+                            {
+                                disasm += $"{BitConverter.ToSingle(Sdata, (ushort)inst.E(ParentClass.ParentScript.XData.Endianness))}f";
                                 break;
                             }
                         case InstructionArg.ArrRegZ:

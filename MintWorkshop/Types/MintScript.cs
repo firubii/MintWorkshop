@@ -167,6 +167,15 @@ namespace MintWorkshop.Types
                                 instructions.Add(funcLine);
                             }
                             newFunc.Assemble(instructions.ToArray());
+
+                            if (text[cl - 1].TrimStart(trimChars).StartsWith("["))
+                            {
+                                string unkDec = text[cl - 1].TrimStart(trimChars);
+                                string[] unks = unkDec.Substring(0, unkDec.Length - 1).Split(',');
+                                newFunc.Unknown1 = uint.Parse(unks[0]);
+                                newFunc.Unknown2 = uint.Parse(unks[1]);
+                            }
+
                             newClass.Functions.Add(newFunc);
                         }
                         else if (classLine.StartsWith("const "))
@@ -510,6 +519,9 @@ namespace MintWorkshop.Types
 
                 for (int i = 0; i < Classes[c].Functions.Count; i++)
                 {
+                    if (Version[0] >= 7 && (Classes[c].Functions[i].Unknown1 != 0 || Classes[c].Functions[i].Unknown2 != 0))
+                        text.Add($"\t\t[{Classes[c].Functions[i].Unknown1},{Classes[c].Functions[i].Unknown2}]");
+
                     uint fFlags = Classes[c].Functions[i].Flags;
                     string funcFlags = "";
                     if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
