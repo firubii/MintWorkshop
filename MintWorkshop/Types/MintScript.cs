@@ -106,7 +106,7 @@ namespace MintWorkshop.Types
                     for (int i = 0; i < classWord; i++)
                     {
                         if (classDeclaration[i].StartsWith("flag"))
-                            newClass.Flags |= uint.Parse(classDeclaration[i].Remove(0, 4));
+                            newClass.Flags |= uint.Parse(classDeclaration[i].Substring(4), NumberStyles.HexNumber);
                         else if (FlagLabels.ClassFlags.ContainsValue(classDeclaration[i]))
                             newClass.Flags |= FlagLabels.ClassFlags.Keys.ToArray()[FlagLabels.ClassFlags.Values.ToList().IndexOf(classDeclaration[i])];
                         else
@@ -126,7 +126,7 @@ namespace MintWorkshop.Types
                             for (int i = 0; i < varWord; i++)
                             {
                                 if (varDeclaration[i].StartsWith("flag"))
-                                    newVar.Flags |= uint.Parse(varDeclaration[i].Remove(0, 4));
+                                    newVar.Flags |= uint.Parse(varDeclaration[i].Substring(4), NumberStyles.HexNumber);
                                 else if (FlagLabels.VariableFlags.ContainsValue(varDeclaration[i]))
                                     newVar.Flags |= FlagLabels.VariableFlags.Keys.ToArray()[FlagLabels.VariableFlags.Values.ToList().IndexOf(varDeclaration[i])];
                                 else
@@ -142,7 +142,7 @@ namespace MintWorkshop.Types
                             for (int i = 0; i < funcDeclaration.Length; i++)
                             {
                                 if (funcDeclaration[i].StartsWith("flag"))
-                                    funcFlags |= uint.Parse(funcDeclaration[i].Remove(0, 4));
+                                    funcFlags |= uint.Parse(funcDeclaration[i].Substring(4), NumberStyles.HexNumber);
                                 else if (FlagLabels.FunctionFlags.ContainsValue(funcDeclaration[i]))
                                     funcFlags |= FlagLabels.FunctionFlags.Keys.ToArray()[FlagLabels.FunctionFlags.Values.ToList().IndexOf(funcDeclaration[i])];
                                 else
@@ -153,6 +153,15 @@ namespace MintWorkshop.Types
                             }
 
                             MintFunction newFunc = new MintFunction(name, funcFlags, newClass);
+
+                            if (text[cl - 1].TrimStart(trimChars).StartsWith("["))
+                            {
+                                string unkDec = text[cl - 1].TrimStart(trimChars);
+                                string[] unks = unkDec.Substring(1, unkDec.Length - 2).Split(',');
+                                newFunc.Unknown1 = uint.Parse(unks[0]);
+                                newFunc.Unknown2 = uint.Parse(unks[1]);
+                            }
+
                             List<string> instructions = new List<string>();
                             for (int fl = cl + 2; fl < text.Length; fl++)
                             {
@@ -167,14 +176,6 @@ namespace MintWorkshop.Types
                                 instructions.Add(funcLine);
                             }
                             newFunc.Assemble(instructions.ToArray());
-
-                            if (text[cl - 1].TrimStart(trimChars).StartsWith("["))
-                            {
-                                string unkDec = text[cl - 1].TrimStart(trimChars);
-                                string[] unks = unkDec.Substring(0, unkDec.Length - 1).Split(',');
-                                newFunc.Unknown1 = uint.Parse(unks[0]);
-                                newFunc.Unknown2 = uint.Parse(unks[1]);
-                            }
 
                             newClass.Functions.Add(newFunc);
                         }
