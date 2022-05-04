@@ -34,7 +34,7 @@ namespace MintWorkshop.Mint
         B = 0x20,
         C = 0x40,
         E = 0x80,
-        AllExtBytes = A | V | C,
+        AllExtBytes = A | B | C,
         AllData = AllBytes | AllExtBytes | V | E,
         ESigned = E | Signed,
 
