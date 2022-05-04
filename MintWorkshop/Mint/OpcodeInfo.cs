@@ -12,8 +12,7 @@ namespace MintWorkshop.Mint
     {
         None = 0,
         Jump = 1,
-        Skip = 2,
-        Return = 4
+        Return = 2
     }
 
     [Flags]

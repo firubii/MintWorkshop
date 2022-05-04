@@ -87,12 +87,6 @@ namespace MintWorkshop.Types
                 {
                     if (opcodes[i.Opcode].Action == Mint.Action.Return && ingoreRetUntil <= index)
                         break;
-                    else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Skip))
-                    {
-                        int targetIndex = index + (2 * 4);
-                        if (targetIndex > ingoreRetUntil)
-                            ingoreRetUntil = targetIndex;
-                    }
                     else if (opcodes[i.Opcode].Action.HasFlag(Mint.Action.Jump))
                     {
                         int targetIndex = index;
