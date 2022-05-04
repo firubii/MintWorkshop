@@ -38,7 +38,7 @@ A GUI editor for HAL's Mint bytecode and its updated form found in modern Kirby 
   * Kirby Fighters 2
 
 ## Supported Basil Versions and Games
-* 7.0.2 (Incomplete)
+* 7.0.2 (Semi-complete)
   * Kirby and the Forgotten Land
 
 # Usage
