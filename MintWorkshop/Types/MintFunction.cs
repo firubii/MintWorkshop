@@ -2134,7 +2134,11 @@ namespace MintWorkshop.Types
             if (ParentClass.ParentScript.Version[0] < 7)
                 return;
 
-            Arguments = (uint)Name.Substring(Name.IndexOf('(')).Split(',').Length;
+            string args = Name.Substring(Name.IndexOf('(')).Trim("()".ToCharArray());
+            if (string.IsNullOrEmpty(args))
+                Arguments = 0;
+            else
+                Arguments = (uint)args.Split(',').Length;
         }
 
         public void DetectRegisters()
