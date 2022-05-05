@@ -1303,7 +1303,7 @@ namespace MintWorkshop.Mint
                     new Opcode("lts32b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
                     new Opcode("ltf32b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
                     new Opcode("lti32b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
-                    new Opcode("ltf32b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
+                    new Opcode("ltf64b", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.RegX,InstructionArg.RegY}),
                     new Opcode("fenter", new InstructionArg[] {InstructionArg.Y}),
                     Opcode.None(),
                     Opcode.None(),

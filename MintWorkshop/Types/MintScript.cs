@@ -153,15 +153,6 @@ namespace MintWorkshop.Types
                             }
 
                             MintFunction newFunc = new MintFunction(name, funcFlags, newClass);
-
-                            if (text[cl - 1].TrimStart(trimChars).StartsWith("["))
-                            {
-                                string unkDec = text[cl - 1].TrimStart(trimChars);
-                                string[] unks = unkDec.Substring(1, unkDec.Length - 2).Split(',');
-                                newFunc.Unknown1 = uint.Parse(unks[0]);
-                                newFunc.Unknown2 = uint.Parse(unks[1]);
-                            }
-
                             List<string> instructions = new List<string>();
                             for (int fl = cl + 2; fl < text.Length; fl++)
                             {
@@ -176,6 +167,8 @@ namespace MintWorkshop.Types
                                 instructions.Add(funcLine);
                             }
                             newFunc.Assemble(instructions.ToArray());
+                            newFunc.DetectArguments();
+                            newFunc.DetectRegisters();
 
                             newClass.Functions.Add(newFunc);
                         }
@@ -340,8 +333,8 @@ namespace MintWorkshop.Types
                             writer.Write(Classes[i].Functions[v].Hash);
                             if (Version[0] >= 7)
                             {
-                                writer.Write(Classes[i].Functions[v].Unknown1);
-                                writer.Write(Classes[i].Functions[v].Unknown2);
+                                writer.Write(Classes[i].Functions[v].Arguments);
+                                writer.Write(Classes[i].Functions[v].Registers);
                             }
                             if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags
                             {
@@ -520,9 +513,6 @@ namespace MintWorkshop.Types
 
                 for (int i = 0; i < Classes[c].Functions.Count; i++)
                 {
-                    if (Version[0] >= 7 && (Classes[c].Functions[i].Unknown1 != 0 || Classes[c].Functions[i].Unknown2 != 0))
-                        text.Add($"\t\t[{Classes[c].Functions[i].Unknown1},{Classes[c].Functions[i].Unknown2}]");
-
                     uint fFlags = Classes[c].Functions[i].Flags;
                     string funcFlags = "";
                     if (Version[0] >= 2 || Version[1] >= 1) //Only 2.x and 1.1.x use function flags

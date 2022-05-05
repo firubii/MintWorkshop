@@ -674,8 +674,8 @@ namespace MintWorkshop
                     newFunc.Flags = edit.FunctionFlags;
                 if (archive.Version[0] >= 7)
                 {
-                    newFunc.Unknown1 = edit.FunctionUnk1;
-                    newFunc.Unknown2 = edit.FunctionUnk2;
+                    newFunc.Arguments = edit.FunctionArgs;
+                    newFunc.Registers = edit.FunctionRegs;
                 }
                 archive.Scripts[parentScript].Classes[index].Functions.Add(newFunc);
 
@@ -733,8 +733,8 @@ namespace MintWorkshop
                                 func.Flags = edit.FunctionFlags;
                             if (archive.Version[0] >= 7)
                             {
-                                func.Unknown1 = edit.FunctionUnk1;
-                                func.Unknown2 = edit.FunctionUnk2;
+                                func.Arguments = edit.FunctionArgs;
+                                func.Registers = edit.FunctionRegs;
                             }
 
                             arcTree.SelectedNode.Text = edit.FunctionName;

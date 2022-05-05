@@ -96,9 +96,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(15, 66);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(62, 13);
+            this.label3.Size = new System.Drawing.Size(57, 13);
             this.label3.TabIndex = 19;
-            this.label3.Text = "Unknown 1";
+            this.label3.Text = "Arguments";
             // 
             // funcUnk2
             // 
@@ -112,9 +112,9 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(15, 92);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(62, 13);
+            this.label4.Size = new System.Drawing.Size(51, 13);
             this.label4.TabIndex = 21;
-            this.label4.Text = "Unknown 2";
+            this.label4.Text = "Registers";
             // 
             // EditFunctionForm
             // 

@@ -19,8 +19,8 @@ namespace MintWorkshop.Types
 
         public string Name { get; private set; }
         public byte[] Hash { get; private set; }
-        public uint Unknown1 { get; set; }
-        public uint Unknown2 { get; set; }
+        public uint Arguments { get; set; }
+        public uint Registers { get; set; }
         public List<Instruction> Instructions { get; private set; }
         public uint Flags { get; set; }
 
@@ -45,8 +45,8 @@ namespace MintWorkshop.Types
             Hash = reader.ReadBytes(4);
             if (ParentClass.ParentScript.Version[0] >= 7)
             {
-                Unknown1 = reader.ReadUInt32();
-                Unknown2 = reader.ReadUInt32();
+                Arguments = reader.ReadUInt32();
+                Registers = reader.ReadUInt32();
             }
             uint dataOffs = reader.ReadUInt32();
             if (ParentClass.ParentScript.Version[0] >= 2 || ParentClass.ParentScript.Version[1] >= 1)
@@ -2118,12 +2118,77 @@ namespace MintWorkshop.Types
             ParentClass.ParentScript.SData = sdata;
             ParentClass.ParentScript.XRef = xref;
             Instructions = instructions;
+
+            DetectArguments();
+            DetectRegisters();
         }
 
         public void SetName(string name)
         {
             Name = name;
             Hash = HashCalculator.Calculate(FullName());
+        }
+
+        public void DetectArguments()
+        {
+            if (ParentClass.ParentScript.Version[0] < 7)
+                return;
+
+            Arguments = (uint)Name.Substring(Name.IndexOf('(')).Split(',').Length;
+        }
+
+        public void DetectRegisters()
+        {
+            byte[] version = ParentClass.ParentScript.Version;
+            if (version[0] < 7)
+                return;
+
+            if (!MintVersions.Versions.ContainsKey(version))
+            {
+                MessageBox.Show("Unknown Mint version!", "MintWorkshop", MessageBoxButtons.OK);
+                return;
+            }
+            Opcode[] opcodes = MintVersions.Versions[version];
+
+            uint highestReg = 0;
+            for (int i = 0; i < Instructions.Count; i++)
+            {
+                Opcode op = opcodes[Instructions[i].Opcode];
+                for (int a = 0; a < op.Arguments.Length; a++)
+                {
+                    if (!op.Arguments[a].HasFlag(InstructionArg.Register))
+                        continue;
+
+                    switch (op.Arguments[a])
+                    {
+                        case InstructionArg.RegZ:
+                            if (Instructions[i].Z > highestReg)
+                                highestReg = Instructions[i].Z;
+                            break;
+                        case InstructionArg.RegX:
+                            if (Instructions[i].X > highestReg)
+                                highestReg = Instructions[i].X;
+                            break;
+                        case InstructionArg.RegY:
+                            if (Instructions[i].Y > highestReg)
+                                highestReg = Instructions[i].Y;
+                            break;
+                        case InstructionArg.RegA:
+                            if (Instructions[i].A > highestReg)
+                                highestReg = Instructions[i].A;
+                            break;
+                        case InstructionArg.RegB:
+                            if (Instructions[i].X > highestReg)
+                                highestReg = Instructions[i].B;
+                            break;
+                        case InstructionArg.RegC:
+                            if (Instructions[i].C > highestReg)
+                                highestReg = Instructions[i].C;
+                            break;
+                    }
+                }
+            }
+            Registers = highestReg;
         }
 
         public string FullName()
