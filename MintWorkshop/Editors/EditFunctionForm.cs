@@ -23,7 +23,7 @@ namespace MintWorkshop.Editors
             FunctionName = baseFunction.Name;
             FunctionFlags = baseFunction.Flags;
             FunctionArgs = baseFunction.Arguments;
-            FunctionArgs = baseFunction.Registers;
+            FunctionRegs = baseFunction.Registers;
 
             InitializeComponent();
             if (baseFunction.ParentClass.ParentScript.Version[0] < 2 && baseFunction.ParentClass.ParentScript.Version[1] < 1)
