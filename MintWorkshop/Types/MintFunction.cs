@@ -77,7 +77,11 @@ namespace MintWorkshop.Types
                 byte op = reader.ReadByte();
                 reader.BaseStream.Position--;
                 if (op < opcodes.Length)
+                {
                     i = new Instruction(reader.ReadBytes(opcodes[op].Size));
+                    if (string.IsNullOrEmpty(opcodes[op].Name))
+                        Console.WriteLine($"Encountered unknown opcode {op:X2} in {FullName()} at {index:X8}");
+                }
                 else
                     i = new Instruction(reader.ReadBytes(4));
                 //Console.WriteLine(i);
