@@ -29,8 +29,8 @@ namespace MintWorkshop.Types
         public List<MintVariable> Variables { get; private set; }
         public List<MintFunction> Functions { get; private set; }
         public List<MintConstant> Constants { get; private set; }
-        public List<uint> UnknownList { get; set; }
-        public List<uint> Unknown2List { get; set; }
+        public List<ushort> ClassImpl { get; set; }
+        public List<ushort> Extends { get; set; }
         public uint Flags { get; set; }
 
         public MintClass(string name, uint flags, MintScript parent)
@@ -40,8 +40,8 @@ namespace MintWorkshop.Types
             Variables = new List<MintVariable>();
             Functions = new List<MintFunction>();
             Constants = new List<MintConstant>();
-            UnknownList = new List<uint>();
-            Unknown2List = new List<uint>();
+            ClassImpl = new List<ushort>();
+            Extends = new List<ushort>();
             Flags = flags;
         }
 
@@ -110,26 +110,29 @@ namespace MintWorkshop.Types
                 }
             }
 
-            UnknownList = new List<uint>();
+            ClassImpl = new List<ushort>();
             if (unkOffs > 0)
             {
                 reader.BaseStream.Seek(unkOffs, SeekOrigin.Begin);
                 uint unkCount = reader.ReadUInt32();
                 for (int i = 0; i < unkCount; i++)
-                    UnknownList.Add(reader.ReadUInt32());
-                if (UnknownList.Count > 0)
-                    Console.WriteLine($"UnkData found at {Name} - {UnknownList.Count} Unknowns: {string.Join(",", UnknownList)}");
+                    ClassImpl.Add(reader.ReadUInt16());
+                /*if (Inheritance.Count > 0)
+                    Console.WriteLine($"UnkData found at {Name} - {Inheritance.Count} Unknowns: {string.Join(",", Inheritance)}");*/
             }
 
-            Unknown2List = new List<uint>();
+            Extends = new List<ushort>();
             if (unk2Offs > 0)
             {
                 reader.BaseStream.Seek(unk2Offs, SeekOrigin.Begin);
                 uint unk2Count = reader.ReadUInt32();
                 for (int i = 0; i < unk2Count; i++)
-                    Unknown2List.Add(reader.ReadUInt32());
-                if (Unknown2List.Count > 0)
-                    Console.WriteLine($"Unk2Data found at {Name} - {Unknown2List.Count} Unknowns: {string.Join(",", Unknown2List)}");
+                {
+                    reader.ReadUInt16();
+                    Extends.Add(reader.ReadUInt16());
+                }
+                /*if (DynamicTypes.Count > 0)
+                    Console.WriteLine($"Unk2Data found at {Name} - {DynamicTypes.Count} Unknowns: {string.Join(",", DynamicTypes)}");*/
             }
         }
 

@@ -395,6 +395,17 @@ namespace MintWorkshop
                 Opcode[] opcodes = MintVersions.Versions[archive.Version];
                 for (int c = 0; c < pair.Value.Classes.Count; c++)
                 {
+                    for (int f = 0; f < pair.Value.Classes[c].ClassImpl.Count; f++)
+                    {
+                        if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].ClassImpl[f]]))
+                            scripts.Add("[Implemented by] " + pair.Value.Classes[c].Name);
+                    }
+                    for (int f = 0; f < pair.Value.Classes[c].Extends.Count; f++)
+                    {
+                        if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].Extends[f]]))
+                            scripts.Add("[Extended by] " + pair.Value.Classes[c].Name);
+                    }
+
                     for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
                     {
                         Console.WriteLine(pair.Value.Classes[c].Functions[f].FullName());
@@ -413,66 +424,67 @@ namespace MintWorkshop
                                     case InstructionArg.XRefV:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefZ:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefX:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefY:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefE:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.E(archive.XData.Endianness)]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefA:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.A]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefB:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.B]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     case InstructionArg.XRefC:
                                         {
                                             if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.C]))
-                                                h = true;
+                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                                             break;
                                         }
                                     default:
                                         break;
                                 }
                             }
-                            if (h)
+                            /*if (h)
                             {
                                 scripts.Add(pair.Value.Classes[c].Functions[f].FullName());
                                 break;
-                            }
+                            }*/
                         }
                     }
                 }
             }
 
             SearchResultForm results = new SearchResultForm(scripts.ToArray());
+            results.Text = "Search Results - " + (hashes.ContainsKey(searchHash) ? hashes[searchHash] : $"{searchHash[0]:X2}{searchHash[1]:X2}{searchHash[2]:X2}{searchHash[3]:X2}");
             results.ShowDialog();
         }
 
@@ -590,7 +602,7 @@ namespace MintWorkshop
         {
             string parentScript = arcTree.SelectedNode.FullPath;
             MintClass newClass = new MintClass(parentScript + ".NewClass", 0, archive.Scripts[parentScript]);
-            EditClassForm edit = new EditClassForm(newClass);
+            EditClassForm edit = new EditClassForm(newClass, ref hashes);
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 newClass.SetName(edit.ClassName);
@@ -598,6 +610,8 @@ namespace MintWorkshop
                     newClass.SetName(archive.Scripts[parentScript].Name + "." + edit.ClassName.Split('.').Last());
 
                 newClass.Flags = edit.ClassFlags;
+                newClass.ClassImpl = edit.ClassImpl;
+                newClass.Extends = edit.ClassExt;
                 archive.Scripts[parentScript].Classes.Add(newClass);
 
                 TreeNode cl = new TreeNode(newClass.Name.Split('.').Last(), 2, 2);
@@ -621,12 +635,13 @@ namespace MintWorkshop
         {
             string parentScript = arcTree.SelectedNode.Parent.FullPath;
             int index = arcTree.SelectedNode.Index;
-            EditClassForm edit = new EditClassForm(archive.Scripts[parentScript].Classes[index]);
+            EditClassForm edit = new EditClassForm(archive.Scripts[parentScript].Classes[index], ref hashes);
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 archive.Scripts[parentScript].Classes[index].SetName(edit.ClassName);
                 archive.Scripts[parentScript].Classes[index].Flags = edit.ClassFlags;
-                archive.Scripts[parentScript].Classes[index].UnknownList = edit.ClassUnknowns;
+                archive.Scripts[parentScript].Classes[index].ClassImpl = edit.ClassImpl;
+                archive.Scripts[parentScript].Classes[index].Extends = edit.ClassExt;
 
                 arcTree.SelectedNode.Text = edit.ClassName.Split('.').Last();
             }

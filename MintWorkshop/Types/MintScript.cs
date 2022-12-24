@@ -85,6 +85,8 @@ namespace MintWorkshop.Types
             XData = new XData(Endianness.Little, new byte[] { 2, 0 });
             Version = version;
             Name = scriptDeclare.Substring(7);
+            if (Version[0] >= 7)
+                Hash = HashCalculator.Calculate(Name);
             SData = new List<byte>();
             XRef = new List<byte[]>();
             Classes = new List<MintClass>();
@@ -172,6 +174,16 @@ namespace MintWorkshop.Types
 
                             newClass.Functions.Add(newFunc);
                         }
+                        else if (classLine.StartsWith("implements "))
+                        {
+                            string implement = classLine.Substring(11);
+                            newClass.ClassImpl.Add((ushort)AddXRef(implement));
+                        }
+                        else if (classLine.StartsWith("extends "))
+                        {
+                            string extend = classLine.Substring(8);
+                            newClass.Extends.Add((ushort)AddXRef(extend));
+                        }
                         else if (classLine.StartsWith("const "))
                         {
                             string[] constDeclaration = classLine.Split(' ');
@@ -182,16 +194,6 @@ namespace MintWorkshop.Types
                                 value = uint.Parse(constDeclaration[3]);
 
                             newClass.Constants.Add(new MintClass.MintConstant(constDeclaration[1], value));
-                        }
-                        else if (classLine.StartsWith("unkvalue "))
-                        {
-                            string[] unkDeclaration = classLine.Split(' ');
-                            newClass.UnknownList.Add(uint.Parse(unkDeclaration[1]));
-                        }
-                        else if (classLine.StartsWith("unk2value "))
-                        {
-                            string[] unkDeclaration = classLine.Split(' ');
-                            newClass.Unknown2List.Add(uint.Parse(unkDeclaration[1]));
                         }
                         else if (classLine.StartsWith("}"))
                         {
@@ -371,36 +373,42 @@ namespace MintWorkshop.Types
                         }
                     }
 
-                    bool writeUnkSection = false;
+                    bool writeClassImpl = false;
                     if (Version[0] >= 2 || Version[1] >= 1)
-                        writeUnkSection = true;
+                        writeClassImpl = true;
                     else if (Version[0] >= 7)
-                        writeUnkSection = Classes[i].UnknownList.Count > 0;
+                        writeClassImpl = Classes[i].ClassImpl.Count > 0;
 
-                    if (writeUnkSection)
+                    if (writeClassImpl)
                     {
                         writer.BaseStream.Seek(cl + 0x14, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
                         writer.BaseStream.Seek(0, SeekOrigin.End);
 
-                        writer.Write(Classes[i].UnknownList.Count);
-                        for (int v = 0; v < Classes[i].UnknownList.Count; v++)
-                            writer.Write(Classes[i].UnknownList[v]);
+                        writer.Write(Classes[i].ClassImpl.Count);
+                        for (int v = 0; v < Classes[i].ClassImpl.Count; v++)
+                            writer.Write(Classes[i].ClassImpl[v]);
+                        
+                        while ((writer.BaseStream.Length & 0x4) != 0x0)
+                            writer.Write((byte)0);
                     }
 
-                    bool writeUnk2Section = false;
+                    bool writeExtends = false;
                     if (Version[0] >= 7)
-                        writeUnk2Section = Classes[i].Unknown2List.Count > 0;
+                        writeExtends = Classes[i].Extends.Count > 0;
 
-                    if (writeUnk2Section)
+                    if (writeExtends)
                     {
                         writer.BaseStream.Seek(cl + 0x18, SeekOrigin.Begin);
                         writer.Write((uint)writer.BaseStream.Length);
                         writer.BaseStream.Seek(0, SeekOrigin.End);
 
-                        writer.Write(Classes[i].Unknown2List.Count);
-                        for (int v = 0; v < Classes[i].Unknown2List.Count; v++)
-                            writer.Write(Classes[i].Unknown2List[v]);
+                        writer.Write(Classes[i].Extends.Count);
+                        for (int v = 0; v < Classes[i].Extends.Count; v++)
+                        {
+                            writer.Write(new byte[] { 0x6A, 0xFF });
+                            writer.Write(Classes[i].Extends[v]);
+                        }
                     }
 
                     varNameOffs.Add(vOffs.ToArray());
@@ -491,6 +499,30 @@ namespace MintWorkshop.Types
                 text.Add($"\t{classFlags}class {Classes[c].Name}");
                 text.Add("\t{");
 
+                for (int i = 0; i < Classes[c].ClassImpl.Count; i++)
+                {
+                    byte[] h = XRef[Classes[c].ClassImpl[i]];
+                    if (hashes.ContainsKey(h))
+                        text.Add($"\t\timplements {hashes[h]}");
+                    else
+                        text.Add($"\t\timplements {h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}");
+                }
+
+                if (Classes[c].ClassImpl.Count > 0)
+                    text.Add("\t\t");
+
+                for (int i = 0; i < Classes[c].Extends.Count; i++)
+                {
+                    byte[] h = XRef[Classes[c].Extends[i]];
+                    if (hashes.ContainsKey(h))
+                        text.Add($"\t\textends {hashes[h]}");
+                    else
+                        text.Add($"\t\textends {h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}");
+                }
+
+                if (Classes[c].Extends.Count > 0)
+                    text.Add("\t\t");
+
                 for (int i = 0; i < Classes[c].Variables.Count; i++)
                 {
                     uint vFlags = Classes[c].Variables[i].Flags;
@@ -508,6 +540,7 @@ namespace MintWorkshop.Types
 
                     text.Add($"\t\t{varFlags}var {Classes[c].Variables[i].Type} {Classes[c].Variables[i].Name}");
                 }
+
                 if (Classes[c].Variables.Count > 0)
                     text.Add("\t\t");
 
@@ -549,16 +582,6 @@ namespace MintWorkshop.Types
                 if (Classes[c].Constants.Count > 0)
                     text.Add("\t\t");
 
-                for (int i = 0; i < Classes[c].UnknownList.Count; i++)
-                {
-                    text.Add($"\t\tunkvalue {Classes[c].UnknownList[i]}");
-                }
-
-                for (int i = 0; i < Classes[c].Unknown2List.Count; i++)
-                {
-                    text.Add($"\t\tunk2value {Classes[c].Unknown2List[i]}");
-                }
-
                 while (text.Last().TrimStart(new char[] { '\t' }) == "")
                 {
                     text.RemoveAt(text.Count - 1);
@@ -572,6 +595,43 @@ namespace MintWorkshop.Types
             text.Add("}");
 
             return text.ToArray();
+        }
+
+        public int AddXRef(string xref)
+        {
+            byte[] hash = new byte[4];
+
+            if (xref.Length == 8)
+            {
+                if (uint.TryParse(xref, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out uint h))
+                {
+                    hash = new byte[]
+                    {
+                        byte.Parse(xref.Substring(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(xref.Substring(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(xref.Substring(4, 2), NumberStyles.HexNumber),
+                        byte.Parse(xref.Substring(6, 2), NumberStyles.HexNumber)
+                    };
+                }
+            }
+            else
+            {
+                if (xref.StartsWith("this.") || xref == "this")
+                    xref = Name + xref.Remove(0, 4);
+                hash = HashCalculator.Calculate(xref);
+            }
+
+            return AddXRef(hash);
+        }
+
+        public int AddXRef(byte[] xref)
+        {
+            for (int i = 0; i < XRef.Count; i++)
+                if (XRef[i].SequenceEqual(xref))
+                    return i;
+
+            XRef.Add(xref);
+            return XRef.Count - 1;
         }
     }
 }

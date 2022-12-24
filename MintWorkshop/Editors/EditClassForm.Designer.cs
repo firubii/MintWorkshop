@@ -33,8 +33,10 @@
             this.label2 = new System.Windows.Forms.Label();
             this.classFlags = new System.Windows.Forms.NumericUpDown();
             this.okButton = new System.Windows.Forms.Button();
-            this.classUnks = new System.Windows.Forms.TextBox();
+            this.classImpl = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.classExt = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.classFlags)).BeginInit();
             this.SuspendLayout();
             // 
@@ -72,7 +74,7 @@
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(12, 84);
+            this.okButton.Location = new System.Drawing.Point(12, 110);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(333, 23);
             this.okButton.TabIndex = 4;
@@ -80,29 +82,47 @@
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
             // 
-            // classUnks
+            // classImpl
             // 
-            this.classUnks.Location = new System.Drawing.Point(77, 58);
-            this.classUnks.Name = "classUnks";
-            this.classUnks.Size = new System.Drawing.Size(268, 20);
-            this.classUnks.TabIndex = 5;
+            this.classImpl.Location = new System.Drawing.Point(77, 58);
+            this.classImpl.Name = "classImpl";
+            this.classImpl.Size = new System.Drawing.Size(268, 20);
+            this.classImpl.TabIndex = 5;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(9, 61);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(58, 13);
+            this.label3.Size = new System.Drawing.Size(60, 13);
             this.label3.TabIndex = 6;
-            this.label3.Text = "Unknowns";
+            this.label3.Text = "Implements";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(9, 87);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(45, 13);
+            this.label4.TabIndex = 8;
+            this.label4.Text = "Extends";
+            // 
+            // classExt
+            // 
+            this.classExt.Location = new System.Drawing.Point(77, 84);
+            this.classExt.Name = "classExt";
+            this.classExt.Size = new System.Drawing.Size(268, 20);
+            this.classExt.TabIndex = 7;
             // 
             // EditClassForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(357, 117);
+            this.ClientSize = new System.Drawing.Size(357, 142);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.classExt);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.classUnks);
+            this.Controls.Add(this.classImpl);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.classFlags);
             this.Controls.Add(this.label2);
@@ -125,7 +145,9 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.NumericUpDown classFlags;
         private System.Windows.Forms.Button okButton;
-        private System.Windows.Forms.TextBox classUnks;
+        private System.Windows.Forms.TextBox classImpl;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox classExt;
     }
 }

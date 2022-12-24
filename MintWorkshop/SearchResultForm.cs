@@ -16,9 +16,7 @@ namespace MintWorkshop
         {
             InitializeComponent();
             for (int i = 0; i < results.Length; i++)
-            {
                 listView.Items.Add(results[i]);
-            }
         }
 
         private void SearchResultForm_Resize(object sender, EventArgs e)

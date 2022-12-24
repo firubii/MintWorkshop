@@ -114,10 +114,7 @@ namespace MintWorkshop.Util
             writer.Write(str.Length);
             writer.Write(Encoding.UTF8.GetBytes(str));
             writer.Write(0);
-            while ((writer.BaseStream.Length & 0xF) != 0x0
-                && (writer.BaseStream.Length & 0xF) != 0x4
-                && (writer.BaseStream.Length & 0xF) != 0x8
-                && (writer.BaseStream.Length & 0xF) != 0xC)
+            while ((writer.BaseStream.Length & 0x4) != 0x0)
                 writer.Write((byte)0);
         }
     }

@@ -13,46 +13,72 @@ namespace MintWorkshop.Editors
 {
     public partial class EditClassForm : Form
     {
+        MintClass baseClass;
+
         public string ClassName { get; private set; }
         public uint ClassFlags { get; private set; }
-        public List<uint> ClassUnknowns { get; private set; }
+        public List<ushort> ClassImpl { get; private set; }
+        public List<ushort> ClassExt { get; private set; }
 
-        public EditClassForm(MintClass baseClass)
+        public EditClassForm(MintClass baseClass, ref Dictionary<byte[], string> hashes)
         {
+            this.baseClass = baseClass;
+
             ClassName = baseClass.Name;
             ClassFlags = baseClass.Flags;
-            ClassUnknowns = baseClass.UnknownList;
+            ClassImpl = baseClass.ClassImpl;
+            ClassExt = baseClass.Extends;
 
             InitializeComponent();
             classFlags.Maximum = uint.MaxValue;
 
             className.Text = ClassName;
             classFlags.Value = ClassFlags;
-            classUnks.Text = string.Join(",", ClassUnknowns);
+
+            for (int i = 0; i < ClassImpl.Count; i++)
+            {
+                byte[] h = baseClass.ParentScript.XRef[ClassImpl[i]];
+                if (hashes.ContainsKey(h))
+                    classImpl.Text += $"{hashes[h]}";
+                else
+                    classImpl.Text += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+
+                if (i < ClassImpl.Count - 1)
+                    classImpl.Text += ", ";
+            }
+
+            for (int i = 0; i < ClassExt.Count; i++)
+            {
+                byte[] h = baseClass.ParentScript.XRef[ClassExt[i]];
+                if (hashes.ContainsKey(h))
+                    classExt.Text += $"{hashes[h]}";
+                else
+                    classExt.Text += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+
+                if (i < ClassExt.Count - 1)
+                    classExt.Text += ", ";
+            }
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
             ClassName = className.Text;
             ClassFlags = (uint)classFlags.Value;
-            List<uint> unkTemp = new List<uint>();
-            if (classUnks.Text != "")
+            ClassImpl = new List<ushort>();
+            if (classImpl.Text != "")
             {
-                string[] unks = classUnks.Text.Split(',');
-                for (int i = 0; i < unks.Length; i++)
-                {
-                    if (uint.TryParse(unks[i], out uint u))
-                    {
-                        unkTemp.Add(u);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error: Could not parse unknown values.", this.Text, MessageBoxButtons.OK);
-                        return;
-                    }
-                }
+                string[] impl = classImpl.Text.Split(',');
+                for (int i = 0; i < impl.Length; i++)
+                    ClassImpl.Add((ushort)baseClass.ParentScript.AddXRef(impl[i].Trim()));
             }
-            ClassUnknowns = unkTemp;
+
+            ClassExt = new List<ushort>();
+            if (classExt.Text != "")
+            {
+                string[] ext = classExt.Text.Split(',');
+                for (int i = 0; i < ext.Length; i++)
+                    ClassExt.Add((ushort)baseClass.ParentScript.AddXRef(ext[i].Trim()));
+            }
 
             DialogResult = DialogResult.OK;
         }
