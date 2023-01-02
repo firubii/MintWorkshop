@@ -11,6 +11,15 @@ namespace MintWorkshop.Types
 {
     public class MintClass
     {
+        public static Dictionary<ushort, string> StdTypes = new Dictionary<ushort, string>()
+        {
+            { 2, "bool" },
+            { 5, "uint" },
+            { 9, "int" },
+            { 11, "float" },
+            { 16, "string" },
+        };
+
         public struct MintConstant
         {
             public MintConstant(string name, uint value)
@@ -22,6 +31,17 @@ namespace MintWorkshop.Types
             public uint Value;
         }
 
+        public struct ClassExtend
+        {
+            public ClassExtend(ushort index, bool stdType)
+            {
+                Index = index;
+                StdType = stdType;
+            }
+            public ushort Index;
+            public bool StdType;
+        }
+
         public MintScript ParentScript { get; private set; }
 
         public string Name { get; private set; }
@@ -30,7 +50,7 @@ namespace MintWorkshop.Types
         public List<MintFunction> Functions { get; private set; }
         public List<MintConstant> Constants { get; private set; }
         public List<ushort> ClassImpl { get; set; }
-        public List<ushort> Extends { get; set; }
+        public List<ClassExtend> Extends { get; set; }
         public uint Flags { get; set; }
 
         public MintClass(string name, uint flags, MintScript parent)
@@ -41,7 +61,7 @@ namespace MintWorkshop.Types
             Functions = new List<MintFunction>();
             Constants = new List<MintConstant>();
             ClassImpl = new List<ushort>();
-            Extends = new List<ushort>();
+            Extends = new List<ClassExtend>();
             Flags = flags;
         }
 
@@ -121,15 +141,16 @@ namespace MintWorkshop.Types
                     Console.WriteLine($"UnkData found at {Name} - {Inheritance.Count} Unknowns: {string.Join(",", Inheritance)}");*/
             }
 
-            Extends = new List<ushort>();
+            Extends = new List<ClassExtend>();
             if (unk2Offs > 0)
             {
                 reader.BaseStream.Seek(unk2Offs, SeekOrigin.Begin);
                 uint unk2Count = reader.ReadUInt32();
                 for (int i = 0; i < unk2Count; i++)
                 {
-                    reader.ReadUInt16();
-                    Extends.Add(reader.ReadUInt16());
+                    byte inst = reader.ReadByte();
+                    reader.ReadByte();
+                    Extends.Add(new ClassExtend(reader.ReadUInt16(), inst == 0x6B));
                 }
                 /*if (DynamicTypes.Count > 0)
                     Console.WriteLine($"Unk2Data found at {Name} - {DynamicTypes.Count} Unknowns: {string.Join(",", DynamicTypes)}");*/

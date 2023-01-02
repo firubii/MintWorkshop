@@ -218,22 +218,14 @@ namespace MintWorkshop.Types
                 writer.BaseStream.Seek(0, SeekOrigin.End);
                 writer.Write(Scripts.Values.ToArray()[i].Write());
 
-                while ((writer.BaseStream.Length & 0xF) != 0x0
-                    && (writer.BaseStream.Length & 0xF) != 0x4
-                    && (writer.BaseStream.Length & 0xF) != 0x8
-                    && (writer.BaseStream.Length & 0xF) != 0xC)
-                        writer.Write((byte)0);
+                WriteUtil.WritePadding(writer);
             }
             writer.BaseStream.Seek(0x24, SeekOrigin.Begin);
             writer.Write((uint)writer.BaseStream.Length);
             writer.BaseStream.Seek(0, SeekOrigin.End);
             writer.Write((long)0);
 
-            while ((writer.BaseStream.Length & 0xF) != 0x0
-                && (writer.BaseStream.Length & 0xF) != 0x4
-                && (writer.BaseStream.Length & 0xF) != 0x8
-                && (writer.BaseStream.Length & 0xF) != 0xC)
-                    writer.Write((byte)0);
+            WriteUtil.WritePadding(writer);
 
             for (int i = 0; i < Namespaces.Count; i++)
             {

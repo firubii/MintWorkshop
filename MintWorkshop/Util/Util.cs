@@ -114,7 +114,12 @@ namespace MintWorkshop.Util
             writer.Write(str.Length);
             writer.Write(Encoding.UTF8.GetBytes(str));
             writer.Write(0);
-            while ((writer.BaseStream.Length & 0x4) != 0x0)
+            WritePadding(writer);
+        }
+
+        public static void WritePadding(EndianBinaryWriter writer)
+        {
+            while ((writer.BaseStream.Position % 0x4) != 0x0)
                 writer.Write((byte)0);
         }
     }

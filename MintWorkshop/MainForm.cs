@@ -402,8 +402,19 @@ namespace MintWorkshop
                     }
                     for (int f = 0; f < pair.Value.Classes[c].Extends.Count; f++)
                     {
-                        if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].Extends[f]]))
-                            scripts.Add("[Extended by] " + pair.Value.Classes[c].Name);
+                        ushort idx = pair.Value.Classes[c].Extends[f].Index;
+                        string extStr = "[Extended by] ";
+                        if (pair.Value.Classes[c].Extends[f].StdType)
+                        {
+                            if (MintClass.StdTypes.ContainsKey(idx))
+                                extStr += MintClass.StdTypes[idx];
+                            else
+                                extStr += "Unknown Std Type " + idx;
+                        }
+                        else if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[idx]))
+                                extStr += pair.Value.Classes[c].Name;
+
+                        scripts.Add(extStr);
                     }
 
                     for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)

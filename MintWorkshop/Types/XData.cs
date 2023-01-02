@@ -83,11 +83,7 @@ namespace MintWorkshop.Types
                 return;
 
             writer.BaseStream.Seek(0, SeekOrigin.End);
-            while ((writer.BaseStream.Length & 0xF) != 0x0
-                && (writer.BaseStream.Length & 0xF) != 0x4
-                && (writer.BaseStream.Length & 0xF) != 0x8
-                && (writer.BaseStream.Length & 0xF) != 0xC)
-                writer.Write((byte)0);
+            WriteUtil.WritePadding(writer);
 
             writer.BaseStream.Seek(0x10, SeekOrigin.Begin);
             writer.Write((uint)writer.BaseStream.Length);

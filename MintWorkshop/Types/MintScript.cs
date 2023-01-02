@@ -182,7 +182,22 @@ namespace MintWorkshop.Types
                         else if (classLine.StartsWith("extends "))
                         {
                             string extend = classLine.Substring(8);
-                            newClass.Extends.Add((ushort)AddXRef(extend));
+                            newClass.Extends.Add(new MintClass.ClassExtend((ushort)AddXRef(extend), false));
+                        }
+                        else if (classLine.StartsWith("extendstd "))
+                        {
+                            string extend = classLine.Substring(10);
+                            bool valid = false;
+                            foreach (KeyValuePair<ushort, string> pair in MintClass.StdTypes)
+                            {
+                                if (pair.Value == extend)
+                                {
+                                    valid = true;
+                                    newClass.Extends.Add(new MintClass.ClassExtend(pair.Key, true));
+                                }
+                            }
+                            if (!valid)
+                                newClass.Extends.Add(new MintClass.ClassExtend(ushort.Parse(extend), true));
                         }
                         else if (classLine.StartsWith("const "))
                         {
@@ -239,11 +254,7 @@ namespace MintWorkshop.Types
                 writer.Write(SData.Count);
                 writer.Write(SData.ToArray());
                 writer.Write((uint)0);
-                while ((writer.BaseStream.Length & 0xF) != 0x0
-                    && (writer.BaseStream.Length & 0xF) != 0x4
-                    && (writer.BaseStream.Length & 0xF) != 0x8
-                    && (writer.BaseStream.Length & 0xF) != 0xC)
-                        writer.Write((byte)0);
+                WriteUtil.WritePadding(writer);
 
                 writer.BaseStream.Seek(hSdataOffset + 0x4, SeekOrigin.Begin);
                 writer.Write((uint)writer.BaseStream.Length);
@@ -388,9 +399,8 @@ namespace MintWorkshop.Types
                         writer.Write(Classes[i].ClassImpl.Count);
                         for (int v = 0; v < Classes[i].ClassImpl.Count; v++)
                             writer.Write(Classes[i].ClassImpl[v]);
-                        
-                        while ((writer.BaseStream.Length & 0x4) != 0x0)
-                            writer.Write((byte)0);
+
+                        WriteUtil.WritePadding(writer);
                     }
 
                     bool writeExtends = false;
@@ -406,8 +416,9 @@ namespace MintWorkshop.Types
                         writer.Write(Classes[i].Extends.Count);
                         for (int v = 0; v < Classes[i].Extends.Count; v++)
                         {
-                            writer.Write(new byte[] { 0x6A, 0xFF });
-                            writer.Write(Classes[i].Extends[v]);
+                            writer.Write(Classes[i].Extends[v].StdType ? (byte)0x6B : (byte)0x6A);
+                            writer.Write((byte)0xFF);
+                            writer.Write(Classes[i].Extends[v].Index);
                         }
                     }
 
@@ -513,11 +524,22 @@ namespace MintWorkshop.Types
 
                 for (int i = 0; i < Classes[c].Extends.Count; i++)
                 {
-                    byte[] h = XRef[Classes[c].Extends[i]];
-                    if (hashes.ContainsKey(h))
-                        text.Add($"\t\textends {hashes[h]}");
+                    ushort idx = Classes[c].Extends[i].Index;
+                    if (Classes[c].Extends[i].StdType)
+                    {
+                        if (MintClass.StdTypes.ContainsKey(idx))
+                            text.Add($"\t\textendstd {MintClass.StdTypes[idx]}");
+                        else
+                            text.Add($"\t\textendstd {idx}");
+                    }
                     else
-                        text.Add($"\t\textends {h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}");
+                    {
+                        byte[] h = XRef[idx];
+                        if (hashes.ContainsKey(h))
+                            text.Add($"\t\textends {hashes[h]}");
+                        else
+                            text.Add($"\t\textends {h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}");
+                    }
                 }
 
                 if (Classes[c].Extends.Count > 0)

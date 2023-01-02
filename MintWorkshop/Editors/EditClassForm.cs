@@ -18,7 +18,7 @@ namespace MintWorkshop.Editors
         public string ClassName { get; private set; }
         public uint ClassFlags { get; private set; }
         public List<ushort> ClassImpl { get; private set; }
-        public List<ushort> ClassExt { get; private set; }
+        public List<MintClass.ClassExtend> ClassExt { get; private set; }
 
         public EditClassForm(MintClass baseClass, ref Dictionary<byte[], string> hashes)
         {
@@ -49,7 +49,7 @@ namespace MintWorkshop.Editors
 
             for (int i = 0; i < ClassExt.Count; i++)
             {
-                byte[] h = baseClass.ParentScript.XRef[ClassExt[i]];
+                byte[] h = baseClass.ParentScript.XRef[ClassExt[i].Index];
                 if (hashes.ContainsKey(h))
                     classExt.Text += $"{hashes[h]}";
                 else
@@ -72,12 +72,26 @@ namespace MintWorkshop.Editors
                     ClassImpl.Add((ushort)baseClass.ParentScript.AddXRef(impl[i].Trim()));
             }
 
-            ClassExt = new List<ushort>();
+            ClassExt = new List<MintClass.ClassExtend>();
             if (classExt.Text != "")
             {
                 string[] ext = classExt.Text.Split(',');
                 for (int i = 0; i < ext.Length; i++)
-                    ClassExt.Add((ushort)baseClass.ParentScript.AddXRef(ext[i].Trim()));
+                {
+                    string ex = ext[i].Trim();
+                    bool std = false;
+                    foreach (KeyValuePair<ushort, string> pair in MintClass.StdTypes)
+                    {
+                        if (pair.Value == ex)
+                        {
+                            ClassExt.Add(new MintClass.ClassExtend(pair.Key, true));
+                            std = true;
+                            break;
+                        }
+                    }
+                    if (!std)
+                        ClassExt.Add(new MintClass.ClassExtend((ushort)baseClass.ParentScript.AddXRef(ex), false));
+                }
             }
 
             DialogResult = DialogResult.OK;
