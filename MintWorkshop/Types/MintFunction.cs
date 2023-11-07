@@ -167,7 +167,7 @@ namespace MintWorkshop.Types
                             continue;
 
                         if (opcodes[Instructions[locIndex].Opcode].Action.HasFlag(Mint.Action.Return))
-                            jmpLoc.Add(loc, "return");
+                            jmpLoc.Add(loc, $"return_{locIndex:x8}");
                         else
                             jmpLoc.Add(loc, $"loc_{locIndex:x8}");
                     }
@@ -928,7 +928,7 @@ namespace MintWorkshop.Types
                             continue;
 
                         if (opcodes[Instructions[locIndex].Opcode].Action.HasFlag(Mint.Action.Return))
-                            jmpLoc.Add(loc, "return");
+                            jmpLoc.Add(loc, $"return_{locIndex:x8}");
                         else
                             jmpLoc.Add(loc, $"loc_{locIndex:x8}");
                     }
@@ -1681,7 +1681,7 @@ namespace MintWorkshop.Types
                     for (int i = 0; i < funcDeclaration.Length; i++)
                     {
                         if (funcDeclaration[i].StartsWith("flag"))
-                            funcFlags |= uint.Parse(funcDeclaration[i].Remove(0, 4));
+                            funcFlags |= uint.Parse(funcDeclaration[i].Remove(0, 4), NumberStyles.HexNumber);
                         else if (FlagLabels.FunctionFlags.ContainsValue(funcDeclaration[i]))
                             funcFlags |= FlagLabels.FunctionFlags.Keys.ToArray()[FlagLabels.FunctionFlags.Values.ToList().IndexOf(funcDeclaration[i])];
                         else
@@ -1835,7 +1835,7 @@ namespace MintWorkshop.Types
                         if (op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
                         {
                             buildVal /= 4;
-                            buildVal ^= 0x80;
+                            buildVal |= 0x80;
                         }
 
                         line[a + 1] = buildVal.ToString();
@@ -1958,21 +1958,13 @@ namespace MintWorkshop.Types
                             }
                         }
 
-                        if (arg.Length == 8)
+                        if (arg.Length == 8 && uint.TryParse(arg, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out uint h))
                         {
-                            if (!uint.TryParse(arg, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out uint h))
-                            {
-                                MessageBox.Show($"Error: Could not parse XRef hash.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
-                                return;
-                            }
-                            else
-                            {
-                                b = new byte[] { byte.Parse(arg.Substring(0, 2), NumberStyles.HexNumber),
-                                                 byte.Parse(arg.Substring(2, 2), NumberStyles.HexNumber),
-                                                 byte.Parse(arg.Substring(4, 2), NumberStyles.HexNumber),
-                                                 byte.Parse(arg.Substring(6, 2), NumberStyles.HexNumber)
-                                };
-                            }
+                            b = new byte[] { byte.Parse(arg.Substring(0, 2), NumberStyles.HexNumber),
+                                                byte.Parse(arg.Substring(2, 2), NumberStyles.HexNumber),
+                                                byte.Parse(arg.Substring(4, 2), NumberStyles.HexNumber),
+                                                byte.Parse(arg.Substring(6, 2), NumberStyles.HexNumber)
+                            };
                         }
                         else
                         {
@@ -2167,6 +2159,12 @@ namespace MintWorkshop.Types
                     if (!op.Arguments[a].HasFlag(InstructionArg.Register))
                         continue;
 
+                    if (op.Name.StartsWith("ldsr") && uint.TryParse(op.Name.Substring(4), out uint regs))
+                    {
+                        if (Instructions[i].Z + regs > highestReg)
+                            highestReg = Instructions[i].Z + regs;
+                    }
+
                     switch (op.Arguments[a])
                     {
                         case InstructionArg.RegZ:
@@ -2196,7 +2194,7 @@ namespace MintWorkshop.Types
                     }
                 }
             }
-            Registers = highestReg;
+            Registers = highestReg + 1;
         }
 
         public string FullName()

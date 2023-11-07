@@ -70,6 +70,33 @@ namespace MintWorkshop.Util
         }
     }
 
+    public class MintNodeSorter : System.Collections.IComparer
+    {
+        public int Compare(object a, object b)
+        {
+            TreeNode nodeA = a as TreeNode;
+            TreeNode nodeB = b as TreeNode;
+
+            if (nodeA.ImageIndex != nodeB.ImageIndex)
+            {
+                if ((nodeA.ImageIndex == 0 || nodeA.ImageIndex == 6) &&
+                    (nodeB.ImageIndex == 0 || nodeB.ImageIndex == 6))
+                    return string.Compare(nodeA.Text.ToLower(), nodeB.Text.ToLower());
+
+                if (nodeA.ImageIndex < nodeB.ImageIndex)
+                    return -1;
+
+                if (nodeA.ImageIndex > nodeB.ImageIndex)
+                    return 1;
+            }
+
+            if (nodeA.ImageIndex > 1 || nodeB.ImageIndex > 1)
+                return 0;
+
+            return string.Compare(nodeA.Text.ToLower(), nodeB.Text.ToLower());
+        }
+    }
+
     public static class RichTextBoxExtensions
     {
         public static void AppendText(this RichTextBox box, string text, Color color)
@@ -111,8 +138,9 @@ namespace MintWorkshop.Util
     {
         public static void WriteString(EndianBinaryWriter writer, string str)
         {
-            writer.Write(str.Length);
-            writer.Write(Encoding.UTF8.GetBytes(str));
+            byte[] strBytes = Encoding.UTF8.GetBytes(str);
+            writer.Write(strBytes.Length);
+            writer.Write(strBytes);
             writer.Write(0);
             WritePadding(writer);
         }

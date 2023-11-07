@@ -45,6 +45,7 @@ namespace MintWorkshop
             mintVerSelect.Items.AddRange(versions.ToArray());
 
             this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
+            //arcTree.TreeViewNodeSorter = new MintNodeSorter();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -161,6 +162,7 @@ namespace MintWorkshop
 
                     Invoke((MethodInvoker)delegate
                     {
+                        //arcTree.Sort();
                         progress.Close();
                         this.Text = "Mint Workshop - " + filePath;
                         arcTree.EndUpdate();
@@ -402,19 +404,9 @@ namespace MintWorkshop
                     }
                     for (int f = 0; f < pair.Value.Classes[c].Extends.Count; f++)
                     {
-                        ushort idx = pair.Value.Classes[c].Extends[f].Index;
-                        string extStr = "[Extended by] ";
-                        if (pair.Value.Classes[c].Extends[f].StdType)
-                        {
-                            if (MintClass.StdTypes.ContainsKey(idx))
-                                extStr += MintClass.StdTypes[idx];
-                            else
-                                extStr += "Unknown Std Type " + idx;
-                        }
-                        else if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[idx]))
-                                extStr += pair.Value.Classes[c].Name;
-
-                        scripts.Add(extStr);
+                        if (!pair.Value.Classes[c].Extends[f].StdType &&
+                            ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].Extends[f].Index]))
+                            scripts.Add("[Extended by] " + pair.Value.Classes[c].Name);
                     }
 
                     for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
@@ -617,15 +609,14 @@ namespace MintWorkshop
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 newClass.SetName(edit.ClassName);
-                if (!newClass.Name.StartsWith(archive.Scripts[parentScript].Name))
-                    newClass.SetName(archive.Scripts[parentScript].Name + "." + edit.ClassName.Split('.').Last());
 
                 newClass.Flags = edit.ClassFlags;
                 newClass.ClassImpl = edit.ClassImpl;
                 newClass.Extends = edit.ClassExt;
                 archive.Scripts[parentScript].Classes.Add(newClass);
 
-                TreeNode cl = new TreeNode(newClass.Name.Split('.').Last(), 2, 2);
+                string[] pSplit = newClass.ParentScript.Name.Split('.');
+                TreeNode cl = new TreeNode(pSplit.Length > 1 ? newClass.Name.Replace(string.Join(".", pSplit.Take(pSplit.Length - 1)), "") : newClass.Name, 2, 2);
                 cl.ContextMenuStrip = classCtxMenu;
                 cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
                 arcTree.SelectedNode.Nodes.Add(cl);
@@ -654,7 +645,8 @@ namespace MintWorkshop
                 archive.Scripts[parentScript].Classes[index].ClassImpl = edit.ClassImpl;
                 archive.Scripts[parentScript].Classes[index].Extends = edit.ClassExt;
 
-                arcTree.SelectedNode.Text = edit.ClassName.Split('.').Last();
+                string[] pSplit = archive.Scripts[parentScript].Name.Split('.');
+                arcTree.SelectedNode.Text = edit.ClassName.Replace(string.Join(".", pSplit.Take(pSplit.Length - 1)), "");
             }
         }
 
@@ -1018,6 +1010,7 @@ namespace MintWorkshop
                 arcTree.SelectedNode.Nodes.Insert(sortIndex, namespaceNode);
 
                 archive.Namespaces = nList;
+                //arcTree.Sort();
             }
         }
 
