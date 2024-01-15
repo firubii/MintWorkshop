@@ -882,7 +882,7 @@ namespace MintWorkshop
                 scriptNode.ContextMenuStrip = scriptCtxMenu;
                 arcTree.SelectedNode.Nodes.Add(scriptNode);
 
-                string parentName = arcTree.SelectedNode.Parent.FullPath;
+                string parentName = arcTree.SelectedNode.Parent != null ? arcTree.SelectedNode.Parent.FullPath : arcTree.SelectedNode.FullPath;
                 int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
                 if (parentIndex != -1)
                 {

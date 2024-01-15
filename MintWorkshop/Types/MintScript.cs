@@ -245,7 +245,11 @@ namespace MintWorkshop.Types
                 uint fileStart = (uint)writer.BaseStream.Position;
                 writer.Write(padding);
                 if (Version[0] >= 7)
+                {
+                    if (Hash == null)
+                        Hash = HashCalculator.Calculate(Name);
                     writer.Write(Hash);
+                }
                 uint hSdataOffset = (uint)writer.BaseStream.Position;
                 writer.Write(Version[0] >= 7 ? 0x28 : 0x20);
                 writer.Write(padding);
