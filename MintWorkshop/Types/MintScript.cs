@@ -28,6 +28,8 @@ namespace MintWorkshop.Types
             XData = new XData(Endianness.Little, new byte[] { 2, 0 });
             Version = version;
             Name = name;
+            if (Version[0] >= 7)
+                Hash = HashCalculator.Calculate(Name);
             SData = new List<byte>();
             XRef = new List<byte[]>();
             Classes = new List<MintClass>();
