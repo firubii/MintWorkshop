@@ -97,6 +97,246 @@ namespace MintWorkshop.Types
             Regex varRegex = new Regex("\\b(var)\\b");
             Regex funcRegex = new Regex("(\\(.*\\))");
 
+            Opcode[] opcodes = MintVersions.Versions[Version];
+
+            #region SData Pre-pass
+
+            // SData integer pass
+            for (int l = 0; l < text.Length; l++)
+            {
+                string line = text[l].TrimStart(trimChars);
+                if (line.StartsWith("//"))
+                    continue;
+                if (classRegex.IsMatch(line))
+                {
+                    for (int cl = l; cl < text.Length; cl++)
+                    {
+                        string classLine = text[cl].TrimStart(trimChars);
+                        if (classLine.StartsWith("//"))
+                            continue;
+                        if (funcRegex.IsMatch(classLine))
+                        {
+                            for (int fl = cl + 2; fl < text.Length; fl++)
+                            {
+                                string funcLine = text[fl].TrimStart(trimChars);
+                                if (funcLine.StartsWith("//") || funcLine.EndsWith(":") || string.IsNullOrWhiteSpace(funcLine))
+                                    continue;
+                                if (funcLine.StartsWith("}"))
+                                {
+                                    cl = fl;
+                                    break;
+                                }
+
+                                bool isInStr = false;
+                                for (int c = 0; c < funcLine.Length - 1; c++)
+                                {
+                                    if (funcLine[c] == '\"')
+                                        isInStr = !isInStr;
+                                    else if (!isInStr && funcLine[c] == ' ' && funcLine[c + 1] == ' ')
+                                    {
+                                        funcLine = funcLine.Remove(c, 1);
+                                        c--;
+                                    }
+                                }
+
+                                string[] instLine = funcLine.Split(' ');
+                                Opcode op = opcodes.Where(x => x.Name == instLine[0].ToLower()).FirstOrDefault();
+                                for (int a = 0; a < op.Arguments.Length; a++)
+                                {
+                                    var opArg = op.Arguments[a];
+                                    if (opArg.HasFlag(InstructionArg.SDataInt) || opArg.HasFlag(InstructionArg.SDataRegInt) ||
+                                        opArg.HasFlag(InstructionArg.SDataFloat) || opArg.HasFlag(InstructionArg.SDataRegFloat))
+                                    {
+                                        string arg = instLine[a + 1].TrimEnd(',');
+                                        byte[] b;
+
+                                        if (arg.StartsWith("r"))
+                                        {
+                                            if (opArg.HasFlag(InstructionArg.SDataRegInt) || opArg.HasFlag(InstructionArg.SDataRegFloat)) continue;
+                                            else
+                                            {
+                                                MessageBox.Show($"Error: Expected integer, got register.\nArgument: {arg}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                                return;
+                                            }
+                                        }
+
+                                        if (arg.StartsWith("0x"))
+                                        {
+                                            if (int.TryParse(arg.Remove(0, 2), NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
+                                                b = BitConverter.GetBytes(val);
+                                            else
+                                            {
+                                                MessageBox.Show($"Error: Could not parse integer.\nArgument: {arg}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                                return;
+                                            }
+                                        }
+                                        else if (arg.Contains('.') || arg.EndsWith("f"))
+                                        {
+                                            if (float.TryParse(arg.Replace("f", ""), out float val))
+                                                b = BitConverter.GetBytes(val);
+                                            else
+                                            {
+                                                MessageBox.Show($"Error: Could not parse float.\nArgument: {arg}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                                return;
+                                            }
+                                        }
+                                        else if (arg == "true")
+                                        {
+                                            b = BitConverter.GetBytes((int)1);
+                                        }
+                                        else if (arg == "false")
+                                        {
+                                            b = BitConverter.GetBytes((int)0);
+                                        }
+                                        else
+                                        {
+                                            if (int.TryParse(arg, out int val))
+                                                b = BitConverter.GetBytes(val);
+                                            else
+                                            {
+                                                MessageBox.Show($"Error: Could not parse integer.\nArgument: {arg}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                                return;
+                                            }
+                                        }
+
+                                        //Make absolutely sure that SData is 4-aligned before running through SData
+                                        while ((SData.Count % 4) != 0x0)
+                                            SData.Add(0xFF);
+
+                                        int sIndex = SData.Count;
+                                        for (int s = 0; s < SData.Count; s += 4)
+                                        {
+                                            if (ByteArrayComparer.Equal(SData.Skip(s).Take(4).ToArray(), b))
+                                            {
+                                                sIndex = s;
+                                                break;
+                                            }
+                                        }
+
+                                        if (sIndex == SData.Count)
+                                            SData.AddRange(b);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // SData string pass
+            for (int l = 0; l < text.Length; l++)
+            {
+                string line = text[l].TrimStart(trimChars);
+                if (line.StartsWith("//"))
+                    continue;
+                if (classRegex.IsMatch(line))
+                {
+                    for (int cl = l; cl < text.Length; cl++)
+                    {
+                        string classLine = text[cl].TrimStart(trimChars);
+                        if (classLine.StartsWith("//"))
+                            continue;
+                        if (funcRegex.IsMatch(classLine))
+                        {
+                            for (int fl = cl + 2; fl < text.Length; fl++)
+                            {
+                                string funcLine = text[fl].TrimStart(trimChars);
+                                if (funcLine.StartsWith("//") || funcLine.EndsWith(":") || string.IsNullOrWhiteSpace(funcLine))
+                                    continue;
+                                if (funcLine.StartsWith("}"))
+                                {
+                                    cl = fl;
+                                    break;
+                                }
+
+                                bool isInStr = false;
+                                for (int c = 0; c < funcLine.Length - 1; c++)
+                                {
+                                    if (funcLine[c] == '\"')
+                                        isInStr = !isInStr;
+                                    else if (!isInStr && funcLine[c] == ' ' && funcLine[c + 1] == ' ')
+                                    {
+                                        funcLine = funcLine.Remove(c, 1);
+                                        c--;
+                                    }
+                                }
+
+                                string[] instLine = funcLine.Split(' ');
+                                Opcode op = opcodes.Where(x => x.Name == instLine[0].ToLower()).FirstOrDefault();
+                                for (int a = 0; a < op.Arguments.Length; a++)
+                                {
+                                    var opArg = op.Arguments[a];
+                                    if (opArg.HasFlag(InstructionArg.SDataArr) || opArg.HasFlag(InstructionArg.SDataRegArr))
+                                    {
+                                        string arg = instLine[a + 1];
+                                        List<byte> b = new List<byte>();
+
+                                        if (arg.StartsWith("r"))
+                                        {
+                                            if (opArg.HasFlag(InstructionArg.SDataRegArr)) continue;
+                                            else
+                                            {
+                                                MessageBox.Show($"Error: Expected string, got register.\nArgument: {arg}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                                return;
+                                            }
+                                        }
+
+                                        int strEndIndex = a;
+                                        string str = "";
+                                        for (int s = a + 1; s < instLine.Length; s++)
+                                        {
+                                            str += instLine[s];
+                                            if (instLine[s].EndsWith("\"") || instLine[s].EndsWith("\","))
+                                                break;
+                                            str += " ";
+                                        }
+                                        if (!str.EndsWith("\"") && !str.EndsWith("\","))
+                                        {
+                                            MessageBox.Show($"Error: String has no ending:\nArgument: {str}\nLine: {funcLine}", "Mint Assembler", MessageBoxButtons.OK);
+                                            return;
+                                        }
+
+                                        if (str.StartsWith("u\""))
+                                        {
+                                            b = Encoding.Unicode.GetBytes(str.Substring(1).TrimStart('\"').TrimEnd('\"')).ToList();
+                                            b.Add(0);
+                                        }
+                                        else
+                                            b = Encoding.UTF8.GetBytes(str.TrimStart('\"').TrimEnd('\"')).ToList();
+                                        b.Add(0);
+
+                                        //Make absolutely sure that SData is 4-aligned before running through SData
+                                        while ((SData.Count % 4) != 0x0)
+                                            SData.Add(0xFF);
+
+                                        int sIndex = SData.Count;
+                                        for (int s = 0; s < SData.Count; s += 4)
+                                        {
+                                            if (ByteArrayComparer.Equal(SData.Skip(s).Take(b.Count).ToArray(), b.ToArray()))
+                                            {
+                                                sIndex = s;
+                                                break;
+                                            }
+                                        }
+
+                                        if (sIndex == SData.Count)
+                                            SData.AddRange(b);
+
+                                        //4-align SData if necessary
+                                        //Step isn't done for integers since those are always 32-bit
+                                        while ((SData.Count % 4) != 0x0)
+                                            SData.Add(0xFF);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            #endregion
+
+            // Assembling pass
             for (int l = 0; l < text.Length; l++)
             {
                 string line = text[l].TrimStart(trimChars);

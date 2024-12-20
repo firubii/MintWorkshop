@@ -1704,9 +1704,12 @@ namespace MintWorkshop.Types
             //Remove any excess spaces and empty lines
             for (int i = 0; i < lines.Count; i++)
             {
+                bool isInStr = false;
                 for (int c = 0; c < lines[i].Length - 1; c++)
                 {
-                    if (lines[i][c] == ' ' && lines[i][c+1] == ' ')
+                    if (lines[i][c] == '\"')
+                        isInStr = !isInStr;
+                    else if (!isInStr && lines[i][c] == ' ' && lines[i][c+1] == ' ')
                     {
                         lines[i] = lines[i].Remove(c, 1);
                         c--;
@@ -1756,15 +1759,16 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a].HasFlag(InstructionArg.SDataInt) || op.Arguments[a].HasFlag(InstructionArg.SDataRegInt) ||
-                        op.Arguments[a].HasFlag(InstructionArg.SDataFloat) || op.Arguments[a].HasFlag(InstructionArg.SDataRegFloat))
+                    var opArg = op.Arguments[a];
+                    if (opArg.HasFlag(InstructionArg.SDataInt) || opArg.HasFlag(InstructionArg.SDataRegInt) ||
+                        opArg.HasFlag(InstructionArg.SDataFloat) || opArg.HasFlag(InstructionArg.SDataRegFloat))
                     {
                         string arg = line[a + 1].TrimEnd(',');
                         byte[] b;
 
                         if (arg.StartsWith("r"))
                         {
-                            if (op.Arguments[a].HasFlag(InstructionArg.SDataRegInt)) continue;
+                            if (opArg.HasFlag(InstructionArg.SDataRegInt) || opArg.HasFlag(InstructionArg.SDataRegFloat)) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected integer, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -1812,10 +1816,7 @@ namespace MintWorkshop.Types
                         }
 
                         //Make absolutely sure that SData is 4-aligned before running through SData
-                        while ((sdata.Count & 0xF) != 0x0
-                            && (sdata.Count & 0xF) != 0x4
-                            && (sdata.Count & 0xF) != 0x8
-                            && (sdata.Count & 0xF) != 0xC)
+                        while ((sdata.Count % 4) != 0x0)
                             sdata.Add(0xFF);
 
                         int sIndex = sdata.Count;
@@ -1829,13 +1830,27 @@ namespace MintWorkshop.Types
                         }
 
                         if (sIndex == sdata.Count)
+                        {
+                            Console.WriteLine($"[Assembler] [{Name}] Integer 0x{BitConverter.ToInt32(b, 0):X8} does not exist in SData! Appending to end");
+
                             sdata.AddRange(b);
+                        }
 
                         int buildVal = sIndex;
-                        if (op.Arguments[a].HasFlag(InstructionArg.SDataRegInt))
+                        if (opArg.HasFlag(InstructionArg.SDataRegInt) || opArg.HasFlag(InstructionArg.SDataRegFloat))
                         {
                             buildVal /= 4;
+
+                            Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} index: {buildVal} (Address: {sIndex})");
+
                             buildVal |= 0x80;
+                            buildVal &= 0xFF;
+                        }
+                        else
+                        {
+                            buildVal &= 0xFFFF;
+
+                            Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} address: {buildVal}");
                         }
 
                         line[a + 1] = buildVal.ToString();
@@ -1852,14 +1867,15 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a].HasFlag(InstructionArg.SDataArr) || op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
+                    var opArg = op.Arguments[a];
+                    if (opArg.HasFlag(InstructionArg.SDataArr) || opArg.HasFlag(InstructionArg.SDataRegArr))
                     {
                         string arg = line[a + 1];
                         List<byte> b = new List<byte>();
 
                         if (arg.StartsWith("r"))
                         {
-                            if (op.Arguments[a].HasFlag(InstructionArg.SDataRegArr)) continue;
+                            if (opArg.HasFlag(InstructionArg.SDataRegArr)) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected string, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -1892,10 +1908,7 @@ namespace MintWorkshop.Types
                         b.Add(0);
 
                         //Make absolutely sure that SData is 4-aligned before running through SData
-                        while ((sdata.Count & 0xF) != 0x0
-                            && (sdata.Count & 0xF) != 0x4
-                            && (sdata.Count & 0xF) != 0x8
-                            && (sdata.Count & 0xF) != 0xC)
+                        while ((sdata.Count % 4) != 0x0)
                             sdata.Add(0xFF);
 
                         int sIndex = sdata.Count;
@@ -1909,21 +1922,31 @@ namespace MintWorkshop.Types
                         }
 
                         if (sIndex == sdata.Count)
+                        {
+                            Console.WriteLine($"[Assembler] [{Name}] String {str} does not exist in SData! Appending to end");
                             sdata.AddRange(b);
+                        }
 
                         //4-align SData if necessary
                         //Step isn't done for integers since those are always 32-bit
-                        while ((sdata.Count & 0xF) != 0x0
-                            && (sdata.Count & 0xF) != 0x4
-                            && (sdata.Count & 0xF) != 0x8
-                            && (sdata.Count & 0xF) != 0xC)
+                        while ((sdata.Count % 4) != 0x0)
                             sdata.Add(0xFF);
 
                         int buildVal = sIndex;
-                        if (op.Arguments[a].HasFlag(InstructionArg.SDataRegArr))
+                        if (opArg.HasFlag(InstructionArg.SDataRegArr))
                         {
                             buildVal /= 4;
+
+                            Console.WriteLine($"[Assembler] [{Name}] SData String {str} index: {buildVal} (Address: {sIndex})");
+
                             buildVal ^= 0x80;
+                            buildVal &= 0xFF;
+                        }
+                        else
+                        {
+                            buildVal &= 0xFFFF;
+
+                            Console.WriteLine($"[Assembler] [{Name}] SData String {str} address: {buildVal}");
                         }
 
                         line[a + 1] = buildVal.ToString();
@@ -1943,14 +1966,15 @@ namespace MintWorkshop.Types
                 Opcode op = opcodes.Where(x => x.Name == line[0].ToLower()).FirstOrDefault();
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
-                    if (op.Arguments[a].HasFlag(InstructionArg.XRef))
+                    var opArg = op.Arguments[a];
+                    if (opArg.HasFlag(InstructionArg.XRef))
                     {
                         string arg = line[a + 1];
                         byte[] b = new byte[4];
 
                         if (arg.StartsWith("r"))
                         {
-                            if (op.Arguments[a] != InstructionArg.XRefV) continue;
+                            if (opArg != InstructionArg.XRefV) continue;
                             else
                             {
                                 MessageBox.Show($"Error: Expected XRef, got register.\nArgument: {arg}\nLine: {lines[i]}", "Mint Assembler", MessageBoxButtons.OK);
@@ -2008,7 +2032,8 @@ namespace MintWorkshop.Types
                 {
                     for (int a = 0; a < op.Arguments.Length; a++)
                     {
-                        if (op.Arguments[a] == InstructionArg.VSigned || op.Arguments[a] == InstructionArg.ESigned)
+                        var opArg = op.Arguments[a];
+                        if (opArg == InstructionArg.VSigned || opArg == InstructionArg.ESigned)
                         {
                             string arg = line[a + 1];
 
@@ -2018,7 +2043,7 @@ namespace MintWorkshop.Types
                                 return;
                             }
 
-                            if (op.Arguments[a] == InstructionArg.ESigned)
+                            if (opArg == InstructionArg.ESigned)
                                 line[a + 1] = ((instOffsets[locs[arg]] - (instOffsets[i] + 4))/4).ToString();
                             else
                                 line[a + 1] = ((instOffsets[locs[arg]] - instOffsets[i]) / 4).ToString();
