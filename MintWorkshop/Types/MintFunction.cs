@@ -1831,7 +1831,7 @@ namespace MintWorkshop.Types
 
                         if (sIndex == sdata.Count)
                         {
-                            Console.WriteLine($"[Assembler] [{Name}] Integer 0x{BitConverter.ToInt32(b, 0):X8} does not exist in SData! Appending to end");
+                            //Console.WriteLine($"[Assembler] [{Name}] Integer 0x{BitConverter.ToInt32(b, 0):X8} does not exist in SData! Appending to end");
 
                             sdata.AddRange(b);
                         }
@@ -1841,7 +1841,7 @@ namespace MintWorkshop.Types
                         {
                             buildVal /= 4;
 
-                            Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} index: {buildVal} (Address: {sIndex})");
+                            //Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} index: {buildVal} (Address: {sIndex})");
 
                             buildVal |= 0x80;
                             buildVal &= 0xFF;
@@ -1850,7 +1850,7 @@ namespace MintWorkshop.Types
                         {
                             buildVal &= 0xFFFF;
 
-                            Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} address: {buildVal}");
+                            //Console.WriteLine($"[Assembler] [{Name}] SData Integer 0x{BitConverter.ToInt32(b, 0):X8} address: {buildVal}");
                         }
 
                         line[a + 1] = buildVal.ToString();
@@ -1923,7 +1923,7 @@ namespace MintWorkshop.Types
 
                         if (sIndex == sdata.Count)
                         {
-                            Console.WriteLine($"[Assembler] [{Name}] String {str} does not exist in SData! Appending to end");
+                            //Console.WriteLine($"[Assembler] [{Name}] String {str} does not exist in SData! Appending to end");
                             sdata.AddRange(b);
                         }
 
@@ -1937,7 +1937,7 @@ namespace MintWorkshop.Types
                         {
                             buildVal /= 4;
 
-                            Console.WriteLine($"[Assembler] [{Name}] SData String {str} index: {buildVal} (Address: {sIndex})");
+                            //Console.WriteLine($"[Assembler] [{Name}] SData String {str} index: {buildVal} (Address: {sIndex})");
 
                             buildVal ^= 0x80;
                             buildVal &= 0xFF;
@@ -1946,7 +1946,7 @@ namespace MintWorkshop.Types
                         {
                             buildVal &= 0xFFFF;
 
-                            Console.WriteLine($"[Assembler] [{Name}] SData String {str} address: {buildVal}");
+                            //Console.WriteLine($"[Assembler] [{Name}] SData String {str} address: {buildVal}");
                         }
 
                         line[a + 1] = buildVal.ToString();
