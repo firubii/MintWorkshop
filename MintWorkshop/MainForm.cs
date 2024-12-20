@@ -422,59 +422,40 @@ namespace MintWorkshop
                                 continue;
                             for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
                             {
+                                int xrefIndex = -1;
                                 switch (opcodes[inst.Opcode].Arguments[a])
                                 {
                                     case InstructionArg.XRefV:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.V(archive.XData.Endianness)]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.V(archive.XData.Endianness);
+                                        break;
                                     case InstructionArg.XRefZ:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Z]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.Z;
+                                        break;
                                     case InstructionArg.XRefX:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.X]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.X;
+                                        break;
                                     case InstructionArg.XRefY:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.Y]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.Y;
+                                        break;
                                     case InstructionArg.XRefE:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.E(archive.XData.Endianness)]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.E(archive.XData.Endianness);
+                                        break;
                                     case InstructionArg.XRefA:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.A]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.A;
+                                        break;
                                     case InstructionArg.XRefB:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.B]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
+                                        xrefIndex = inst.B;
+                                        break;
                                     case InstructionArg.XRefC:
-                                        {
-                                            if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[inst.C]))
-                                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
-                                            break;
-                                        }
-                                    default:
+                                        xrefIndex = inst.C;
                                         break;
                                 }
+
+                                if (xrefIndex < 0 || xrefIndex >= pair.Value.XRef.Count)
+                                    continue;
+
+                                if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[xrefIndex]))
+                                    scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
                             }
                             /*if (h)
                             {
@@ -980,6 +961,7 @@ namespace MintWorkshop
                 if (!namespaceName.StartsWith(name + "."))
                     namespaceName = name + "." + namespaceName.Split('.').Last();
 
+                /*
                 List<Archive.Namespace> nList = archive.Namespaces.ToList();
 
                 var parent = nList.Where(x => x.Name.StartsWith(name));
@@ -991,7 +973,7 @@ namespace MintWorkshop
                 int sortIndex = preSort.FindIndex(s => s == namespaceName);
                 int index = nList.FindIndex(x => x.Name == preSort[sortIndex - 1]);
 
-                /*int parentIndex = nList.FindIndex(x => x.Name == name);
+                int parentIndex = nList.FindIndex(x => x.Name == name);
                 Archive.Namespace parentNamespace = nList[parentIndex];
                 parentNamespace.ChildNamespaces++;
                 nList[parentIndex] = parentNamespace;
@@ -1007,9 +989,9 @@ namespace MintWorkshop
 
                 TreeNode namespaceNode = new TreeNode(namespaceName.Split('.').Last(), 6, 6);
                 namespaceNode.ContextMenuStrip = namespaceCtxMenu;
-                arcTree.SelectedNode.Nodes.Insert(sortIndex, namespaceNode);
+                arcTree.SelectedNode.Nodes.Add(namespaceNode);
 
-                archive.Namespaces = nList;
+                //archive.Namespaces = nList;
                 //arcTree.Sort();
             }
         }
