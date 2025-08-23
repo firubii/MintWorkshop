@@ -1769,10 +1769,9 @@ namespace MintWorkshop
                                         bytes[3] = byte.Parse(token);
                                         break;
                                     case InstructionArg.V:
-                                        byte[] v = BitConverter.GetBytes(
-                                            arg.HasFlag(InstructionArg.Signed)
-                                            ? short.Parse(token)
-                                            : ushort.Parse(token));
+                                        byte[] v = arg.HasFlag(InstructionArg.Signed)
+                                            ? BitConverter.GetBytes(short.Parse(token))
+                                            : BitConverter.GetBytes(ushort.Parse(token));
                                         if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
@@ -1787,10 +1786,9 @@ namespace MintWorkshop
                                         bytes[7] = byte.Parse(token);
                                         break;
                                     case InstructionArg.E:
-                                        byte[] e = BitConverter.GetBytes(
-                                            arg.HasFlag(InstructionArg.Signed)
-                                            ? short.Parse(token)
-                                            : ushort.Parse(token));
+                                        byte[] e = arg.HasFlag(InstructionArg.Signed)
+                                            ? BitConverter.GetBytes(short.Parse(token))
+                                            : BitConverter.GetBytes(ushort.Parse(token));
                                         if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
@@ -2400,10 +2398,9 @@ namespace MintWorkshop
                                         bytes[3] = byte.Parse(token);
                                         break;
                                     case InstructionArg.V:
-                                        byte[] v = BitConverter.GetBytes(
-                                            arg.HasFlag(InstructionArg.Signed)
-                                            ? short.Parse(token)
-                                            : ushort.Parse(token));
+                                        byte[] v = arg.HasFlag(InstructionArg.Signed)
+                                            ? BitConverter.GetBytes(short.Parse(token))
+                                            : BitConverter.GetBytes(ushort.Parse(token));
                                         if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
@@ -2418,10 +2415,9 @@ namespace MintWorkshop
                                         bytes[7] = byte.Parse(token);
                                         break;
                                     case InstructionArg.E:
-                                        byte[] e = BitConverter.GetBytes(
-                                            arg.HasFlag(InstructionArg.Signed)
-                                            ? short.Parse(token)
-                                            : ushort.Parse(token));
+                                        byte[] e = arg.HasFlag(InstructionArg.Signed)
+                                            ? BitConverter.GetBytes(short.Parse(token))
+                                            : BitConverter.GetBytes(ushort.Parse(token));
                                         if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
