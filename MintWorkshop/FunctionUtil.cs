@@ -1363,9 +1363,7 @@ namespace MintWorkshop
 
             Encoding encoding = utf16 ? Encoding.Unicode : Encoding.UTF8;
             List<byte> raw = encoding.GetBytes(
-                utf16
-                ? token.Substring(2, token.Length - 3)
-                : token.Substring(1, token.Length - 2)
+                utf16 ? token[2..^1] : token[1..^1]
             ).ToList();
             raw.Add(0);
             if (utf16)
@@ -1380,10 +1378,10 @@ namespace MintWorkshop
         public static byte[] ParseValueToken(string token)
         {
             if (token.StartsWith("0x"))
-                return BitConverter.GetBytes(uint.Parse(token.Substring(2), System.Globalization.NumberStyles.HexNumber));
-            else if (token.EndsWith("f"))
-                return BitConverter.GetBytes(float.Parse(token.Substring(0, token.Length - 1)));
-            else if (token.Contains("."))
+                return BitConverter.GetBytes(uint.Parse(token[2..], System.Globalization.NumberStyles.HexNumber));
+            else if (token.EndsWith('f'))
+                return BitConverter.GetBytes(float.Parse(token[..^1]));
+            else if (token.Contains('.'))
                 return BitConverter.GetBytes(float.Parse(token));
             else
                 return BitConverter.GetBytes(int.Parse(token));
@@ -1421,13 +1419,13 @@ namespace MintWorkshop
             return index;
         }
 
-        public static int SearchSData(ModuleRtDL module, byte[] value)
+        public static int SearchSData(ModuleRtDL module, byte[] value, bool ignoreEndianness = false)
         {
-            if (module.XData.Endianness == Endianness.Big)
+            if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
             int index = -1;
-            for (int s = 0; s < module.SData.Count; s += 4)
+            for (int s = 0; s < module.SData.Count - value.Length; s += 4)
             {
                 if (new ByteArrayComparer().Equals(value, module.SData.GetRange(s, 4).ToArray()))
                 {
@@ -2230,7 +2228,7 @@ namespace MintWorkshop
                                 if (!MintRegex.String().IsMatch(token))
                                     throw new FormatException($"Operand {a} is not a string.\nLine: {line}");
 
-                                SearchSData(module, ParseStringToken(token));
+                                SearchSData(module, ParseStringToken(token), true);
 
                                 break;
                             }
@@ -2241,7 +2239,7 @@ namespace MintWorkshop
                                     throw new FormatException($"Operand {a} is neither a string or register.\nLine: {line}");
 
                                 if (isValue)
-                                    SearchSData(module, ParseStringToken(token));
+                                    SearchSData(module, ParseStringToken(token), true);
 
                                 break;
                             }
@@ -2545,7 +2543,7 @@ namespace MintWorkshop
                                 if (!MintRegex.String().IsMatch(token))
                                     throw new FormatException($"Operand {a} is not a string.\nLine: {line}");
 
-                                int index = SearchSData(module, ParseStringToken(token));
+                                int index = SearchSData(module, ParseStringToken(token), true);
 
                                 switch (argLoc)
                                 {
@@ -2663,7 +2661,7 @@ namespace MintWorkshop
 
                                 byte val;
                                 if (isValue)
-                                    val = (byte)((SearchSData(module, ParseStringToken(token)) / 4) | 0x80);
+                                    val = (byte)((SearchSData(module, ParseStringToken(token), true) / 4) | 0x80);
                                 else
                                     val = byte.Parse(token.Substring(1));
 
@@ -3008,7 +3006,7 @@ namespace MintWorkshop
                 {
                     string str = match.Groups[1].Value;
                     if (MintRegex.String().IsMatch(str))
-                        SearchSData(module, ParseStringToken(str));
+                        SearchSData(module, ParseStringToken(str), true);
                     else
                         SearchSData(module, ParseValueToken(str));
                     continue;
