@@ -1,5 +1,6 @@
 ﻿using BrawlLib.Internal;
 using KirbyLib.Crypto;
+using KirbyLib.IO;
 using KirbyLib.Mint;
 using MintWorkshop.Mint;
 using MintWorkshop.Util;
@@ -98,7 +99,7 @@ namespace MintWorkshop
                         ? func.Data[(i + 6)..(i + 8)]
                         : func.Data[(i + 2)..(i + 4)];
 
-                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                    if (module.XData.Endianness == Endianness.Big)
                         bLoc = bLoc.Reverse().ToArray();
 
                     short loc = BitConverter.ToInt16(bLoc);
@@ -158,7 +159,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = func.Data[(i + 2)..(i + 4)];
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         value = arg.HasFlag(InstructionArg.Signed)
                                             ? BitConverter.ToInt16(v)
@@ -175,7 +176,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = func.Data[(i + 6)..(i + 8)];
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         value = arg.HasFlag(InstructionArg.Signed)
                                             ? BitConverter.ToInt16(e) + 1
@@ -234,7 +235,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         data = BitConverter.ToUInt32(sdata, v);
                                         break;
@@ -249,13 +250,13 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         data = BitConverter.ToUInt32(sdata, e);
                                         break;
                                 }
 
-                                if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                if (module.XData.Endianness == Endianness.Big)
                                     data = ((data & 0xFF000000) >> 24)
                                         | ((data & 0x00FF0000) >> 8)
                                         | ((data & 0x0000FF00) << 8)
@@ -280,7 +281,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         start = v;
                                         break;
@@ -295,7 +296,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         start = e;
                                         break;
@@ -303,7 +304,7 @@ namespace MintWorkshop
 
                                 byte[] data = sdata[start..(start + 4)];
 
-                                if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                if (module.XData.Endianness == Endianness.Big)
                                     data = data.Reverse().ToArray();
 
                                 text += BitConverter.ToSingle(data) + "f";
@@ -325,7 +326,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         index = v;
                                         break;
@@ -340,7 +341,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         index = e;
                                         break;
@@ -416,7 +417,7 @@ namespace MintWorkshop
                                 if ((reg & 0x80) != 0)
                                 {
                                     uint data = BitConverter.ToUInt32(sdata, (reg & 0x7F) * 4);
-                                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                    if (module.XData.Endianness == Endianness.Big)
                                         data = ((data & 0xFF000000) >> 24)
                                             | ((data & 0x00FF0000) >> 8)
                                             | ((data & 0x0000FF00) << 8)
@@ -457,7 +458,7 @@ namespace MintWorkshop
                                 {
                                     int start = (reg & 0x7F) * 4;
                                     byte[] data = sdata[start..(start + 4)];
-                                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                    if (module.XData.Endianness == Endianness.Big)
                                         data = data.Reverse().ToArray();
 
                                     text += BitConverter.ToSingle(data) + "f";
@@ -553,7 +554,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         index = v;
                                         break;
@@ -568,7 +569,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         index = e;
                                         break;
@@ -625,7 +626,7 @@ namespace MintWorkshop
                         ? func.Data[(i + 6)..(i + 8)]
                         : func.Data[(i + 2)..(i + 4)];
 
-                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                    if (module.XData.Endianness == Endianness.Big)
                         bLoc = bLoc.Reverse().ToArray();
 
                     short loc = BitConverter.ToInt16(bLoc);
@@ -685,7 +686,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = func.Data[(i + 2)..(i + 4)];
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         value = arg.HasFlag(InstructionArg.Signed)
                                             ? BitConverter.ToInt16(v)
@@ -702,7 +703,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = func.Data[(i + 6)..(i + 8)];
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         value = arg.HasFlag(InstructionArg.Signed)
                                             ? BitConverter.ToInt16(e) + 1
@@ -761,7 +762,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         data = BitConverter.ToUInt32(sdata, v);
                                         break;
@@ -776,13 +777,13 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         data = BitConverter.ToUInt32(sdata, e);
                                         break;
                                 }
 
-                                if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                if (module.XData.Endianness == Endianness.Big)
                                     data = ((data & 0xFF000000) >> 24)
                                         | ((data & 0x00FF0000) >> 8)
                                         | ((data & 0x0000FF00) << 8)
@@ -807,7 +808,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         start = v;
                                         break;
@@ -822,7 +823,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         start = e;
                                         break;
@@ -830,7 +831,7 @@ namespace MintWorkshop
 
                                 byte[] data = sdata[start..(start + 4)];
 
-                                if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                if (module.XData.Endianness == Endianness.Big)
                                     data = data.Reverse().ToArray();
 
                                 text += BitConverter.ToSingle(data) + "f";
@@ -852,7 +853,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         index = v;
                                         break;
@@ -867,7 +868,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         index = e;
                                         break;
@@ -943,7 +944,7 @@ namespace MintWorkshop
                                 if ((reg & 0x80) != 0)
                                 {
                                     uint data = BitConverter.ToUInt32(sdata, (reg & 0x7F) * 4);
-                                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                    if (module.XData.Endianness == Endianness.Big)
                                         data = ((data & 0xFF000000) >> 24)
                                             | ((data & 0x00FF0000) >> 8)
                                             | ((data & 0x0000FF00) << 8)
@@ -984,7 +985,7 @@ namespace MintWorkshop
                                 {
                                     int start = (reg & 0x7F) * 4;
                                     byte[] data = sdata[start..(start + 4)];
-                                    if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                    if (module.XData.Endianness == Endianness.Big)
                                         data = data.Reverse().ToArray();
 
                                     text += BitConverter.ToSingle(data) + "f";
@@ -1080,7 +1081,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         int v = BitConverter.ToUInt16(func.Data, i + 2);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = ((v & 0xFF00) >> 8) | ((v & 0xFF) << 8);
                                         index = v;
                                         break;
@@ -1095,7 +1096,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         int e = BitConverter.ToUInt16(func.Data, i + 6);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = ((e & 0xFF00) >> 8) | ((e & 0xFF) << 8);
                                         index = e;
                                         break;
@@ -1398,7 +1399,7 @@ namespace MintWorkshop
 
         public static int SearchSData(Module module, byte[] value)
         {
-            if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+            if (module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
             int index = -1;
@@ -1422,7 +1423,7 @@ namespace MintWorkshop
 
         public static int SearchSData(ModuleRtDL module, byte[] value)
         {
-            if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+            if (module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
             int index = -1;
@@ -1772,7 +1773,7 @@ namespace MintWorkshop
                                             arg.HasFlag(InstructionArg.Signed)
                                             ? short.Parse(token)
                                             : ushort.Parse(token));
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -1790,7 +1791,7 @@ namespace MintWorkshop
                                             arg.HasFlag(InstructionArg.Signed)
                                             ? short.Parse(token)
                                             : ushort.Parse(token));
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -1846,7 +1847,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -1861,7 +1862,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -1889,7 +1890,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -1904,7 +1905,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -1932,7 +1933,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -1947,7 +1948,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2089,7 +2090,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2104,7 +2105,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2282,7 +2283,7 @@ namespace MintWorkshop
                     text.RemoveAt(i);
                     i--;
                 }
-                else
+                else if (!string.IsNullOrWhiteSpace(line))
                 {
                     if (MintRegex.Raw().IsMatch(line))
                     {
@@ -2403,7 +2404,7 @@ namespace MintWorkshop
                                             arg.HasFlag(InstructionArg.Signed)
                                             ? short.Parse(token)
                                             : ushort.Parse(token));
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2421,7 +2422,7 @@ namespace MintWorkshop
                                             arg.HasFlag(InstructionArg.Signed)
                                             ? short.Parse(token)
                                             : ushort.Parse(token));
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2477,7 +2478,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2492,7 +2493,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2520,7 +2521,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2535,7 +2536,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2563,7 +2564,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2578,7 +2579,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2711,7 +2712,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.V:
                                         byte[] v = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             v = v.Reverse().ToArray();
                                         Array.Copy(v, 0, bytes, 2, 2);
                                         break;
@@ -2726,7 +2727,7 @@ namespace MintWorkshop
                                         break;
                                     case InstructionArg.E:
                                         byte[] e = BitConverter.GetBytes((ushort)index);
-                                        if (module.XData.Endianness == KirbyLib.IO.Endianness.Big)
+                                        if (module.XData.Endianness == Endianness.Big)
                                             e = e.Reverse().ToArray();
                                         Array.Copy(e, 0, bytes, 6, 2);
                                         break;
@@ -2979,6 +2980,7 @@ namespace MintWorkshop
         public static ModuleRtDL AssembleRtDL(string[] text)
         {
             ModuleRtDL module = new ModuleRtDL();
+            module.XData.Endianness = Endianness.Big;
 
             // Find module declaration
             for (int i = 0; i < text.Length; i++)
