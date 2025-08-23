@@ -1,96 +1,154 @@
-﻿using System;
+﻿using KirbyLib.Crypto;
+using KirbyLib.Mint;
+using MintWorkshop.Mint;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using MintWorkshop.Types;
+using static System.Windows.Forms.DataFormats;
 
 namespace MintWorkshop.Editors
 {
     public partial class EditClassForm : Form
     {
-        MintClass baseClass;
+        MintObject _object;
+        Archive _archive;
+        Module _module;
 
-        public string ClassName { get; private set; }
-        public uint ClassFlags { get; private set; }
-        public List<ushort> ClassImpl { get; private set; }
-        public List<MintClass.ClassExtend> ClassExt { get; private set; }
-
-        public EditClassForm(MintClass baseClass, ref Dictionary<byte[], string> hashes)
+        public EditClassForm(MintObject obj, Archive archive, Module module, ref Dictionary<uint, string> hashes)
         {
-            this.baseClass = baseClass;
-
-            ClassName = baseClass.Name;
-            ClassFlags = baseClass.Flags;
-            ClassImpl = baseClass.ClassImpl;
-            ClassExt = baseClass.Extends;
+            _object = obj;
+            _archive = archive;
+            _module = module;
 
             InitializeComponent();
-            classFlags.Maximum = uint.MaxValue;
 
-            className.Text = ClassName;
-            classFlags.Value = ClassFlags;
+            name.Text = _object.Name;
+            flags.Value = _object.Flags;
 
-            for (int i = 0; i < ClassImpl.Count; i++)
+            for (int i = 0; i < _object.Implements.Count; i++)
             {
-                byte[] h = baseClass.ParentScript.XRef[ClassImpl[i]];
-                if (hashes.ContainsKey(h))
-                    classImpl.Text += $"{hashes[h]}";
-                else
-                    classImpl.Text += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                implements.Text +=
+                    hashes.ContainsKey(_object.Implements[i])
+                    ? hashes[_object.Implements[i]]
+                    : _object.Implements[i].ToString("X8");
 
-                if (i < ClassImpl.Count - 1)
-                    classImpl.Text += ", ";
+                if (i < _object.Implements.Count - 1)
+                    implements.Text += ", ";
             }
 
-            for (int i = 0; i < ClassExt.Count; i++)
+            var opcodes = MintVersions.Versions[archive.Version];
+            for (int i = 0; i < _object.Extends.Count; i++)
             {
-                byte[] h = baseClass.ParentScript.XRef[ClassExt[i].Index];
-                if (hashes.ContainsKey(h))
-                    classExt.Text += $"{hashes[h]}";
-                else
-                    classExt.Text += $"{h[0]:X2}{h[1]:X2}{h[2]:X2}{h[3]:X2}";
+                byte[] e = _object.Extends[i];
+                byte op = e[0];
+                ushort v = BitConverter.ToUInt16(e, 2);
 
-                if (i < ClassExt.Count - 1)
-                    classExt.Text += ", ";
+                if (op < opcodes.Length)
+                {
+                    if (opcodes[op].Name == "_xref")
+                    {
+                        uint hash = _module.XRef[v];
+                        extends.Text +=
+                            hashes.ContainsKey(hash)
+                            ? hashes[hash]
+                            : hash.ToString("X8");
+                    }
+                    else
+                    {
+                        extends.Text += FlagLabels.StdTypes.ContainsKey(v)
+                            ? FlagLabels.StdTypes[v]
+                            : v;
+                    }
+
+                    if (i < _object.Extends.Count - 1)
+                        extends.Text += ", ";
+                }
             }
+
+            ModuleFormat format = archive.GetModuleFormat();
+            flags.Visible = format > ModuleFormat.RtDL;
+            flagsLabel.Visible = format > ModuleFormat.RtDL;
+
+            implements.Visible = format >= ModuleFormat.Mint;
+            implementsLabel.Visible = format >= ModuleFormat.Mint;
+
+            extends.Visible = format >= ModuleFormat.BasilKatFL;
+            extendsLabel.Visible = format >= ModuleFormat.BasilKatFL;
+        }
+
+        public EditClassForm(MintObject obj)
+        {
+            _object = obj;
+
+            InitializeComponent();
+
+            name.Text = _object.Name;
+
+            flags.Visible = false;
+            flagsLabel.Visible = false;
+            implements.Visible = false;
+            implementsLabel.Visible = false;
+            extends.Visible = false;
+            extendsLabel.Visible = false;
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            ClassName = className.Text;
-            ClassFlags = (uint)classFlags.Value;
-            ClassImpl = new List<ushort>();
-            if (classImpl.Text != "")
-            {
-                string[] impl = classImpl.Text.Split(',');
-                for (int i = 0; i < impl.Length; i++)
-                    ClassImpl.Add((ushort)baseClass.ParentScript.AddXRef(impl[i].Trim()));
-            }
+            _object.Name = name.Text;
 
-            ClassExt = new List<MintClass.ClassExtend>();
-            if (classExt.Text != "")
+            if (_module != null)
             {
-                string[] ext = classExt.Text.Split(',');
+                _object.Flags = (uint)flags.Value;
+
+                _object.Implements = new List<uint>();
+                string[] xrefs = FunctionUtil.Tokenize(implements.Text);
+                for (int i = 0; i < xrefs.Length; i++)
+                {
+                    _object.Implements.Add(
+                        uint.TryParse(xrefs[i], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint h)
+                        ? h
+                        : Crc32C.CalculateInv(xrefs[i])
+                    );
+                }
+
+                var opcodes = MintVersions.Versions[_archive.Version];
+                _object.Extends = new List<byte[]>();
+                string[] ext = FunctionUtil.Tokenize(extends.Text);
                 for (int i = 0; i < ext.Length; i++)
                 {
-                    string ex = ext[i].Trim();
-                    bool std = false;
-                    foreach (KeyValuePair<ushort, string> pair in MintClass.StdTypes)
+                    byte[] b = { 0xFF, 0xFF, 0xFF, 0xFF };
+                    string token = ext[i];
+                    if (ushort.TryParse(token, out ushort std))
                     {
-                        if (pair.Value == ex)
-                        {
-                            ClassExt.Add(new MintClass.ClassExtend(pair.Key, true));
-                            std = true;
-                            break;
-                        }
+                        b[0] = (byte)opcodes.ToList().FindIndex(x => x.Name == "_short");
+                        Array.Copy(BitConverter.GetBytes(std), 0, b, 2, 2);
                     }
-                    if (!std)
-                        ClassExt.Add(new MintClass.ClassExtend((ushort)baseClass.ParentScript.AddXRef(ex), false));
+                    else if (FlagLabels.StdTypes.ContainsValue(token))
+                    {
+                        b[0] = (byte)opcodes.ToList().FindIndex(x => x.Name == "_short");
+
+                        ushort v = FlagLabels.StdTypes.Keys.First(x => FlagLabels.StdTypes[x] == token);
+                        Array.Copy(BitConverter.GetBytes(v), 0, b, 2, 2);
+                    }
+                    else
+                    {
+                        b[0] = (byte)opcodes.ToList().FindIndex(x => x.Name == "_xref");
+                        
+                        uint hash;
+                        if (!uint.TryParse(token, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hash))
+                            hash = Crc32C.CalculateInv(token);
+
+                        int v = _module.XRef.IndexOf(hash);
+                        if (v < 0)
+                        {
+                            v = _module.XRef.Count;
+                            _module.XRef.Add(hash);
+                        }
+
+                        Array.Copy(BitConverter.GetBytes(v), 0, b, 2, 2);
+                    }
                 }
             }
 

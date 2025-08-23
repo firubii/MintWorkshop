@@ -29,41 +29,47 @@ namespace MintWorkshop
         /// </summary>
         private void InitializeComponent()
         {
-            this.button = new System.Windows.Forms.Button();
-            this.hashList = new System.Windows.Forms.ComboBox();
-            this.SuspendLayout();
+            button = new System.Windows.Forms.Button();
+            hashList = new System.Windows.Forms.ComboBox();
+            SuspendLayout();
             // 
             // button
             // 
-            this.button.Location = new System.Drawing.Point(12, 39);
-            this.button.Name = "button";
-            this.button.Size = new System.Drawing.Size(376, 23);
-            this.button.TabIndex = 0;
-            this.button.Text = "Select Hash";
-            this.button.UseVisualStyleBackColor = true;
-            this.button.Click += new System.EventHandler(this.button_Click);
+            button.Location = new System.Drawing.Point(14, 45);
+            button.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            button.Name = "button";
+            button.Size = new System.Drawing.Size(439, 27);
+            button.TabIndex = 0;
+            button.Text = "Select Hash";
+            button.UseVisualStyleBackColor = true;
+            button.Click += button_Click;
             // 
             // hashList
             // 
-            this.hashList.FormattingEnabled = true;
-            this.hashList.Location = new System.Drawing.Point(12, 12);
-            this.hashList.Name = "hashList";
-            this.hashList.Size = new System.Drawing.Size(376, 21);
-            this.hashList.TabIndex = 1;
+            hashList.FormattingEnabled = true;
+            hashList.Location = new System.Drawing.Point(14, 14);
+            hashList.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            hashList.Name = "hashList";
+            hashList.Size = new System.Drawing.Size(438, 23);
+            hashList.TabIndex = 1;
             // 
-            // HashSearch
+            // HashSelector
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 75);
-            this.Controls.Add(this.hashList);
-            this.Controls.Add(this.button);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "HashSearch";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Hash Selector";
-            this.Shown += new System.EventHandler(this.HashSearch_Shown);
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(467, 87);
+            Controls.Add(hashList);
+            Controls.Add(button);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "HashSelector";
+            SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Hash Selector";
+            FormClosing += HashSelector_FormClosing;
+            ResumeLayout(false);
 
         }
 

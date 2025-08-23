@@ -28,104 +28,113 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label3 = new System.Windows.Forms.Label();
-            this.varType = new System.Windows.Forms.TextBox();
-            this.okButton = new System.Windows.Forms.Button();
-            this.varFlags = new System.Windows.Forms.NumericUpDown();
-            this.label2 = new System.Windows.Forms.Label();
-            this.varName = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.varFlags)).BeginInit();
-            this.SuspendLayout();
+            label3 = new System.Windows.Forms.Label();
+            type = new System.Windows.Forms.TextBox();
+            okButton = new System.Windows.Forms.Button();
+            flags = new System.Windows.Forms.NumericUpDown();
+            flagsLabel = new System.Windows.Forms.Label();
+            name = new System.Windows.Forms.TextBox();
+            label1 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)flags).BeginInit();
+            SuspendLayout();
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 41);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(31, 13);
-            this.label3.TabIndex = 13;
-            this.label3.Text = "Type";
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(14, 47);
+            label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(31, 15);
+            label3.TabIndex = 13;
+            label3.Text = "Type";
             // 
-            // varType
+            // type
             // 
-            this.varType.Location = new System.Drawing.Point(80, 38);
-            this.varType.Name = "varType";
-            this.varType.Size = new System.Drawing.Size(268, 20);
-            this.varType.TabIndex = 12;
+            type.Location = new System.Drawing.Point(93, 44);
+            type.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            type.Name = "type";
+            type.Size = new System.Drawing.Size(312, 23);
+            type.TabIndex = 12;
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(15, 90);
-            this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(333, 23);
-            this.okButton.TabIndex = 11;
-            this.okButton.Text = "OK";
-            this.okButton.UseVisualStyleBackColor = true;
-            this.okButton.Click += new System.EventHandler(this.okButton_Click);
+            okButton.Location = new System.Drawing.Point(18, 104);
+            okButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(388, 27);
+            okButton.TabIndex = 11;
+            okButton.Text = "OK";
+            okButton.UseVisualStyleBackColor = true;
+            okButton.Click += okButton_Click;
             // 
-            // varFlags
+            // flags
             // 
-            this.varFlags.Location = new System.Drawing.Point(80, 64);
-            this.varFlags.Name = "varFlags";
-            this.varFlags.Size = new System.Drawing.Size(268, 20);
-            this.varFlags.TabIndex = 10;
+            flags.Location = new System.Drawing.Point(93, 74);
+            flags.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            flags.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
+            flags.Name = "flags";
+            flags.Size = new System.Drawing.Size(313, 23);
+            flags.TabIndex = 10;
             // 
-            // label2
+            // flagsLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 66);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(32, 13);
-            this.label2.TabIndex = 9;
-            this.label2.Text = "Flags";
+            flagsLabel.AutoSize = true;
+            flagsLabel.Location = new System.Drawing.Point(14, 76);
+            flagsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            flagsLabel.Name = "flagsLabel";
+            flagsLabel.Size = new System.Drawing.Size(34, 15);
+            flagsLabel.TabIndex = 9;
+            flagsLabel.Text = "Flags";
             // 
-            // varName
+            // name
             // 
-            this.varName.Location = new System.Drawing.Point(80, 12);
-            this.varName.Name = "varName";
-            this.varName.Size = new System.Drawing.Size(268, 20);
-            this.varName.TabIndex = 8;
+            name.Location = new System.Drawing.Point(93, 14);
+            name.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            name.Name = "name";
+            name.Size = new System.Drawing.Size(312, 23);
+            name.TabIndex = 8;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 7;
-            this.label1.Text = "Name";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(14, 17);
+            label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(39, 15);
+            label1.TabIndex = 7;
+            label1.Text = "Name";
             // 
             // EditVariableForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(362, 128);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.varType);
-            this.Controls.Add(this.okButton);
-            this.Controls.Add(this.varFlags);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.varName);
-            this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "EditVariableForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Edit Variable";
-            ((System.ComponentModel.ISupportInitialize)(this.varFlags)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(422, 148);
+            Controls.Add(label3);
+            Controls.Add(type);
+            Controls.Add(okButton);
+            Controls.Add(flags);
+            Controls.Add(flagsLabel);
+            Controls.Add(name);
+            Controls.Add(label1);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            Name = "EditVariableForm";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Edit Variable";
+            ((System.ComponentModel.ISupportInitialize)flags).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox varType;
+        private System.Windows.Forms.TextBox type;
         private System.Windows.Forms.Button okButton;
-        private System.Windows.Forms.NumericUpDown varFlags;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox varName;
+        private System.Windows.Forms.NumericUpDown flags;
+        private System.Windows.Forms.Label flagsLabel;
+        private System.Windows.Forms.TextBox name;
         private System.Windows.Forms.Label label1;
     }
 }

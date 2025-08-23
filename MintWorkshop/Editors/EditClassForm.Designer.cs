@@ -28,126 +28,137 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.className = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.classFlags = new System.Windows.Forms.NumericUpDown();
-            this.okButton = new System.Windows.Forms.Button();
-            this.classImpl = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.classExt = new System.Windows.Forms.TextBox();
-            ((System.ComponentModel.ISupportInitialize)(this.classFlags)).BeginInit();
-            this.SuspendLayout();
+            label1 = new System.Windows.Forms.Label();
+            name = new System.Windows.Forms.TextBox();
+            flagsLabel = new System.Windows.Forms.Label();
+            flags = new System.Windows.Forms.NumericUpDown();
+            okButton = new System.Windows.Forms.Button();
+            implements = new System.Windows.Forms.TextBox();
+            implementsLabel = new System.Windows.Forms.Label();
+            extendsLabel = new System.Windows.Forms.Label();
+            extends = new System.Windows.Forms.TextBox();
+            ((System.ComponentModel.ISupportInitialize)flags).BeginInit();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Name";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(10, 10);
+            label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(39, 15);
+            label1.TabIndex = 0;
+            label1.Text = "Name";
             // 
-            // className
+            // name
             // 
-            this.className.Location = new System.Drawing.Point(77, 6);
-            this.className.Name = "className";
-            this.className.Size = new System.Drawing.Size(268, 20);
-            this.className.TabIndex = 1;
+            name.Location = new System.Drawing.Point(90, 7);
+            name.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            name.Name = "name";
+            name.Size = new System.Drawing.Size(312, 23);
+            name.TabIndex = 1;
             // 
-            // label2
+            // flagsLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(9, 34);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(32, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Flags";
+            flagsLabel.AutoSize = true;
+            flagsLabel.Location = new System.Drawing.Point(10, 39);
+            flagsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            flagsLabel.Name = "flagsLabel";
+            flagsLabel.Size = new System.Drawing.Size(34, 15);
+            flagsLabel.TabIndex = 2;
+            flagsLabel.Text = "Flags";
             // 
-            // classFlags
+            // flags
             // 
-            this.classFlags.Location = new System.Drawing.Point(77, 32);
-            this.classFlags.Name = "classFlags";
-            this.classFlags.Size = new System.Drawing.Size(268, 20);
-            this.classFlags.TabIndex = 3;
+            flags.Location = new System.Drawing.Point(90, 37);
+            flags.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            flags.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
+            flags.Name = "flags";
+            flags.Size = new System.Drawing.Size(313, 23);
+            flags.TabIndex = 3;
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(12, 110);
-            this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(333, 23);
-            this.okButton.TabIndex = 4;
-            this.okButton.Text = "OK";
-            this.okButton.UseVisualStyleBackColor = true;
-            this.okButton.Click += new System.EventHandler(this.okButton_Click);
+            okButton.Location = new System.Drawing.Point(14, 127);
+            okButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(388, 27);
+            okButton.TabIndex = 4;
+            okButton.Text = "OK";
+            okButton.UseVisualStyleBackColor = true;
+            okButton.Click += okButton_Click;
             // 
-            // classImpl
+            // implements
             // 
-            this.classImpl.Location = new System.Drawing.Point(77, 58);
-            this.classImpl.Name = "classImpl";
-            this.classImpl.Size = new System.Drawing.Size(268, 20);
-            this.classImpl.TabIndex = 5;
+            implements.Location = new System.Drawing.Point(90, 67);
+            implements.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            implements.Name = "implements";
+            implements.Size = new System.Drawing.Size(312, 23);
+            implements.TabIndex = 5;
             // 
-            // label3
+            // implementsLabel
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 61);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(60, 13);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "Implements";
+            implementsLabel.AutoSize = true;
+            implementsLabel.Location = new System.Drawing.Point(10, 70);
+            implementsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            implementsLabel.Name = "implementsLabel";
+            implementsLabel.Size = new System.Drawing.Size(70, 15);
+            implementsLabel.TabIndex = 6;
+            implementsLabel.Text = "Implements";
             // 
-            // label4
+            // extendsLabel
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(9, 87);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(45, 13);
-            this.label4.TabIndex = 8;
-            this.label4.Text = "Extends";
+            extendsLabel.AutoSize = true;
+            extendsLabel.Location = new System.Drawing.Point(10, 100);
+            extendsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            extendsLabel.Name = "extendsLabel";
+            extendsLabel.Size = new System.Drawing.Size(48, 15);
+            extendsLabel.TabIndex = 8;
+            extendsLabel.Text = "Extends";
             // 
-            // classExt
+            // extends
             // 
-            this.classExt.Location = new System.Drawing.Point(77, 84);
-            this.classExt.Name = "classExt";
-            this.classExt.Size = new System.Drawing.Size(268, 20);
-            this.classExt.TabIndex = 7;
+            extends.Location = new System.Drawing.Point(90, 97);
+            extends.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            extends.Name = "extends";
+            extends.Size = new System.Drawing.Size(312, 23);
+            extends.TabIndex = 7;
             // 
             // EditClassForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(357, 142);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.classExt);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.classImpl);
-            this.Controls.Add(this.okButton);
-            this.Controls.Add(this.classFlags);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.className);
-            this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "EditClassForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Edit Class";
-            ((System.ComponentModel.ISupportInitialize)(this.classFlags)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(416, 164);
+            Controls.Add(extendsLabel);
+            Controls.Add(extends);
+            Controls.Add(implementsLabel);
+            Controls.Add(implements);
+            Controls.Add(okButton);
+            Controls.Add(flags);
+            Controls.Add(flagsLabel);
+            Controls.Add(name);
+            Controls.Add(label1);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            Name = "EditClassForm";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Edit Class";
+            ((System.ComponentModel.ISupportInitialize)flags).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox className;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.NumericUpDown classFlags;
+        private System.Windows.Forms.TextBox name;
+        private System.Windows.Forms.Label flagsLabel;
+        private System.Windows.Forms.NumericUpDown flags;
         private System.Windows.Forms.Button okButton;
-        private System.Windows.Forms.TextBox classImpl;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox classExt;
+        private System.Windows.Forms.TextBox implements;
+        private System.Windows.Forms.Label implementsLabel;
+        private System.Windows.Forms.Label extendsLabel;
+        private System.Windows.Forms.TextBox extends;
     }
 }

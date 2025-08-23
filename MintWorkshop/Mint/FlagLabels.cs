@@ -8,11 +8,20 @@ namespace MintWorkshop.Mint
 {
     public static class FlagLabels
     {
+        public static Dictionary<ushort, string> StdTypes = new Dictionary<ushort, string>()
+        {
+            { 2, "bool" },
+            { 5, "uint" },
+            { 9, "int" },
+            { 11, "float" },
+            { 16, "string" },
+        };
+
         public static Dictionary<uint, string> ClassFlags = new Dictionary<uint, string>()
         {
             {  0x2, "enum" },
             {  0x4, "pod" },
-            {  0x8, "util" },
+            {  0x8, "static" },
         };
 
         public static Dictionary<uint, string> VariableFlags = new Dictionary<uint, string>()
@@ -27,7 +36,13 @@ namespace MintWorkshop.Mint
             {  0x4, "async" },
             {  0x8, "null" },
             { 0x10, "syscall" },
+            { 0x20, "static" },
             { 0x80, "return" },
+        };
+
+        public static Dictionary<uint, string> EnumFlags = new Dictionary<uint, string>()
+        {
+
         };
     }
 }

@@ -1,82 +1,81 @@
-﻿using System;
+﻿using BrawlLib.Internal;
+using BrawlLib.SSBB.ResourceNodes;
+using BrawlLib.Wii;
+using BrawlLib.Wii.Compression;
+using KirbyLib;
+using KirbyLib.Crypto;
+using KirbyLib.IO;
+using KirbyLib.Mint;
+using MintWorkshop.Editors;
+using MintWorkshop.Mint;
+using MintWorkshop.Nodes;
+using MintWorkshop.Util;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MintWorkshop.Editors;
-using MintWorkshop.Mint;
-using MintWorkshop.Types;
-using MintWorkshop.Util;
+using WindowsAPICodePack.Dialogs;
 
 namespace MintWorkshop
 {
+    public struct ArchiveContext
+    {
+        public string Path;
+        public Archive Archive;
+        public ArchiveRtDL ArchiveRtDL;
+        public bool IsCompressed;
+    }
+
     public partial class MainForm : Form
     {
-        static Config config;
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
+        public static Config Config;
+
+        public readonly byte[] RTDL_VERSION = { 0, 2, 0, 0 };
 
         string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         bool loading = false;
 
-        Dictionary<byte[], string> hashes;
-        Archive archive;
-        string filePath;
+        Dictionary<uint, string> hashes = new();
+        List<ArchiveContext> archives = new();
+
+        HashSelector hashSelector;
 
         public MainForm()
         {
-            hashes = new Dictionary<byte[], string>(new ByteArrayComparer());
-
-            config = new Config();
+            Config = new Config();
             if (File.Exists(exeDir + "\\Config.xml"))
-                config.Load(exeDir + "\\Config.xml");
+                Config.Load(exeDir + "\\Config.xml");
             else
-                config.Save(exeDir + "\\Config.xml");
+                Config.Save(exeDir + "\\Config.xml");
 
             InitializeComponent();
 
-            List<string> versions = new List<string>();
-            foreach (KeyValuePair<byte[], Opcode[]> pair in MintVersions.Versions)
-                versions.Add($"{pair.Key[0]}.{pair.Key[1]}.{pair.Key[2]}.{pair.Key[3]}");
-            mintVerSelect.Items.AddRange(versions.ToArray());
-
             this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
-            //arcTree.TreeViewNodeSorter = new MintNodeSorter();
+
+            //AllocConsole();
+
+            hashSelector = new HashSelector();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            hashes.Clear();
 
-            for (int i = 1; i < tabControl.TabPages.Count; i++)
-                CloseEditor(i, true);
-
-            arcTree.BeginUpdate();
-            CloseArchive();
-            arcTree.Dispose();
         }
 
-        private void CloseArchive()
+        private void CloseAllArchives()
         {
-            for (int i = 1; i < tabControl.TabPages.Count; i++)
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
                 CloseEditor(i, true);
 
-            if (archive != null)
-                archive.Dispose();
             arcTree.Nodes.Clear();
-
-            this.Text = "Mint Workshop";
-            saveToolStripMenuItem.Enabled = false;
-            saveAsToolStripMenuItem.Enabled = false;
-            closeToolStripMenuItem.Enabled = false;
-            xVerSelect.Text = "";
-            mintVerSelect.Text = "";
-            littleEndian.Checked = false;
-            lz77Cmp.Enabled = false;
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -88,14 +87,84 @@ namespace MintWorkshop
             open.DefaultExt = ".bin";
             if (open.ShowDialog() == DialogResult.OK)
             {
-                CloseArchive();
+                ProgressBar progress = new ProgressBar();
+                Task.Run(() =>
+                {
+                    Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
 
-                closeAllTabsToolStripMenuItem_Click(null, new EventArgs());
-                arcTree.Nodes.Clear();
-                arcTree.BeginUpdate();
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Reading Archive...");
+                    });
 
-                filePath = open.FileName;
+                    bool isCompressed = false;
+                    EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read));
+                    if (reader.ReadByte() == 0x11)
+                    {
+                        isCompressed = true;
+                        DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
+                        FileStream stream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                        stream.Lock(0, stream.Length);
+                        reader = new EndianBinaryReader(stream);
+                    }
 
+                    reader.BaseStream.Position = 0;
+                    Archive archive = new Archive(reader);
+
+                    if (isCompressed)
+                        (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                    reader.Dispose();
+
+                    archives.Add(new ArchiveContext()
+                    {
+                        Path = open.FileName,
+                        Archive = archive,
+                        IsCompressed = isCompressed
+                    });
+
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Updating hash list...");
+                    });
+                    ReloadHashes();
+
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Cleaning up...");
+                    });
+
+                    Invoke((MethodInvoker)delegate
+                    {
+                        arcTree.BeginUpdate();
+                        arcTree.Nodes.Add(new ArchiveTreeNode(archive)
+                        {
+                            Text = Path.GetFileName(open.FileName) + $" ({archive.GetVersionString()})",
+                            ContextMenuStrip = archiveMenuStrip
+                        });
+                        progress.Close();
+                        arcTree.EndUpdate();
+                        closeToolStripMenuItem.Enabled = true;
+                    });
+                });
+            }
+        }
+
+        private void openRtDLToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Binary Files|*.bin;*.bin.cmp";
+            open.CheckFileExists = true;
+            open.AddExtension = true;
+            open.DefaultExt = ".bin";
+            if (open.ShowDialog() == DialogResult.OK)
+            {
                 ProgressBar progress = new ProgressBar();
                 Task.Run(() =>
                 {
@@ -107,68 +176,50 @@ namespace MintWorkshop
                         progress.SetMax(1);
                         progress.SetTitle("Reading Archive");
                     });
-                    archive = new Archive(filePath);
+
+                    bool isCompressed = false;
+                    EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read));
+                    if (reader.ReadByte() == 0x11)
+                    {
+                        isCompressed = true;
+                        DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
+                        FileStream stream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                        stream.Lock(0, stream.Length);
+                        reader = new EndianBinaryReader(stream);
+                    }
+
+                    reader.BaseStream.Position = 0;
+                    ArchiveRtDL archive = new ArchiveRtDL(reader);
+
+                    if (isCompressed)
+                        (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                    reader.Dispose();
+
+                    archives.Add(new ArchiveContext()
+                    {
+                        Path = open.FileName,
+                        ArchiveRtDL = archive,
+                        IsCompressed = isCompressed
+                    });
 
                     Invoke((MethodInvoker)delegate
                     {
                         progress.SetValue(0);
                         progress.SetMax(1);
-                        progress.SetTitle("Reading Hashes");
+                        progress.SetTitle("Cleaning up...");
                     });
-                    ReloadHashes();
-
-                    TreeNode root = new TreeNode();
-                    Invoke((MethodInvoker)delegate
-                    {
-                        progress.SetValue(0);
-                        progress.SetMax(archive.Namespaces.Count);
-                        progress.SetTitle("Reading Namespaces");
-                    });
-                    for (int i = 0; i < archive.Namespaces.Count; i++)
-                    {
-                        Invoke((MethodInvoker)delegate
-                        {
-                            progress.SetValue(i);
-                        });
-                        NamespaceNodeSearch(root, archive.Namespaces[i].Name.Split('.'), 0);
-                    }
-                    Invoke((MethodInvoker)delegate
-                    {
-                        progress.SetValue(0);
-                        progress.SetMax(archive.Scripts.Count);
-                        progress.SetTitle("Reading Scripts");
-                    });
-                    for (int i = 0; i < archive.Scripts.Count; i++)
-                    {
-                        Invoke((MethodInvoker)delegate
-                        {
-                            progress.SetValue(i);
-                        });
-                        ScriptNodeSearch(root, archive.Scripts.Keys.ElementAt(i).Split('.'), 0);
-                    }
-                    Invoke((MethodInvoker)delegate
-                    {
-                        progress.SetValue(0);
-                        progress.SetMax(root.Nodes.Count);
-                        progress.SetTitle("Populating Archive Tree");
-                    });
-                    foreach (TreeNode n in root.Nodes)
-                    {
-                        Invoke((MethodInvoker)delegate
-                        {
-                            arcTree.Nodes.Add(n);
-                        });
-                    }
 
                     Invoke((MethodInvoker)delegate
                     {
-                        //arcTree.Sort();
+                        arcTree.BeginUpdate();
+                        arcTree.Nodes.Add(new ArchiveRtDLTreeNode(archive)
+                        {
+                            Text = Path.GetFileName(open.FileName) + $" ({archive.GetVersionString()})",
+                            ContextMenuStrip = archiveMenuStrip
+                        });
                         progress.Close();
-                        this.Text = "Mint Workshop - " + filePath;
                         arcTree.EndUpdate();
-                        UpdateArchiveProperties();
-                        saveToolStripMenuItem.Enabled = true;
-                        saveAsToolStripMenuItem.Enabled = true;
                         closeToolStripMenuItem.Enabled = true;
                     });
                 });
@@ -177,312 +228,316 @@ namespace MintWorkshop
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CloseArchive();
-        }
-
-        private void UpdateArchiveProperties()
-        {
-            loading = true;
-            xVerSelect.SelectedItem = $"{archive.XData.Version[0]}.{archive.XData.Version[1]}";
-            mintVerSelect.SelectedItem = archive.GetSemanticVersion();
-            littleEndian.Checked = archive.XData.Endianness == Endianness.Little;
-            lz77Cmp.Enabled = true;
-            lz77Cmp.Checked = archive.LZ77Compressed;
-            indexTable.Text = string.Join(" ", archive.IndexTable);
-            loading = false;
+            CloseAllArchives();
         }
 
         private void ReloadHashes()
         {
             hashes.Clear();
-            hashes = new Dictionary<byte[], string>(new ByteArrayComparer());
-            if (File.Exists(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
+            hashes = new Dictionary<uint, string>();
+
+            foreach (var ctx in archives)
             {
-                Console.WriteLine($"Hash file found for version {archive.GetSemanticVersion()}");
-                using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{archive.GetSemanticVersion()}.txt"))
+                if (ctx.Archive == null)
+                    continue;
+
+                Archive archive = ctx.Archive;
+                if (File.Exists(exeDir + $"\\hashes_{archive.GetVersionString()}.txt"))
                 {
-                    while (!reader.EndOfStream)
+                    Console.WriteLine($"Hash file found for version {archive.GetVersionString()}");
+                    using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{archive.GetVersionString()}.txt"))
                     {
-                        string line = reader.ReadLine();
-                        if (!line.StartsWith("#"))
+                        while (!reader.EndOfStream)
                         {
-                            byte[] hash = HashCalculator.Calculate(line);
-                            if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
+                            string line = reader.ReadLine();
+                            if (!line.StartsWith("#"))
+                            {
+                                uint hash = Crc32C.CalculateInv(line);
+                                if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
+                            }
+                        }
+                    }
+                    Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
+                }
+
+                for (int i = 0; i < archive.Modules.Count; i++)
+                {
+                    Module mod = archive[i];
+                    for (int o = 0; o < mod.Objects.Count; o++)
+                    {
+                        MintObject obj = mod[o];
+                        uint hash = Crc32C.CalculateInv(obj.Name);
+                        if (!hashes.ContainsKey(hash))
+                            hashes.Add(hash, obj.Name);
+
+                        for (int j = 0; j < obj.Variables.Count; j++)
+                        {
+                            hash = Crc32C.CalculateInv(obj.Name + "." + obj.Variables[j].Name);
+                            if (!hashes.ContainsKey(hash))
+                                hashes.Add(hash, obj.Name + "." + obj.Variables[j].Name);
+                        }
+
+                        for (int j = 0; j < obj.Functions.Count; j++)
+                        {
+                            hash = Crc32C.CalculateInv(obj.Name + "." + obj.Functions[j].NameWithoutType());
+                            if (!hashes.ContainsKey(hash))
+                                hashes.Add(hash, obj.Name + "." + obj.Functions[j].NameWithoutType());
                         }
                     }
                 }
-                Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
             }
-            foreach (KeyValuePair<byte[], string> pair in archive.GetHashes())
-                if (!hashes.ContainsKey(pair.Key)) hashes.Add(pair.Key, pair.Value);
+
+            hashSelector.UpdateHashList(hashes.Values.ToArray());
         }
 
-        private void NamespaceNodeSearch(TreeNode node, string[] search, int searchIndex)
+        void CreateEditor(Archive archive, Module module, MintObject obj, MintFunction function)
         {
-            if (searchIndex < search.Length)
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
             {
-                for (int i = 0; i < node.Nodes.Count; i++)
+                var page = tabControl.TabPages[i];
+                if (page is TextEditorTab)
                 {
-                    if (node.Nodes[i].Text == search[searchIndex])
+                    if ((page as TextEditorTab).Function == function)
                     {
-                        NamespaceNodeSearch(node.Nodes[i], search, searchIndex + 1);
+                        tabControl.SelectedTab = page;
                         return;
                     }
                 }
-
-                TreeNode namespaceNode = new TreeNode(search[searchIndex], 0, 0);
-                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
-                node.Nodes.Add(namespaceNode);
-            }
-        }
-
-        private void ScriptNodeSearch(TreeNode node, string[] search, int searchIndex)
-        {
-            for (int i = 0; i < node.Nodes.Count; i++)
-            {
-                if (node.Nodes[i].Text == search[searchIndex])
-                {
-                    ScriptNodeSearch(node.Nodes[i], search, searchIndex + 1);
-                    return;
-                }
-            }
-            if (searchIndex < search.Length - 1)
-            {
-                TreeNode namespaceNode = new TreeNode(search[searchIndex], 6, 6);
-                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
-                node.Nodes.Add(namespaceNode);
-                ScriptNodeSearch(node.Nodes[node.Nodes.IndexOf(namespaceNode)], search, searchIndex + 1);
-                return;
             }
 
-            TreeNode scriptNode = new TreeNode(search[searchIndex], 1, 1);
-            scriptNode.ContextMenuStrip = scriptCtxMenu;
+            TextEditorTab tab = new TextEditorTab(archive, module, obj, function, archive.Version);
+            tab.Name = function.Name;
+            tab.Text = module.Name + "." + function.NameWithoutType();
 
-            string scriptName = string.Join(".", search);
-            MintScript s = archive.Scripts[scriptName];
-            for (int i = 0; i < s.Classes.Count; i++)
+            tab.TextBox.SelectionStart = 0;
+            tab.TextBox.ScrollToCaret();
+            tab.TextBox.ClearUndo();
+
+            tabControl.TabPages.Add(tab);
+
+            tabControl.SelectedTab = tab;
+
+            tab.IsLoading = true;
+            tab.TextBox.Enabled = false;
+            tab.TextBox.UseWaitCursor = true;
+            Task.Run(() =>
             {
-                TreeNode cl;
-                if (s.Classes[i].Name == scriptName)
-                    cl = new TreeNode(s.Classes[i].Name.Split('.').Last(), 2, 2);
-                else if (s.Classes[i].Name.StartsWith(scriptName))
-                    cl = new TreeNode(s.Classes[i].Name.Substring(scriptName.Length + 1), 2, 2);
-                else
-                    cl = new TreeNode(s.Classes[i].Name, 2, 2);
-
-                cl.ContextMenuStrip = classCtxMenu;
-                cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
-
-                for (int v = 0; v < s.Classes[i].Variables.Count; v++)
+                Invoke((MethodInvoker)delegate
                 {
-                    cl.Nodes[0].Nodes.Add($"{s.Classes[i].Variables[v].Hash[0]:X2}{s.Classes[i].Variables[v].Hash[1]:X2}{s.Classes[i].Variables[v].Hash[2]:X2}{s.Classes[i].Variables[v].Hash[3]:X2}", s.Classes[i].Variables[v].Type + " " + s.Classes[i].Variables[v].Name, 3, 3);
-                    cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                }
-                for (int v = 0; v < s.Classes[i].Functions.Count; v++)
-                {
-                    cl.Nodes[1].Nodes.Add($"{s.Classes[i].Functions[v].Hash[0]:X2}{s.Classes[i].Functions[v].Hash[1]:X2}{s.Classes[i].Functions[v].Hash[2]:X2}{s.Classes[i].Functions[v].Hash[3]:X2}", s.Classes[i].Functions[v].Name, 4, 4);
-                    cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                }
-                for (int v = 0; v < s.Classes[i].Constants.Count; v++)
-                {
-                    cl.Nodes[2].Nodes.Add(new TreeNode(s.Classes[i].Constants[v].Name + " (0x" + s.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
-                    cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                }
-
-                scriptNode.Nodes.Add(cl);
-            }
-
-            node.Nodes.Add(scriptNode);
-        }
-
-        void CreateEditor(MintFunction function)
-        {
-            loading = true; 
-
-            string hash = $"{function.Hash[0]:X2}{function.Hash[1]:X2}{function.Hash[2]:X2}{function.Hash[3]:X2}";
-            if (!tabControl.TabPages.ContainsKey(hash))
-            {
-                RichTextBox box = new RichTextBox();
-                box.BorderStyle = BorderStyle.FixedSingle;
-                box.Dock = DockStyle.Fill;
-                box.Font = new Font(new FontFamily("Courier New"), config.FontSize);
-                box.ScrollBars = RichTextBoxScrollBars.Both;
-                box.WordWrap = false;
-                box.TextChanged += textBoxEdited;
-                box.ContextMenuStrip = editorCtxMenu;
-
-                if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
-                {
-                    uint fFlags = function.Flags;
-                    string funcFlags = "";
-                    for (uint f = 1; f <= fFlags; f <<= 1)
+                    try
                     {
-                        if ((fFlags & f) != 0)
-                        {
-                            if (FlagLabels.FunctionFlags.ContainsKey(fFlags & f))
-                                funcFlags += $"{FlagLabels.FunctionFlags[fFlags & f]} ";
-                            else
-                                funcFlags += $"flag{fFlags & f:X} ";
-                        }
+                        string disasm = FunctionUtil.Disassemble(module, obj, function, archive.Version, ref hashes);
+
+                        tab.TextBox.AppendText(disasm);
+                        tab.UpdateTextColor();
+                        tab.TextBox.Enabled = true;
+                        tab.TextBox.UseWaitCursor = false;
+
+                        tab.IsLoading = false;
+
+                        tab.SetContextMenuStrip(editorCtxMenu);
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"[{tab.Text}] Disasm error: {e}");
+                    }
+                });
+            });
+        }
 
-                    box.AppendText(funcFlags, TextColors.SDataColor);
-                }
-                box.AppendText(function.Name);
-                box.AppendText("\n\n");
-
-                try
+        void CreateEditor(ArchiveRtDL archive, ModuleRtDL module, MintFunction function)
+        {
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
+            {
+                var page = tabControl.TabPages[i];
+                if (page is TextEditorTab)
                 {
-                    function.Disassemble(ref hashes, ref box, config.UppercaseMnemonics);
+                    if ((page as TextEditorTab).Function == function)
+                    {
+                        tabControl.SelectedTab = page;
+                        return;
+                    }
                 }
-                catch
-                {
-                    box.AppendText("\nError: Could not disassemble past this point!", Color.White, Color.Red);
-                }
-                box.SelectionStart = 0;
-                box.ScrollToCaret();
-                box.ClearUndo();
-
-                tabControl.TabPages.Add(hash, function.FullNameWithoutSignature());
-                tabControl.TabPages[tabControl.TabCount - 1].Controls.Add(box);
-                tabControl.TabPages[tabControl.TabCount - 1].Name = hash;
             }
-            tabControl.SelectedTab = tabControl.TabPages[hash];
 
-            loading = false;
+            TextEditorTab tab = new TextEditorTab(archive, module, function, RTDL_VERSION);
+            tab.Name = function.Name;
+            tab.Text = module.Name + "." + function.NameWithoutType();
+
+            tab.TextBox.SelectionStart = 0;
+            tab.TextBox.ScrollToCaret();
+            tab.TextBox.ClearUndo();
+
+            tabControl.TabPages.Add(tab);
+
+            tabControl.SelectedTab = tab;
+
+            tab.IsLoading = true;
+            tab.TextBox.Enabled = false;
+            tab.TextBox.UseWaitCursor = true;
+            Task.Run(() =>
+            {
+                Invoke((MethodInvoker)delegate
+                {
+                    try
+                    {
+                        string disasm = FunctionUtil.Disassemble(module, function, RTDL_VERSION, ref hashes);
+
+                        tab.TextBox.AppendText(disasm);
+                        tab.UpdateTextColor();
+                        tab.TextBox.Enabled = true;
+                        tab.TextBox.UseWaitCursor = false;
+
+                        tab.IsLoading = false;
+
+                        tab.SetContextMenuStrip(editorCtxMenu);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"[{tab.Text}] Disasm error: {e}");
+                    }
+                });
+            });
         }
 
         void CloseEditor(int index, bool forceClose)
         {
-            if (index > 0)
+            TextEditorTab tab = tabControl.TabPages[index] as TextEditorTab;
+            if (tab.IsDirty && !forceClose)
             {
-                if (tabControl.TabPages[index].Text.EndsWith("*") && !forceClose)
-                {
-                    if (MessageBox.Show("Are you sure you want to close this tab?" +
-                                      "\nThis function has been edited, closing it without saving will lose any changes you have made.",
-                                      "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.No)
-                        return;
-                }
-
-                loading = true;
-                if (tabControl.SelectedIndex == index)
-                    tabControl.SelectedIndex = index - 1;
-
-                RichTextBox box = tabControl.TabPages[index].Controls[0] as RichTextBox;
-                box.Clear();
-                box.ClearUndo();
-
-                tabControl.TabPages.RemoveAt(index);
-                loading = false;
+                if (MessageBox.Show("Are you sure you want to close this tab?" +
+                                    "\nThis function has been edited, closing it without saving will lose any changes you have made.",
+                                    "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.No)
+                    return;
             }
+
+            loading = true;
+            if (tabControl.SelectedIndex == index)
+                tabControl.SelectedIndex = index - 1;
+
+            tab.TextBox.Clear();
+            tab.TextBox.ClearUndo();
+
+            tabControl.TabPages.RemoveAt(index);
+            loading = false;
         }
 
-        private void SearchForHash(byte[] searchHash)
+        private void SearchForHash(uint searchHash)
         {
             List<string> scripts = new List<string>();
-            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+            foreach (var ctx in archives)
             {
-                bool hasHash = false;
-                for (int i = 0; i < pair.Value.XRef.Count; i++)
-                {
-                    if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[i]))
-                    {
-                        hasHash = true;
-                        break;
-                    }
-                }
-                if (!hasHash)
+                if (ctx.Archive == null)
                     continue;
 
-                Opcode[] opcodes = MintVersions.Versions[archive.Version];
-                for (int c = 0; c < pair.Value.Classes.Count; c++)
+                Archive archive = ctx.Archive;
+                foreach (var module in archive.Modules)
                 {
-                    for (int f = 0; f < pair.Value.Classes[c].ClassImpl.Count; f++)
+                    bool hasHash = false;
+                    for (int i = 0; i < module.XRef.Count; i++)
                     {
-                        if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].ClassImpl[f]]))
-                            scripts.Add("[Implemented by] " + pair.Value.Classes[c].Name);
-                    }
-                    for (int f = 0; f < pair.Value.Classes[c].Extends.Count; f++)
-                    {
-                        if (!pair.Value.Classes[c].Extends[f].StdType &&
-                            ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].Extends[f].Index]))
-                            scripts.Add("[Extended by] " + pair.Value.Classes[c].Name);
-                    }
-
-                    for (int f = 0; f < pair.Value.Classes[c].Functions.Count; f++)
-                    {
-                        Console.WriteLine(pair.Value.Classes[c].Functions[f].FullName());
-                        for (int i = 0; i < pair.Value.Classes[c].Functions[f].Instructions.Count; i++)
+                        if (module.XRef[i] == searchHash)
                         {
-                            bool h = false;
-                            Instruction inst = pair.Value.Classes[c].Functions[f].Instructions[i];
-                            if (inst.Opcode >= opcodes.Length)
-                                continue;
-                            if (opcodes[inst.Opcode].Arguments == null)
-                                continue;
-                            for (int a = 0; a < opcodes[inst.Opcode].Arguments.Length; a++)
-                            {
-                                int xrefIndex = -1;
-                                switch (opcodes[inst.Opcode].Arguments[a])
-                                {
-                                    case InstructionArg.XRefV:
-                                        xrefIndex = inst.V(archive.XData.Endianness);
-                                        break;
-                                    case InstructionArg.XRefZ:
-                                        xrefIndex = inst.Z;
-                                        break;
-                                    case InstructionArg.XRefX:
-                                        xrefIndex = inst.X;
-                                        break;
-                                    case InstructionArg.XRefY:
-                                        xrefIndex = inst.Y;
-                                        break;
-                                    case InstructionArg.XRefE:
-                                        xrefIndex = inst.E(archive.XData.Endianness);
-                                        break;
-                                    case InstructionArg.XRefA:
-                                        xrefIndex = inst.A;
-                                        break;
-                                    case InstructionArg.XRefB:
-                                        xrefIndex = inst.B;
-                                        break;
-                                    case InstructionArg.XRefC:
-                                        xrefIndex = inst.C;
-                                        break;
-                                }
+                            hasHash = true;
+                            break;
+                        }
+                    }
+                    if (!hasHash)
+                        continue;
 
-                                if (xrefIndex < 0 || xrefIndex >= pair.Value.XRef.Count)
+                    Opcode[] opcodes = MintVersions.Versions[archive.Version];
+                    for (int c = 0; c < module.Objects.Count; c++)
+                    {
+                        MintObject obj = module[c];
+                        for (int f = 0; f < obj.Implements.Count; f++)
+                        {
+                            if (obj.Implements[f] == searchHash)
+                                scripts.Add("[Implemented by] " + obj.Name);
+                        }
+                        /*
+                        for (int f = 0; f < module.Objects[c].Extends.Count; f++)
+                        {
+                            if (!pair.Value.Classes[c].Extends[f].StdType &&
+                                ByteArrayComparer.Equal(searchHash, pair.Value.XRef[pair.Value.Classes[c].Extends[f].Index]))
+                                scripts.Add("[Extended by] " + pair.Value.Classes[c].Name);
+                        }
+                        */
+
+                        for (int f = 0; f < obj.Functions.Count; f++)
+                        {
+                            MintFunction func = obj.Functions[f];
+                            for (int i = 0; i < func.Data.Length; i += 4)
+                            {
+                                bool h = false;
+                                if (func.Data[i] >= opcodes.Length)
                                     continue;
+                                if (opcodes[func.Data[i]].Arguments == null)
+                                    continue;
+                                for (int a = 0; a < opcodes[func.Data[i]].Arguments.Length; a++)
+                                {
+                                    int xrefIndex = -1;
+                                    switch (opcodes[func.Data[i]].Arguments[a])
+                                    {
+                                        case InstructionArg.XRefV:
+                                            xrefIndex = BitConverter.ToUInt16(func.Data, i + 2);
+                                            break;
+                                        case InstructionArg.XRefZ:
+                                            xrefIndex = func.Data[i + 1];
+                                            break;
+                                        case InstructionArg.XRefX:
+                                            xrefIndex = func.Data[i + 2];
+                                            break;
+                                        case InstructionArg.XRefY:
+                                            xrefIndex = func.Data[i + 3];
+                                            break;
+                                        case InstructionArg.XRefE:
+                                            xrefIndex = BitConverter.ToUInt16(func.Data, i + 6);
+                                            break;
+                                        case InstructionArg.XRefA:
+                                            xrefIndex = func.Data[i + 5];
+                                            break;
+                                        case InstructionArg.XRefB:
+                                            xrefIndex = func.Data[i + 6];
+                                            break;
+                                        case InstructionArg.XRefC:
+                                            xrefIndex = func.Data[i + 7];
+                                            break;
+                                    }
 
-                                if (ByteArrayComparer.Equal(searchHash, pair.Value.XRef[xrefIndex]))
-                                    scripts.Add(pair.Value.Classes[c].Functions[f].FullName() + ":" + i);
+                                    if (xrefIndex < 0 || xrefIndex >= module.XRef.Count)
+                                        continue;
+
+                                    if (module.XRef[xrefIndex] == searchHash)
+                                        scripts.Add(module.Name + "." + func.NameWithoutType() + ": " + (i / 4));
+                                }
                             }
-                            /*if (h)
-                            {
-                                scripts.Add(pair.Value.Classes[c].Functions[f].FullName());
-                                break;
-                            }*/
                         }
                     }
                 }
             }
 
             SearchResultForm results = new SearchResultForm(scripts.ToArray());
-            results.Text = "Search Results - " + (hashes.ContainsKey(searchHash) ? hashes[searchHash] : $"{searchHash[0]:X2}{searchHash[1]:X2}{searchHash[2]:X2}{searchHash[3]:X2}");
-            results.ShowDialog();
+            results.Text = "Search Results - " + (hashes.ContainsKey(searchHash) ? hashes[searchHash] : searchHash.ToString("X8"));
+            results.Show();
         }
 
         private void arcTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (arcTree.SelectedNode == null || arcTree.SelectedNode.Parent == null)
-                return;
-
-            if (arcTree.SelectedNode.Parent.Text == "Functions")
+            if (e.Node is FunctionTreeNode)
             {
-                string scriptName = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
-                int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
-                int funcIndex = arcTree.SelectedNode.Index;
-                CreateEditor(archive.Scripts[scriptName].Classes[classIndex].Functions[funcIndex]);
+                FunctionTreeNode fNode = e.Node as FunctionTreeNode;
+                ObjectTreeNode oNode = fNode.GetObject();
+
+                if (oNode.GetModule() is ModuleRtDLTreeNode)
+                {
+                    ModuleRtDLTreeNode mNode = oNode.GetModule() as ModuleRtDLTreeNode;
+                    CreateEditor(mNode.GetArchive().Archive, mNode.Module, fNode.Function);
+                }
+                else
+                {
+                    ModuleTreeNode mNode = oNode.GetModule() as ModuleTreeNode;
+                    CreateEditor(mNode.GetArchive().Archive, mNode.Module, oNode.Object, fNode.Function);
+                }
             }
         }
 
@@ -491,7 +546,7 @@ namespace MintWorkshop
             if (e.Button != MouseButtons.Middle)
                 return;
 
-            for (int i = 1; i < tabControl.TabPages.Count; i++)
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
             {
                 if (tabControl.GetTabRect(i).Contains(e.Location))
                 {
@@ -501,33 +556,20 @@ namespace MintWorkshop
             }
         }
 
-        private void textBoxEdited(object sender, EventArgs e)
-        {
-            /*
-             * TODO
-             * Recolor text when edited but not where it takes way too long if the function is massive
-            */
-
-            if (loading) return;
-
-            if (tabControl.SelectedIndex > 0 && !tabControl.SelectedTab.Text.EndsWith("*"))
-                tabControl.SelectedTab.Text += " *";
-        }
-
         private void saveTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (tabControl.SelectedIndex != 0)
-            {
-                TreeNode node = arcTree.Nodes.Find(tabControl.SelectedTab.Name, true)[0];
-                string scriptName = node.Parent.Parent.Parent.FullPath;
-                int classIndex = node.Parent.Parent.Index;
-                int funcIndex = node.Index;
-                archive.Scripts[scriptName].Classes[classIndex].Functions[funcIndex].Assemble((tabControl.SelectedTab.Controls[0] as RichTextBox).Lines);
-            }
-            if (tabControl.SelectedTab.Text.EndsWith("*"))
-            {
-                tabControl.SelectedTab.Text = tabControl.SelectedTab.Text.Remove(tabControl.SelectedTab.Text.Length - 2, 2);
-            }
+            TextEditorTab tab = tabControl.SelectedTab as TextEditorTab;
+            string text = tab.TextBox.Text;
+            text = FunctionUtil.StripComments(text);
+
+            List<string> lines = text.Split('\n').ToList();
+
+            if (tab.Module != null)
+                tab.Function.Data = FunctionUtil.AssembleFunction(tab.Module, tab.Object, lines.Skip(1).ToList(), tab.Version);
+            else if (tab.ModuleRtDL != null)
+                tab.Function.Data = FunctionUtil.AssembleFunction(tab.ModuleRtDL, lines.Skip(1).ToList(), tab.Version);
+
+            tab.SetDirty(false);
         }
 
         private void closeTabToolStripMenuItem_Click(object sender, EventArgs e)
@@ -535,87 +577,69 @@ namespace MintWorkshop
             CloseEditor(tabControl.SelectedIndex, false);
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (config.OptimizeOnBuild)
-            foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
-                pair.Value.Optimize();
-
-            archive.Write(filePath);
-        }
-
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog save = new SaveFileDialog();
-            save.Filter = "Binary Files|*.bin;*.bin.cmp";
-            save.AddExtension = true;
-            save.DefaultExt = ".bin";
-            if (save.ShowDialog() == DialogResult.OK)
-            {
-                filePath = save.FileName;
-
-                if (archive.LZ77Compressed)
-                {
-                    archive.LZ77Compressed =
-                        MessageBox.Show("Build with compression?\nThis is required to work in HAL's 3DS games.",
-                        "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes;
-                }
-
-                if (archive.LZ77Compressed && !filePath.EndsWith(".cmp"))
-                    filePath += ".cmp";
-
-                if (config.OptimizeOnBuild)
-                foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
-                    pair.Value.Optimize();
-
-                archive.Write(filePath);
-                this.Text = "Mint Workshop - " + filePath;
-            }
-        }
-
         private void closeAllTabsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            tabControl.SelectedIndex = 0;
-            for (int i = tabControl.TabPages.Count - 1; i > 0; i--)
-            {
-                tabControl.TabPages.RemoveAt(i);
-            }
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
+                tabControl.TabPages.RemoveAt(0);
         }
 
         private void addClassToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.FullPath;
-            MintClass newClass = new MintClass(parentScript + ".NewClass", 0, archive.Scripts[parentScript]);
-            EditClassForm edit = new EditClassForm(newClass, ref hashes);
-            if (edit.ShowDialog() == DialogResult.OK)
+            if (!(arcTree.SelectedNode is ModuleTreeNode) && !(arcTree.SelectedNode is ModuleRtDLTreeNode))
+                return;
+
+            MintObject newObject = new MintObject();
+            if (arcTree.SelectedNode is ModuleRtDLTreeNode)
             {
-                newClass.SetName(edit.ClassName);
-
-                newClass.Flags = edit.ClassFlags;
-                newClass.ClassImpl = edit.ClassImpl;
-                newClass.Extends = edit.ClassExt;
-                archive.Scripts[parentScript].Classes.Add(newClass);
-
-                string[] pSplit = newClass.ParentScript.Name.Split('.');
-                TreeNode cl = new TreeNode(pSplit.Length > 1 ? newClass.Name.Replace(string.Join(".", pSplit.Take(pSplit.Length - 1)), "") : newClass.Name, 2, 2);
-                cl.ContextMenuStrip = classCtxMenu;
-                cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
-                arcTree.SelectedNode.Nodes.Add(cl);
+                ModuleRtDLTreeNode mNode = arcTree.SelectedNode as ModuleRtDLTreeNode;
+                EditClassForm editor = new EditClassForm(newObject);
+                if (editor.ShowDialog() == DialogResult.OK)
+                {
+                    mNode.Module.Objects.Add(newObject);
+                    mNode.Open();
+                }
+            }
+            else
+            {
+                ModuleTreeNode mNode = arcTree.SelectedNode as ModuleTreeNode;
+                EditClassForm editor = new EditClassForm(newObject, mNode.GetArchive().Archive, mNode.Module, ref hashes);
+                if (editor.ShowDialog() == DialogResult.OK)
+                {
+                    mNode.Module.Objects.Add(newObject);
+                    mNode.Open();
+                }
             }
         }
 
         private void deleteScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this script?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (!(arcTree.SelectedNode is ModuleTreeNode) && !(arcTree.SelectedNode is ModuleRtDLTreeNode))
+                return;
+
+            if (MessageBox.Show("Are you sure you want to delete this module?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                string scriptName = arcTree.SelectedNode.FullPath;
-                archive.Scripts.Remove(scriptName);
+                if (arcTree.SelectedNode is ModuleTreeNode)
+                {
+                    ModuleTreeNode node = arcTree.SelectedNode as ModuleTreeNode;
+
+                    Archive archive = node.GetArchive().Archive;
+                    archive.Modules.Remove(node.Module);
+                }
+                else if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+                {
+                    ModuleRtDLTreeNode node = arcTree.SelectedNode as ModuleRtDLTreeNode;
+
+                    ArchiveRtDL archive = node.GetArchive().Archive;
+                    archive.Modules.Remove(node.Module);
+                }
+
                 arcTree.SelectedNode.Remove();
             }
         }
 
         private void editClassToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            /*
             string parentScript = arcTree.SelectedNode.Parent.FullPath;
             int index = arcTree.SelectedNode.Index;
             EditClassForm edit = new EditClassForm(archive.Scripts[parentScript].Classes[index], ref hashes);
@@ -629,461 +653,400 @@ namespace MintWorkshop
                 string[] pSplit = archive.Scripts[parentScript].Name.Split('.');
                 arcTree.SelectedNode.Text = edit.ClassName.Replace(string.Join(".", pSplit.Take(pSplit.Length - 1)), "");
             }
+            */
         }
 
         private void deleteClassToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (arcTree.SelectedNode is ObjectTreeNode)
             {
-                string parentScript = arcTree.SelectedNode.Parent.FullPath;
-                int index = arcTree.SelectedNode.Index;
-                archive.Scripts[parentScript].Classes.RemoveAt(index);
-                arcTree.SelectedNode.Remove();
+                if (MessageBox.Show("Are you sure you want to delete this class?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+
+                    TreeNode moduleNode = node.GetModule();
+                    if (moduleNode is ModuleTreeNode)
+                        (moduleNode as ModuleTreeNode).Module.Objects.Remove(node.Object);
+                    else if (moduleNode is ModuleRtDLTreeNode)
+                        (moduleNode as ModuleRtDLTreeNode).Module.Objects.Remove(node.Object);
+
+                    arcTree.SelectedNode.Remove();
+                }
             }
         }
 
         private void addVariableToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.Parent.FullPath;
-            int index = arcTree.SelectedNode.Index;
-            MintVariable newVar = new MintVariable("newVariable", "int", 0, archive.Scripts[parentScript].Classes[index]);
-            EditVariableForm edit = new EditVariableForm(newVar);
-            if (edit.ShowDialog() == DialogResult.OK)
-            {
-                newVar.SetName(edit.VariableName);
-                newVar.Type = edit.VariableType;
-                newVar.Flags = edit.VariableFlags;
-                archive.Scripts[parentScript].Classes[index].Variables.Add(newVar);
+            if (!(arcTree.SelectedNode is ObjectTreeNode))
+                return;
 
-                arcTree.SelectedNode.Nodes[0].Nodes.Add($"{newVar.Hash[0]:X2}{newVar.Hash[1]:X2}{newVar.Hash[2]:X2}{newVar.Hash[3]:X2}", newVar.Type + " " + newVar.Name, 3, 3);
-                arcTree.SelectedNode.Nodes[0].Nodes[arcTree.SelectedNode.Nodes[0].Nodes.Count - 1].ContextMenuStrip = genericCtxMenu;
+            ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+            ModuleFormat fmt = ModuleFormat.RtDL;
+            if (node.GetModule() is ModuleTreeNode)
+                fmt = (node.GetModule() as ModuleTreeNode).Module.Format;
+
+            MintVariable newVariable = new MintVariable("int", "newVariable");
+            EditVariableForm editor = new EditVariableForm(newVariable, fmt);
+            if (editor.ShowDialog() == DialogResult.OK)
+            {
+                node.Object.Variables.Add(newVariable);
+                node.Open();
             }
         }
 
         private void addFunctionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.Parent.FullPath;
-            int index = arcTree.SelectedNode.Index;
-            MintFunction newFunc = new MintFunction("void newFunction()", 0, archive.Scripts[parentScript].Classes[index]);
-            EditFunctionForm edit = new EditFunctionForm(newFunc);
-            if (edit.ShowDialog() == DialogResult.OK)
-            {
-                newFunc.SetName(edit.FunctionName);
-                if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
-                    newFunc.Flags = edit.FunctionFlags;
-                if (archive.Version[0] >= 7)
-                {
-                    newFunc.Arguments = edit.FunctionArgs;
-                    newFunc.Registers = edit.FunctionRegs;
-                }
-                archive.Scripts[parentScript].Classes[index].Functions.Add(newFunc);
+            if (!(arcTree.SelectedNode is ObjectTreeNode))
+                return;
 
-                arcTree.SelectedNode.Nodes[1].Nodes.Add($"{newFunc.Hash[0]:X2}{newFunc.Hash[1]:X2}{newFunc.Hash[2]:X2}{newFunc.Hash[3]:X2}", newFunc.Name, 4, 4);
-                arcTree.SelectedNode.Nodes[1].Nodes[arcTree.SelectedNode.Nodes[1].Nodes.Count - 1].ContextMenuStrip = genericCtxMenu;
+            ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+            MintFunction newFunction = new MintFunction("void newFunction()");
+
+            byte[] version = { 0, 2, 0, 0 };
+            ModuleFormat fmt = ModuleFormat.RtDL;
+
+            if (node.GetModule() is ModuleTreeNode)
+            {
+                ModuleTreeNode mNode = node.GetModule() as ModuleTreeNode;
+                fmt = mNode.Module.Format;
+
+                newFunction.Data = FunctionUtil.AssembleFunction(mNode.Module, node.Object, new List<string>() { "fenter 1, 0, 0", "fleave r0" }, version);
+            }
+            else
+            {
+                ModuleRtDLTreeNode mNode = node.GetModule() as ModuleRtDLTreeNode;
+                newFunction.Data = FunctionUtil.AssembleFunction(mNode.Module, new List<string>() { "fenter 1, 0, 0", "fleave r0" }, version);
+            }
+
+            EditFunctionForm editor = new EditFunctionForm(newFunction, fmt);
+            if (editor.ShowDialog() == DialogResult.OK)
+            {
+                node.Object.Functions.Add(newFunction);
+                node.Open();
             }
         }
 
         private void addConstantToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.Parent.FullPath;
-            int index = arcTree.SelectedNode.Index;
-            MintClass.MintConstant newConst = new MintClass.MintConstant("newConstant", 0);
-            EditConstantForm edit = new EditConstantForm(newConst);
-            if (edit.ShowDialog() == DialogResult.OK)
-            {
-                newConst.Name = edit.ConstantName;
-                newConst.Value = edit.ConstantValue;
-                archive.Scripts[parentScript].Classes[index].Constants.Add(newConst);
+            if (!(arcTree.SelectedNode is ObjectTreeNode))
+                return;
 
-                arcTree.SelectedNode.Nodes[2].Nodes.Add(new TreeNode(newConst.Name + " (0x" + newConst.Value.ToString("X") + ")", 5, 5));
-                arcTree.SelectedNode.Nodes[2].Nodes[arcTree.SelectedNode.Nodes[2].Nodes.Count - 1].ContextMenuStrip = genericCtxMenu;
+            ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+            ModuleFormat fmt = ModuleFormat.RtDL;
+            if (node.GetModule() is ModuleTreeNode)
+                fmt = (node.GetModule() as ModuleTreeNode).Module.Format;
+            else
+                return;
+
+            MintEnum newEnum = new MintEnum("NewEnum", 0);
+            EditEnumForm editor = new EditEnumForm(newEnum, fmt);
+            if (editor.ShowDialog() == DialogResult.OK)
+            {
+                node.Object.Enums.Add(newEnum);
+                node.Open();
             }
         }
 
         private void editObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
-            int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
-            int index = arcTree.SelectedNode.Index;
-            switch (arcTree.SelectedNode.Parent.Text)
+            if (arcTree.SelectedNode is ModuleTreeNode)
             {
-                case "Variables":
-                    {
-                        MintVariable var = archive.Scripts[parentScript].Classes[classIndex].Variables[index];
-                        EditVariableForm edit = new EditVariableForm(var);
-                        if (edit.ShowDialog() == DialogResult.OK)
-                        {
-                            var.SetName(edit.VariableName);
-                            var.Type = edit.VariableType;
-                            var.Flags = edit.VariableFlags;
+                EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleTreeNode).Module, ref hashes);
+                editor.ShowDialog();
+            }
+            else if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+            {
+                EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleRtDLTreeNode).Module);
+                editor.ShowDialog();
+            }
+            else if (arcTree.SelectedNode is ObjectTreeNode)
+            {
+                ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+                TreeNode module = node.GetModule();
+                if (module is ModuleRtDLTreeNode)
+                {
+                    EditClassForm editor = new EditClassForm(node.Object);
+                    editor.ShowDialog();
+                }
+                else if (module is ModuleTreeNode)
+                {
+                    ModuleTreeNode mNode = module as ModuleTreeNode;
+                    EditClassForm editor = new EditClassForm(node.Object, mNode.GetArchive().Archive, mNode.Module, ref hashes);
+                    editor.ShowDialog();
+                }
+            }
+            else if (arcTree.SelectedNode is VariableTreeNode)
+            {
+                VariableTreeNode node = arcTree.SelectedNode as VariableTreeNode;
 
-                            arcTree.SelectedNode.Text = var.Type + " " + var.Name;
-                        }
-                        break;
-                    }
-                case "Functions":
-                    {
-                        MintFunction func = archive.Scripts[parentScript].Classes[classIndex].Functions[index];
-                        EditFunctionForm edit = new EditFunctionForm(func);
-                        if (edit.ShowDialog() == DialogResult.OK)
-                        {
-                            func.SetName(edit.FunctionName);
-                            if (archive.Version[0] >= 2 || archive.Version[1] >= 1)
-                                func.Flags = edit.FunctionFlags;
-                            if (archive.Version[0] >= 7)
-                            {
-                                func.Arguments = edit.FunctionArgs;
-                                func.Registers = edit.FunctionRegs;
-                            }
+                ModuleFormat fmt = ModuleFormat.RtDL;
+                var m = node.GetObject().GetModule();
+                if (m is ModuleTreeNode)
+                    fmt = (m as ModuleTreeNode).Module.Format;
 
-                            arcTree.SelectedNode.Text = edit.FunctionName;
-                        }
-                        break;
-                    }
-                case "Constants":
-                    {
-                        EditConstantForm edit = new EditConstantForm(archive.Scripts[parentScript].Classes[classIndex].Constants[index]);
-                        if (edit.ShowDialog() == DialogResult.OK)
-                        {
-                            MintClass.MintConstant c = new MintClass.MintConstant(edit.ConstantName, edit.ConstantValue);
-                            archive.Scripts[parentScript].Classes[classIndex].Constants[index] = c;
+                EditVariableForm editor = new EditVariableForm(node.Variable, fmt);
+                editor.ShowDialog();
+            }
+            else if (arcTree.SelectedNode is FunctionTreeNode)
+            {
+                FunctionTreeNode node = arcTree.SelectedNode as FunctionTreeNode;
 
-                            arcTree.SelectedNode.Text = c.Name + " (0x" + c.Value.ToString("X") + ")";
-                        }
-                        break;
-                    }
+                ModuleFormat fmt = ModuleFormat.RtDL;
+                var m = node.GetObject().GetModule();
+                if (m is ModuleTreeNode)
+                    fmt = (m as ModuleTreeNode).Module.Format;
+
+                EditFunctionForm editor = new EditFunctionForm(node.Function, fmt);
+                editor.ShowDialog();
+            }
+            else if (arcTree.SelectedNode is EnumTreeNode)
+            {
+                EnumTreeNode node = arcTree.SelectedNode as EnumTreeNode;
+
+                ModuleFormat fmt = ModuleFormat.RtDL;
+                var m = node.GetObject().GetModule();
+                if (m is ModuleTreeNode)
+                    fmt = (m as ModuleTreeNode).Module.Format;
+
+                EditEnumForm editor = new EditEnumForm(node.Enum, fmt);
+                editor.ShowDialog();
             }
         }
 
         private void deleteObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show($"Are you sure you want to delete this {arcTree.SelectedNode.Parent.Text.TrimEnd('s').ToLower()}?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            // sure, why not, this kinda sucks
+            string type;
+            if (arcTree.SelectedNode is VariableTreeNode)
+                type = "variable";
+            else if (arcTree.SelectedNode is FunctionTreeNode)
+                type = "function";
+            else if (arcTree.SelectedNode is EnumTreeNode)
+                type = "enum";
+            else
+                return;
+
+            if (MessageBox.Show($"Are you sure you want to delete this {type}?\nThis action cannot be undone.", "Mint Workshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
-                int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
-                int index = arcTree.SelectedNode.Index;
-                switch (arcTree.SelectedNode.Parent.Text)
+                if (arcTree.SelectedNode is VariableTreeNode)
                 {
-                    case "Variables":
-                        {
-                            archive.Scripts[parentScript].Classes[classIndex].Variables.RemoveAt(index);
-                            break;
-                        }
-                    case "Functions":
-                        {
-                            archive.Scripts[parentScript].Classes[classIndex].Functions.RemoveAt(index);
-                            break;
-                        }
-                    case "Constants":
-                        {
-                            archive.Scripts[parentScript].Classes[classIndex].Constants.RemoveAt(index);
-                            break;
-                        }
+                    VariableTreeNode node = arcTree.SelectedNode as VariableTreeNode;
+                    node.GetObject().Object.Variables.Remove(node.Variable);
                 }
+                else if (arcTree.SelectedNode is FunctionTreeNode)
+                {
+                    FunctionTreeNode node = arcTree.SelectedNode as FunctionTreeNode;
+                    for (int i = 0; i < tabControl.TabPages.Count; i++)
+                    {
+                        TabPage page = tabControl.TabPages[i];
+                        if (page is TextEditorTab && (page as TextEditorTab).Function == node.Function)
+                        {
+                            page.Dispose();
+                            break;
+                        }
+                    }
+
+                    node.GetObject().Object.Functions.Remove(node.Function);
+                }
+                else if (arcTree.SelectedNode is EnumTreeNode)
+                {
+                    EnumTreeNode node = arcTree.SelectedNode as EnumTreeNode;
+                    node.GetObject().Object.Enums.Remove(node.Enum);
+                }
+
                 arcTree.SelectedNode.Remove();
             }
         }
 
         private void findUsesOfObjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            byte[] searchHash = new byte[4];
-
-            string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
-            int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
-            int index = arcTree.SelectedNode.Index;
-            switch (arcTree.SelectedNode.Parent.Text)
+            if (arcTree.SelectedNode is ObjectTreeNode)
             {
-                case "Variables":
-                    {
-                        searchHash = archive.Scripts[parentScript].Classes[classIndex].Variables[index].Hash;
-                        break;
-                    }
-                case "Functions":
-                    {
-                        searchHash = archive.Scripts[parentScript].Classes[classIndex].Functions[index].Hash;
-                        break;
-                    }
-                case "Constants":
-                    {
-                        MessageBox.Show("Error: Can't search for Constant usage.", "Mint Workshop", MessageBoxButtons.OK);
-                        return;
-                    }
+                MintObject obj = (arcTree.SelectedNode as ObjectTreeNode).Object;
+                SearchForHash(Crc32C.CalculateInv(obj.Name));
             }
-
-            SearchForHash(searchHash);
-        }
-
-        private void findUsesOfObjectToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            string parentScript = arcTree.SelectedNode.Parent.FullPath;
-            int classIndex = arcTree.SelectedNode.Index;
-            SearchForHash(archive.Scripts[parentScript].Classes[classIndex].Hash);
+            else if (arcTree.SelectedNode is VariableTreeNode)
+            {
+                VariableTreeNode node = arcTree.SelectedNode as VariableTreeNode;
+                MintObject obj = node.GetObject().Object;
+                SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Variable.Name}"));
+            }
+            else if (arcTree.SelectedNode is FunctionTreeNode)
+            {
+                FunctionTreeNode node = arcTree.SelectedNode as FunctionTreeNode;
+                MintObject obj = node.GetObject().Object;
+                SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Function.NameWithoutType()}"));
+            }
         }
 
         private void copyFullNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string parentScript = arcTree.SelectedNode.Parent.Parent.Parent.FullPath;
-            int classIndex = arcTree.SelectedNode.Parent.Parent.Index;
-            int index = arcTree.SelectedNode.Index;
-            switch (arcTree.SelectedNode.Parent.Text)
+            if (arcTree.SelectedNode is ObjectTreeNode)
             {
-                case "Variables":
-                    {
-                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Variables[index].FullName());
-                        break;
-                    }
-                case "Functions":
-                    {
-                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Functions[index].FullName());
-                        break;
-                    }
-                case "Constants":
-                    {
-                        Clipboard.SetText(archive.Scripts[parentScript].Classes[classIndex].Name + "." + archive.Scripts[parentScript].Classes[classIndex].Constants[index].Name);
-                        break;
-                    }
+                MintObject obj = (arcTree.SelectedNode as ObjectTreeNode).Object;
+                Clipboard.SetText(obj.Name);
             }
-        }
-
-        private void addScriptToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string name = arcTree.SelectedNode.FullPath;
-            EditGenericForm edit = new EditGenericForm(name + ".NewScript");
-            if (edit.ShowDialog() == DialogResult.OK)
+            else if (arcTree.SelectedNode is VariableTreeNode)
             {
-                string scriptName = edit.StringName;
-
-                MintScript newScript = new MintScript(scriptName, archive.Version);
-                if (!newScript.Name.StartsWith(name + "."))
-                    newScript.Name = name + "." + scriptName.Split('.').Last();
-
-                archive.Scripts.Add(newScript.Name, newScript);
-
-                TreeNode scriptNode = new TreeNode(newScript.Name.Split('.').Last(), 1, 1);
-                scriptNode.ContextMenuStrip = scriptCtxMenu;
-                arcTree.SelectedNode.Nodes.Add(scriptNode);
-
-                string parentName = arcTree.SelectedNode.Parent != null ? arcTree.SelectedNode.Parent.FullPath : arcTree.SelectedNode.FullPath;
-                int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
-                if (parentIndex != -1)
-                {
-                    Archive.Namespace parent = archive.Namespaces[parentIndex];
-                    parent.Scripts++;
-                    parent.TotalScripts++;
-                    archive.Namespaces[parentIndex] = parent;
-                    for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
-                    {
-                        Archive.Namespace n = archive.Namespaces[i];
-                        n.TotalScripts++;
-                        archive.Namespaces[i] = n;
-                    }
-                }
+                VariableTreeNode node = arcTree.SelectedNode as VariableTreeNode;
+                MintObject obj = node.GetObject().Object;
+                Clipboard.SetText($"{obj.Name}.{node.Variable.Name}");
             }
-        }
-
-        private void importScriptToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog open = new OpenFileDialog();
-            open.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
-            open.CheckFileExists = true;
-            open.AddExtension = true;
-            if (open.ShowDialog() == DialogResult.OK)
+            else if (arcTree.SelectedNode is FunctionTreeNode)
             {
-                MintScript newScript;
-
-                if (Path.GetExtension(open.FileName) == ".mints")
-                {
-                    newScript = new MintScript(File.ReadAllLines(open.FileName), archive.Version);
-                }
-                else
-                {
-                    using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read)))
-                        newScript = new MintScript(reader, archive.Version);
-                }
-
-                archive.Scripts.Add(newScript.Name, newScript);
-
-                string parentName = arcTree.SelectedNode.Parent.FullPath;
-                int parentIndex = archive.Namespaces.FindIndex(x => x.Name == parentName);
-                if (parentIndex != -1)
-                {
-                    Archive.Namespace parent = archive.Namespaces[parentIndex];
-                    parent.Scripts++;
-                    parent.TotalScripts++;
-                    archive.Namespaces[parentIndex] = parent;
-                    for (int i = parentIndex + 1; i < archive.Namespaces.Count; i++)
-                    {
-                        Archive.Namespace n = archive.Namespaces[i];
-                        n.TotalScripts++;
-                        archive.Namespaces[i] = n;
-                    }
-                }
-
-                TreeNode scriptNode = new TreeNode(newScript.Name.Split('.').Last(), 1, 1);
-                scriptNode.ContextMenuStrip = scriptCtxMenu;
-
-                for (int i = 0; i < newScript.Classes.Count; i++)
-                {
-                    TreeNode cl = new TreeNode(newScript.Classes[i].Name.Split('.').Last(), 2, 2);
-                    cl.ContextMenuStrip = classCtxMenu;
-                    cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
-
-                    for (int v = 0; v < newScript.Classes[i].Variables.Count; v++)
-                    {
-                        cl.Nodes[0].Nodes.Add($"{newScript.Classes[i].Variables[v].Hash[0]:X2}{newScript.Classes[i].Variables[v].Hash[1]:X2}{newScript.Classes[i].Variables[v].Hash[2]:X2}{newScript.Classes[i].Variables[v].Hash[3]:X2}", newScript.Classes[i].Variables[v].Type + " " + newScript.Classes[i].Variables[v].Name, 3, 3);
-                        cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                    }
-                    for (int v = 0; v < newScript.Classes[i].Functions.Count; v++)
-                    {
-                        cl.Nodes[1].Nodes.Add($"{newScript.Classes[i].Functions[v].Hash[0]:X2}{newScript.Classes[i].Functions[v].Hash[1]:X2}{newScript.Classes[i].Functions[v].Hash[2]:X2}{newScript.Classes[i].Functions[v].Hash[3]:X2}", newScript.Classes[i].Functions[v].Name, 4, 4);
-                        cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                    }
-                    for (int v = 0; v < newScript.Classes[i].Constants.Count; v++)
-                    {
-                        cl.Nodes[2].Nodes.Add(new TreeNode(newScript.Classes[i].Constants[v].Name + " (0x" + newScript.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
-                        cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                    }
-
-                    scriptNode.Nodes.Add(cl);
-                }
-
-                arcTree.SelectedNode.Nodes.Add(scriptNode);
-            }
-        }
-
-        private void addNamespaceToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string name = arcTree.SelectedNode.FullPath;
-            EditGenericForm edit = new EditGenericForm(name + ".NewNamespace");
-            if (edit.ShowDialog() == DialogResult.OK)
-            {
-                string namespaceName = edit.StringName;
-                if (!namespaceName.StartsWith(name + "."))
-                    namespaceName = name + "." + namespaceName.Split('.').Last();
-
-                /*
-                List<Archive.Namespace> nList = archive.Namespaces.ToList();
-
-                var parent = nList.Where(x => x.Name.StartsWith(name));
-                List<string> preSort = new List<string>();
-                preSort.Add(namespaceName);
-                foreach (Archive.Namespace n in parent)
-                    preSort.Add(n.Name);
-                preSort.Sort();
-                int sortIndex = preSort.FindIndex(s => s == namespaceName);
-                int index = nList.FindIndex(x => x.Name == preSort[sortIndex - 1]);
-
-                int parentIndex = nList.FindIndex(x => x.Name == name);
-                Archive.Namespace parentNamespace = nList[parentIndex];
-                parentNamespace.ChildNamespaces++;
-                nList[parentIndex] = parentNamespace;
-
-                Archive.Namespace newNamespace = new Archive.Namespace();
-                newNamespace.Index = nList[index].Index;
-                newNamespace.Name = namespaceName;
-                newNamespace.Scripts = 0;
-                newNamespace.TotalScripts = nList[index].TotalScripts;
-                newNamespace.ChildNamespaces = 0;
-
-                nList.Insert(index + 1, newNamespace);*/
-
-                TreeNode namespaceNode = new TreeNode(namespaceName.Split('.').Last(), 6, 6);
-                namespaceNode.ContextMenuStrip = namespaceCtxMenu;
-                arcTree.SelectedNode.Nodes.Add(namespaceNode);
-
-                //archive.Namespaces = nList;
-                //arcTree.Sort();
+                FunctionTreeNode node = arcTree.SelectedNode as FunctionTreeNode;
+                MintObject obj = node.GetObject().Object;
+                Clipboard.SetText($"{obj.Name}.{node.Function.NameWithoutType()}");
             }
         }
 
         private void exportScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MintScript script = archive.Scripts[arcTree.SelectedNode.FullPath];
+            string modName = arcTree.SelectedNode is ModuleRtDLTreeNode
+                ? (arcTree.SelectedNode as ModuleRtDLTreeNode).Name
+                : (arcTree.SelectedNode as ModuleTreeNode).Name;
+
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
-            save.FileName = script.Name;
+            save.FileName = modName;
             save.AddExtension = true;
             if (save.ShowDialog() == DialogResult.OK)
             {
                 if (save.FilterIndex == 1)
                 {
-                    File.WriteAllLines(save.FileName, script.WriteText(ref hashes));
+                    string disasm;
+                    if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+                    {
+                        ModuleRtDLTreeNode node = arcTree.SelectedNode as ModuleRtDLTreeNode;
+                        disasm = FunctionUtil.Disassemble(node.Module, RTDL_VERSION, ref hashes);
+                    }
+                    else
+                    {
+                        ModuleTreeNode node = arcTree.SelectedNode as ModuleTreeNode;
+                        disasm = FunctionUtil.Disassemble(node.Module, node.GetArchive().Archive.Version, ref hashes);
+                    }
+                    File.WriteAllText(save.FileName, disasm);
                 }
                 else
                 {
-                    File.WriteAllBytes(save.FileName, script.Write());
+                    using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(save.FileName, FileMode.Create, FileAccess.Write)))
+                    {
+                        if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+                            (arcTree.SelectedNode as ModuleRtDLTreeNode).Module.Write(writer);
+                        else
+                            (arcTree.SelectedNode as ModuleTreeNode).Module.Write(writer);
+                    }
                 }
                 MessageBox.Show($"Exported Mint script to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
             }
         }
 
+        private Module OpenModule(string path, Archive archive)
+        {
+            Module mod;
+
+            if (path.EndsWith(".bin"))
+            {
+                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+                {
+                    mod = new Module();
+                    mod.Format = archive.GetModuleFormat();
+                    mod.Read(reader);
+                }
+            }
+            else
+            {
+                string text = FunctionUtil.StripComments(File.ReadAllText(path));
+
+                mod = FunctionUtil.Assemble(text.Split('\n'), archive.Version);
+                mod.Format = archive.GetModuleFormat();
+            }
+
+            return mod;
+        }
+
+        private ModuleRtDL OpenModuleRtDL(string path)
+        {
+            ModuleRtDL mod;
+
+            if (path.EndsWith(".bin"))
+            {
+                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+                {
+                    mod = new ModuleRtDL();
+                    mod.Read(reader);
+                }
+            }
+            else
+            {
+                string text = FunctionUtil.StripComments(File.ReadAllText(path));
+
+                mod = FunctionUtil.AssembleRtDL(text.Split('\n'));
+            }
+
+            return mod;
+        }
+
         private void replaceScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            string moduleName = arcTree.SelectedNode is ModuleRtDLTreeNode
+                ? (arcTree.SelectedNode as ModuleRtDLTreeNode).Name
+                : (arcTree.SelectedNode as ModuleTreeNode).Name;
+
             OpenFileDialog open = new OpenFileDialog();
-            open.Filter = "Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
-            open.FileName = archive.Scripts[arcTree.SelectedNode.FullPath].Name;
+            open.Filter = "All Valid Files|*.mints;*.bin|Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
+            open.FileName = moduleName;
             open.CheckFileExists = true;
             open.AddExtension = true;
             if (open.ShowDialog() == DialogResult.OK)
             {
-                MintScript newScript;
-
-                if (Path.GetExtension(open.FileName) == ".mints")
+                if (arcTree.SelectedNode is ModuleRtDLTreeNode)
                 {
-                    newScript = new MintScript(File.ReadAllLines(open.FileName), archive.Version);
+                    ArchiveRtDL arc = (arcTree.SelectedNode as ModuleRtDLTreeNode).GetArchive().Archive;
+
+                    ModuleRtDL newModule = OpenModuleRtDL(open.FileName);
+                    if (newModule.Name != moduleName)
+                    {
+                        MessageBox.Show($"Module name \"{newModule.Name}\" does not match!");
+                        return;
+                    }
+
+                    int idx = arc.Modules.FindIndex(x => x.Name == newModule.Name);
+                    arc.Modules[idx] = newModule;
                 }
                 else
                 {
-                    using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read)))
-                        newScript = new MintScript(reader, archive.Version);
-                }
+                    Archive arc = (arcTree.SelectedNode as ModuleTreeNode).GetArchive().Archive;
 
-                if (newScript.Name != arcTree.SelectedNode.FullPath)
-                {
-                    MessageBox.Show("Error: Script has a different name than the one being replaced.", "Mint Workshop", MessageBoxButtons.OK);
-                    return;
-                }
-
-                archive.Scripts[arcTree.SelectedNode.FullPath] = newScript;
-                arcTree.SelectedNode.Nodes.Clear();
-                for (int i = 0; i < newScript.Classes.Count; i++)
-                {
-                    TreeNode cl = new TreeNode(newScript.Classes[i].Name.Split('.').Last(), 2, 2);
-                    cl.ContextMenuStrip = classCtxMenu;
-                    cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
-
-                    for (int v = 0; v < newScript.Classes[i].Variables.Count; v++)
+                    Module newModule = OpenModule(open.FileName, arc);
+                    if (newModule.Name != moduleName)
                     {
-                        cl.Nodes[0].Nodes.Add($"{newScript.Classes[i].Variables[v].Hash[0]:X2}{newScript.Classes[i].Variables[v].Hash[1]:X2}{newScript.Classes[i].Variables[v].Hash[2]:X2}{newScript.Classes[i].Variables[v].Hash[3]:X2}", newScript.Classes[i].Variables[v].Type + " " + newScript.Classes[i].Variables[v].Name, 3, 3);
-                        cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                    }
-                    for (int v = 0; v < newScript.Classes[i].Functions.Count; v++)
-                    {
-                        cl.Nodes[1].Nodes.Add($"{newScript.Classes[i].Functions[v].Hash[0]:X2}{newScript.Classes[i].Functions[v].Hash[1]:X2}{newScript.Classes[i].Functions[v].Hash[2]:X2}{newScript.Classes[i].Functions[v].Hash[3]:X2}", newScript.Classes[i].Functions[v].Name, 4, 4);
-                        cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                    }
-                    for (int v = 0; v < newScript.Classes[i].Constants.Count; v++)
-                    {
-                        cl.Nodes[2].Nodes.Add(new TreeNode(newScript.Classes[i].Constants[v].Name + " (0x" + newScript.Classes[i].Constants[v].Value.ToString("X") + ")", 5, 5));
-                        cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
+                        MessageBox.Show($"Module name \"{newModule.Name}\" does not match!");
+                        return;
                     }
 
-                    arcTree.SelectedNode.Nodes.Add(cl);
+                    int idx = arc.Modules.FindIndex(x => x.Name == newModule.Name);
+                    arc.Modules[idx] = newModule;
                 }
+
+                (arcTree.SelectedNode as DynamicTreeNode).Open();
             }
         }
 
         private void editXRefsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            /*
             EditXRefForm edit = new EditXRefForm(archive.Scripts[arcTree.SelectedNode.FullPath].XRef.ToArray(), hashes);
             if (edit.ShowDialog() == DialogResult.OK)
             {
                 archive.Scripts[arcTree.SelectedNode.FullPath].XRef = edit.XRef;
             }
+            */
         }
 
         private void optimizeScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            /*
             int origSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
 
             archive.Scripts[arcTree.SelectedNode.FullPath].Optimize();
@@ -1091,58 +1054,53 @@ namespace MintWorkshop
             int newSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
 
             MessageBox.Show($"Successfully optimized {archive.Scripts[arcTree.SelectedNode.FullPath].Name}\nOriginal Size: {origSize} bytes\nNew Size: {newSize} bytes", "Mint Workshop", MessageBoxButtons.OK);
+            */
         }
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ConfigForm configForm = new ConfigForm(config);
+            ConfigForm configForm = new ConfigForm(Config);
             if (configForm.ShowDialog() == DialogResult.OK)
             {
-                config = configForm.Config;
-                config.Save(exeDir + "\\Config.xml");
+                Config = configForm.Config;
+                Config.Save(exeDir + "\\Config.xml");
             }
         }
 
         private void parseAsFloatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (tabControl.SelectedIndex > 0)
+            RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+            string text = box.SelectedText;
+            if (text.StartsWith("0x"))
             {
-                RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
-                string text = box.SelectedText;
-                if (text.StartsWith("0x"))
+                text = text.Remove(0, 2);
+                if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
                 {
-                    text = text.Remove(0, 2);
-                    if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
-                    {
-                        box.SelectedText = BitConverter.ToSingle(BitConverter.GetBytes(val), 0).ToString() + "f";
-                    }
-                    else
-                        MessageBox.Show("Error: Could not convert selected text to float.", "Mint Workshop", MessageBoxButtons.OK);
+                    box.SelectedText = BitConverter.ToSingle(BitConverter.GetBytes(val), 0).ToString() + "f";
                 }
                 else
-                    MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
+                    MessageBox.Show("Error: Could not convert selected text to float.", "Mint Workshop", MessageBoxButtons.OK);
             }
+            else
+                MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
         }
 
         private void convertToDecimalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (tabControl.SelectedIndex > 0)
+            RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+            string text = box.SelectedText;
+            if (text.StartsWith("0x"))
             {
-                RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
-                string text = box.SelectedText;
-                if (text.StartsWith("0x"))
+                text = text.Remove(0, 2);
+                if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
                 {
-                    text = text.Remove(0, 2);
-                    if (int.TryParse(text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out int val))
-                    {
-                        box.SelectedText = val.ToString();
-                    }
-                    else
-                        MessageBox.Show("Error: Could not convert selected text to decimal.", "Mint Workshop", MessageBoxButtons.OK);
+                    box.SelectedText = val.ToString();
                 }
                 else
-                    MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
+                    MessageBox.Show("Error: Could not convert selected text to decimal.", "Mint Workshop", MessageBoxButtons.OK);
             }
+            else
+                MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
         }
 
         private void reloadHashesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1150,98 +1108,17 @@ namespace MintWorkshop
             ReloadHashes();
         }
 
-        private void batchImportScriptsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog open = new OpenFileDialog();
-            open.Filter = "Mint Script Files|*.mints;*.bin";
-            open.CheckFileExists = true;
-            open.Multiselect = true;
-            if (open.ShowDialog() == DialogResult.OK)
-            {
-                for (int i = 0; i < open.FileNames.Length; i++)
-                {
-                    string file = open.FileNames[i];
-                    if (archive.Scripts.ContainsKey(Path.GetFileNameWithoutExtension(file)))
-                    {
-                        MintScript newScript;
-                        if (Path.GetExtension(file) == ".mints")
-                        {
-                            newScript = new MintScript(File.ReadAllLines(file), archive.Version);
-                        }
-                        else
-                        {
-                            using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(file, FileMode.Open, FileAccess.Read)))
-                                newScript = new MintScript(reader, archive.Version);
-                        }
-
-                        if (archive.Scripts[Path.GetFileNameWithoutExtension(file)].Name != newScript.Name)
-                            continue;
-
-                        archive.Scripts[newScript.Name] = newScript;
-
-                        TreeNode node = FindNodeByName(arcTree.Nodes, newScript.Name.Split('.'), 0);
-                        if (node == null)
-                            continue;
-
-                        node.Nodes.Clear();
-                        for (int c = 0; c < newScript.Classes.Count; c++)
-                        {
-                            TreeNode cl = new TreeNode(newScript.Classes[c].Name.Split('.').Last(), 2, 2);
-                            cl.ContextMenuStrip = classCtxMenu;
-                            cl.Nodes.AddRange(new TreeNode[] { new TreeNode("Variables", 3, 3), new TreeNode("Functions", 4, 4), new TreeNode("Constants", 5, 5) });
-
-                            for (int v = 0; v < newScript.Classes[c].Variables.Count; v++)
-                            {
-                                cl.Nodes[0].Nodes.Add($"{newScript.Classes[c].Variables[v].Hash[0]:X2}{newScript.Classes[c].Variables[v].Hash[1]:X2}{newScript.Classes[c].Variables[v].Hash[2]:X2}{newScript.Classes[c].Variables[v].Hash[3]:X2}", newScript.Classes[c].Variables[v].Type + " " + newScript.Classes[c].Variables[v].Name, 3, 3);
-                                cl.Nodes[0].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                            }
-                            for (int v = 0; v < newScript.Classes[c].Functions.Count; v++)
-                            {
-                                cl.Nodes[1].Nodes.Add($"{newScript.Classes[c].Functions[v].Hash[0]:X2}{newScript.Classes[c].Functions[v].Hash[1]:X2}{newScript.Classes[c].Functions[v].Hash[2]:X2}{newScript.Classes[c].Functions[v].Hash[3]:X2}", newScript.Classes[c].Functions[v].Name, 4, 4);
-                                cl.Nodes[1].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                            }
-                            for (int v = 0; v < newScript.Classes[c].Constants.Count; v++)
-                            {
-                                cl.Nodes[2].Nodes.Add(new TreeNode(newScript.Classes[c].Constants[v].Name + " (0x" + newScript.Classes[c].Constants[v].Value.ToString("X") + ")", 5, 5));
-                                cl.Nodes[2].Nodes[v].ContextMenuStrip = genericCtxMenu;
-                            }
-
-                            node.Nodes.Add(cl);
-                        }
-                    }
-                }
-            }
-        }
-
-        private TreeNode FindNodeByName(TreeNodeCollection root, string[] name, int index)
-        {
-            if (index < name.Length - 1)
-            {
-                for (int i = 0; i < root.Count; i++)
-                {
-                    if (root[i].Text == name[index])
-                        return FindNodeByName(root[i].Nodes, name, index + 1);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < root.Count; i++)
-                {
-                    if (root[i].Text == name[index])
-                        return root[i];
-                }
-            }
-            return null;
-        }
-
         private void lz77Cmp_CheckedChanged(object sender, EventArgs e)
         {
+            /*
             if (!loading)
                 archive.LZ77Compressed = lz77Cmp.Checked;
+            */
         }
 
         private void dumpHashesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            /*
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Text Files|*.txt";
             save.AddExtension = true;
@@ -1265,15 +1142,280 @@ namespace MintWorkshop
                 }
                 MessageBox.Show($"Exported hashes to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
             }
+            */
         }
 
         private void searchForHashUsageToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            HashSelector hashSearch = new HashSelector(hashes.Values.ToArray());
-            if (hashSearch.ShowDialog() == DialogResult.OK)
+            hashSelector.ShowWindow(() =>
             {
-                SearchForHash(HashCalculator.Calculate(hashSearch.selectedHash));
+                SearchForHash(Crc32C.CalculateInv(hashSelector.SelectedHash));
+            });
+        }
+
+        private void arcTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        {
+            if (e.Node is DynamicTreeNode)
+                (e.Node as DynamicTreeNode).Open();
+        }
+
+        private void arcTree_AfterCollapse(object sender, TreeViewEventArgs e)
+        {
+            if (e.Node is DynamicTreeNode)
+                (e.Node as DynamicTreeNode).Close();
+        }
+
+        void BuildArchive(ArchiveContext ctx)
+        {
+            if (ctx.IsCompressed
+                && MessageBox.Show("Build with LZ77 compression?\nThis is required for 3DS and Wii Mint.", "MintWorkshop", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                MemoryStream stream = new MemoryStream();
+                EndianBinaryWriter writer = new EndianBinaryWriter(stream);
+
+                if (ctx.ArchiveRtDL != null)
+                    ctx.ArchiveRtDL.Write(writer);
+                else
+                    ctx.Archive.Write(writer);
+
+                writer.BaseStream.Seek(0, SeekOrigin.End);
+                byte[] buffer = stream.GetBuffer().Take((int)writer.BaseStream.Position).ToArray();
+                unsafe
+                {
+                    fixed (byte* b = &buffer[0])
+                    {
+                        using (FileStream file = new FileStream(ctx.Path, FileMode.Create, FileAccess.Write))
+                            Compressor.Compact(CompressionType.ExtendedLZ77, new VoidPtr { address = b }, buffer.Length, file, new RawDataNode { _mainForm = Program.MainForm, Name = "Mint Archive" });
+                    }
+                }
+
+                writer.Dispose();
+                stream.Dispose();
             }
+            else
+            {
+                if (ctx.ArchiveRtDL != null)
+                {
+                    using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(ctx.Path, FileMode.Create, FileAccess.Write)))
+                        ctx.ArchiveRtDL.Write(writer);
+                }
+                else
+                {
+                    using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(ctx.Path, FileMode.Create, FileAccess.Write)))
+                        ctx.Archive.Write(writer);
+                }
+            }
+        }
+
+        private void buildMenuItem_Click(object sender, EventArgs e)
+        {
+            if (arcTree.SelectedNode is ArchiveTreeNode || arcTree.SelectedNode is ArchiveRtDLTreeNode)
+                BuildArchive(archives[arcTree.SelectedNode.Index]);
+        }
+
+        private void buildAsMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!(arcTree.SelectedNode is ArchiveTreeNode) && !(arcTree.SelectedNode is ArchiveRtDLTreeNode))
+                return;
+
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Binary Files|*.bin;*.bin.cmp";
+            save.AddExtension = true;
+            save.DefaultExt = ".bin";
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                ArchiveContext ctx = archives[arcTree.SelectedNode.Index];
+                ctx.Path = save.FileName;
+
+                arcTree.SelectedNode.Text = Path.GetFileName(ctx.Path);
+
+                if (arcTree.SelectedNode is ArchiveTreeNode)
+                    arcTree.SelectedNode.Text += $" ({ctx.Archive.GetVersionString()})";
+                else if (arcTree.SelectedNode is ArchiveRtDLTreeNode)
+                    arcTree.SelectedNode.Text += $" ({ctx.ArchiveRtDL.GetVersionString()})";
+
+                BuildArchive(ctx);
+
+                archives[arcTree.SelectedNode.Index] = ctx;
+            }
+        }
+
+        private void closeArchiveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (arcTree.SelectedNode is ArchiveTreeNode)
+            {
+                TreeNode node = arcTree.SelectedNode;
+
+                ArchiveContext ctx = archives[node.Index];
+
+                for (int i = 0; i < tabControl.TabPages.Count; i++)
+                {
+                    var page = tabControl.TabPages[i];
+                    if (page is TextEditorTab)
+                    {
+                        if ((page as TextEditorTab).Archive == ctx.Archive)
+                        {
+                            page.Dispose();
+                            i--;
+                        }
+                    }
+                }
+
+                archives.RemoveAt(node.Index);
+
+                arcTree.Nodes.RemoveAt(node.Index);
+            }
+            else if (arcTree.SelectedNode is ArchiveRtDLTreeNode)
+            {
+                TreeNode node = arcTree.SelectedNode;
+
+                ArchiveContext ctx = archives[node.Index];
+
+                for (int i = 0; i < tabControl.TabPages.Count; i++)
+                {
+                    var page = tabControl.TabPages[i];
+                    if (page is TextEditorTab)
+                    {
+                        if ((page as TextEditorTab).ArchiveRtDL == ctx.ArchiveRtDL)
+                        {
+                            page.Dispose();
+                            i--;
+                        }
+                    }
+                }
+
+                archives.RemoveAt(node.Index);
+
+                arcTree.Nodes.RemoveAt(node.Index);
+            }
+        }
+
+        private void editModuleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (arcTree.SelectedNode is ModuleTreeNode)
+            {
+                EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleTreeNode).Module, ref hashes);
+                editor.ShowDialog();
+                (arcTree.SelectedNode as ModuleTreeNode).Update();
+            }
+            else if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+            {
+                EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleRtDLTreeNode).Module);
+                editor.ShowDialog();
+                (arcTree.SelectedNode as ModuleRtDLTreeNode).Update();
+            }
+        }
+
+        private void arcTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node is ModuleTreeNode || e.Node is ModuleRtDLTreeNode)
+                e.Node.ContextMenuStrip = scriptCtxMenu;
+            else if (e.Node is ObjectTreeNode)
+                e.Node.ContextMenuStrip = classCtxMenu;
+            else if (e.Node is VariableTreeNode || e.Node is FunctionTreeNode || e.Node is EnumTreeNode)
+                e.Node.ContextMenuStrip = genericCtxMenu;
+            else if (e.Node is NamespaceTreeNode)
+                e.Node.ContextMenuStrip = namespaceMenuStrip;
+        }
+
+        private void importModulesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "All Valid Files|*.mints;*.bin|Mint Script Source Files|*.mints|Mint Script Binary Files|*.bin";
+            open.Multiselect = true;
+            open.CheckFileExists = true;
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                List<string> modNames = new List<string>();
+
+                if (arcTree.SelectedNode is ArchiveRtDLTreeNode)
+                {
+                    ArchiveRtDLTreeNode node = arcTree.SelectedNode as ArchiveRtDLTreeNode;
+                    for (int i = 0; i < open.FileNames.Length; i++)
+                    {
+                        ModuleRtDL newModule = OpenModuleRtDL(open.FileNames[i]);
+                        modNames.Add(newModule.Name);
+
+                        if (node.Archive.ModuleExists(newModule.Name))
+                        {
+                            int idx = node.Archive.Modules.FindIndex(x => x.Name == newModule.Name);
+                            node.Archive.Modules[idx] = newModule;
+                        }
+                        else
+                            node.Archive.Modules.Add(newModule);
+                    }
+                }
+                else
+                {
+                    ArchiveTreeNode node = arcTree.SelectedNode as ArchiveTreeNode;
+                    for (int i = 0; i < open.FileNames.Length; i++)
+                    {
+                        Module newModule = OpenModule(open.FileNames[i], node.Archive);
+                        modNames.Add(newModule.Name);
+
+                        if (node.Archive.ModuleExists(newModule.Name))
+                        {
+                            int idx = node.Archive.Modules.FindIndex(x => x.Name == newModule.Name);
+                            node.Archive.Modules[idx] = newModule;
+                        }
+                        else
+                            node.Archive.Modules.Add(newModule);
+                    }
+                }
+
+                for (int i = 0; i < modNames.Count; i++)
+                {
+                    DynamicTreeNode node = arcTree.SelectedNode as DynamicTreeNode;
+                    string[] nodes = modNames[i].Split('.');
+                    for (int j = 1; j < nodes.Length; j++)
+                    {
+                        node.Open();
+                        node.Expand();
+                        node = node.Nodes[string.Join('.', nodes.Take(j))] as DynamicTreeNode;
+                    }
+                }
+            }
+        }
+
+        void ExportAllNodes(NamespaceTreeNode node, string path)
+        {
+            for (int i = 0; i < node.Nodes.Count; i++)
+            {
+                var child = node.Nodes[i];
+                if (child is NamespaceTreeNode)
+                    ExportAllNodes(child as NamespaceTreeNode, path);
+                else if (child is ModuleTreeNode)
+                {
+                    var moduleNode = child as ModuleTreeNode;
+                    File.WriteAllText(Path.Combine(path, moduleNode.Module.Name + ".mints"),
+                        FunctionUtil.Disassemble(moduleNode.Module, moduleNode.GetArchive().Archive.Version, ref hashes));
+                }
+                else if (child is ModuleRtDLTreeNode)
+                {
+                    var moduleNode = child as ModuleRtDLTreeNode;
+                    File.WriteAllText(Path.Combine(path, moduleNode.Module.Name + ".mints"),
+                        FunctionUtil.Disassemble(moduleNode.Module, RTDL_VERSION, ref hashes));
+                }
+            }
+        }
+
+        private void exportAllModulesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            NamespaceTreeNode node = arcTree.SelectedNode as NamespaceTreeNode;
+
+            CommonOpenFileDialog open = new CommonOpenFileDialog();
+            open.IsFolderPicker = true;
+            open.Title = "Select output directory";
+            if (open.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                ExportAllNodes(node, open.FileName);
+            }
+        }
+
+        private void viewPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ViewArchiveForm form = new ViewArchiveForm(archives[arcTree.SelectedNode.Index]);
+            form.ShowDialog();
         }
     }
 }

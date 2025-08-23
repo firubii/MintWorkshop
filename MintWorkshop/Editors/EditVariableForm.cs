@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KirbyLib.Mint;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,35 +8,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MintWorkshop.Types;
 
 namespace MintWorkshop.Editors
 {
     public partial class EditVariableForm : Form
     {
-        public string VariableName { get; private set; }
-        public string VariableType { get; private set; }
-        public uint VariableFlags { get; private set; }
+        MintVariable _variable;
 
-        public EditVariableForm(MintVariable baseVariable)
+        public EditVariableForm(MintVariable variable, ModuleFormat format)
         {
-            VariableName = baseVariable.Name;
-            VariableType = baseVariable.Type;
-            VariableFlags = baseVariable.Flags;
+            _variable = variable;
 
             InitializeComponent();
-            varFlags.Maximum = uint.MaxValue;
+            flags.Maximum = uint.MaxValue;
 
-            varName.Text = VariableName;
-            varType.Text = VariableType;
-            varFlags.Value = VariableFlags;
+            name.Text = _variable.Name;
+            type.Text = _variable.Type;
+            flags.Value = _variable.Flags;
+
+            flags.Visible = format > ModuleFormat.RtDL;
+            flagsLabel.Visible = format > ModuleFormat.RtDL;
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            VariableName = varName.Text;
-            VariableType = varType.Text;
-            VariableFlags = (uint)varFlags.Value;
+            _variable.Name = name.Text;
+            _variable.Type = type.Text;
+            _variable.Flags = (uint)flags.Value;
 
             DialogResult = DialogResult.OK;
         }

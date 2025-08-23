@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MintWorkshop.Util;
+using KirbyLib.IO;
 
 namespace MintWorkshop.Mint
 {
@@ -41,11 +42,13 @@ namespace MintWorkshop.Mint
         Register = 0x100,
         SDataInt = 0x200,
         SDataFloat = 0x400,
-        SDataArr = 0x800,
+        SDataArray = 0x800,
         SDataRegInt = 0x1000,
         SDataRegFloat = 0x2000,
-        SDataRegArr = 0x4000,
+        SDataRegArray = 0x4000,
         XRef = 0x8000,
+
+        AllTypes = Register | SDataInt | SDataFloat | SDataArray | SDataRegInt | SDataRegFloat | SDataRegArray | XRef,
 
         Signed = 0x80000000,
 
@@ -89,21 +92,21 @@ namespace MintWorkshop.Mint
         FloatRegB = B | SDataRegFloat,
         FloatRegC = C | SDataRegFloat,
 
-        ArrZ = Z | SDataArr,
-        ArrX = X | SDataArr,
-        ArrY = Y | SDataArr,
-        ArrV = V | SDataArr,
-        ArrA = A | SDataArr,
-        ArrB = B | SDataArr,
-        ArrC = C | SDataArr,
-        ArrE = E | SDataArr,
+        ArrZ = Z | SDataArray,
+        ArrX = X | SDataArray,
+        ArrY = Y | SDataArray,
+        ArrV = V | SDataArray,
+        ArrA = A | SDataArray,
+        ArrB = B | SDataArray,
+        ArrC = C | SDataArray,
+        ArrE = E | SDataArray,
 
-        ArrRegZ = Z | SDataRegArr,
-        ArrRegX = X | SDataRegArr,
-        ArrRegY = Y | SDataRegArr,
-        ArrRegA = A | SDataRegArr,
-        ArrRegB = B | SDataRegArr,
-        ArrRegC = C | SDataRegArr,
+        ArrRegZ = Z | SDataRegArray,
+        ArrRegX = X | SDataRegArray,
+        ArrRegY = Y | SDataRegArray,
+        ArrRegA = A | SDataRegArray,
+        ArrRegB = B | SDataRegArray,
+        ArrRegC = C | SDataRegArray,
 
         XRefZ = Z | XRef,
         XRefX = X | XRef,
@@ -132,51 +135,5 @@ namespace MintWorkshop.Mint
         public InstructionArg[] Arguments;
         public int Size;
         public byte[] BaseData;
-    }
-
-    public struct Instruction
-    {
-        public Instruction(byte[] instruction)
-        {
-            this.instData = instruction;
-        }
-        private byte[] instData;
-        public byte Opcode { get { return instData[0]; } set { instData[0] = value; } }
-        public byte Z { get { return instData[1]; } set { instData[1] = value; } }
-        public byte X { get { return instData[2]; } set { instData[2] = value; } }
-        public byte Y { get { return instData[3]; } set { instData[3] = value; } }
-        public short V(Endianness endianness)
-        {
-            if (endianness == Endianness.Big)
-                return BitConverter.ToInt16(new byte[] { Y, X }, 0);
-            return BitConverter.ToInt16(new byte[] { X, Y }, 0);
-        }
-
-        //Extended-size instruction data for Basil
-        public byte D { get { return instData[4]; } set { instData[4] = value; } }
-        public byte A { get { return instData[5]; } set { instData[5] = value; } }
-        public byte B { get { return instData[6]; } set { instData[6] = value; } }
-        public byte C { get { return instData[7]; } set { instData[7] = value; } }
-        public short E(Endianness endianness)
-        {
-            if (endianness == Endianness.Big)
-                return BitConverter.ToInt16(new byte[] { C, B }, 0);
-            return BitConverter.ToInt16(new byte[] { B, C }, 0);
-        }
-
-        public int Length => instData.Length;
-
-        public void Write(EndianBinaryWriter writer)
-        {
-            writer.Write(instData);
-        }
-
-        public override string ToString()
-        {
-            string s = "";
-            for (int i = 0; i < instData.Length; i++)
-                s += instData[i].ToString("X2");
-            return s;
-        }
     }
 }

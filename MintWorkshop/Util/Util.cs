@@ -1,12 +1,14 @@
-﻿using System;
+﻿using Force.Crc32;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Crc32C;
+using KirbyLib.IO;
 
 namespace MintWorkshop.Util
 {
@@ -21,13 +23,7 @@ namespace MintWorkshop.Util
         public static Color XRefColor = Color.FromArgb(0, 0, 255);
         public static Color HashColor = Color.FromArgb(0, 128, 0);
         public static Color SDataColor = Color.FromArgb(155, 50, 155);
-        public static Color JumpLocColor = Color.FromArgb(180, 0, 240);
-    }
-
-    public enum Endianness
-    {
-        Big,
-        Little
+        public static Color LabelColor = Color.FromArgb(180, 0, 240);
     }
 
     // From https://stackoverflow.com/questions/1440392/use-byte-as-key-in-dictionary
@@ -67,6 +63,26 @@ namespace MintWorkshop.Util
                 sum += cur;
             }
             return sum;
+        }
+    }
+
+    // From https://stackoverflow.com/a/487757
+    public static class DrawingControl
+    {
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+
+        private const int WM_SETREDRAW = 11;
+
+        public static void SuspendDrawing(Control parent)
+        {
+            SendMessage(parent.Handle, WM_SETREDRAW, false, 0);
+        }
+
+        public static void ResumeDrawing(Control parent)
+        {
+            SendMessage(parent.Handle, WM_SETREDRAW, true, 0);
+            parent.Refresh();
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KirbyLib.Mint;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,52 +8,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MintWorkshop.Types;
 
 namespace MintWorkshop.Editors
 {
     public partial class EditFunctionForm : Form
     {
-        public string FunctionName { get; private set; }
-        public uint FunctionFlags { get; private set; }
-        public uint FunctionArgs { get; private set; }
-        public uint FunctionRegs { get; private set; }
+        MintFunction _function;
 
-        public EditFunctionForm(MintFunction baseFunction)
+        public EditFunctionForm(MintFunction function, ModuleFormat format)
         {
-            FunctionName = baseFunction.Name;
-            FunctionFlags = baseFunction.Flags;
-            FunctionArgs = baseFunction.Arguments;
-            FunctionRegs = baseFunction.Registers;
+            _function = function;
 
             InitializeComponent();
-            if (baseFunction.ParentClass.ParentScript.Version[0] < 2 && baseFunction.ParentClass.ParentScript.Version[1] < 1)
-            {
-                funcFlags.Visible = false;
-                label2.Visible = false;
-            }
-            if (baseFunction.ParentClass.ParentScript.Version[0] < 7)
-            {
-                funcUnk1.Visible = false;
-                label3.Visible = false;
-                funcUnk2.Visible = false;
-                label4.Visible = false;
-            }
 
-            funcFlags.Maximum = uint.MaxValue;
+            name.Text = _function.Name;
+            flags.Value = _function.Flags;
+            arguments.Value = _function.Arguments;
+            registers.Value = _function.Registers;
 
-            funcName.Text = FunctionName;
-            funcFlags.Value = FunctionFlags;
-            funcUnk1.Value = FunctionArgs;
-            funcUnk2.Value = FunctionRegs;
+            flags.Visible = format >= ModuleFormat.Mint;
+            flagsLabel.Visible = format >= ModuleFormat.Mint;
+
+            arguments.Visible = format >= ModuleFormat.BasilKatFL;
+            argumentsLabel.Visible = format >= ModuleFormat.BasilKatFL;
+
+            registers.Visible = format >= ModuleFormat.BasilKatFL;
+            registersLabel.Visible = format >= ModuleFormat.BasilKatFL;
         }
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            FunctionName = funcName.Text;
-            FunctionFlags = (uint)funcFlags.Value;
-            FunctionArgs = (uint)funcUnk1.Value;
-            FunctionRegs = (uint)funcUnk2.Value;
+            _function.Name = name.Text;
+            _function.Flags = (uint)flags.Value;
+            _function.Arguments = (uint)arguments.Value;
+            _function.Registers = (uint)registers.Value;
 
             DialogResult = DialogResult.OK;
         }

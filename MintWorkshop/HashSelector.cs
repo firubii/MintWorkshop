@@ -12,29 +12,51 @@ namespace MintWorkshop
 {
     public partial class HashSelector : Form
     {
-        public string selectedHash;
-        string[] hashes;
+        public string SelectedHash { get => hashList.Text; }
 
-        public HashSelector(string[] hashNames)
+        Action okCallback;
+
+        public HashSelector()
         {
-            hashes = hashNames;
             InitializeComponent();
-            this.Text = "Hash Selector - Loading Hashes...";
+
+            CreateControl();
+            CreateHandle();
+            CreateGraphics();
         }
 
-        private void HashSearch_Shown(object sender, EventArgs e)
+        public async Task UpdateHashList(string[] hashes)
         {
-            Task.Run(() => Invoke((MethodInvoker)delegate
+            await Task.Run(() =>
             {
-                hashList.Items.AddRange(hashes);
-                this.Text = "Hash Selector";
-            }));
+                Invoke((MethodInvoker)delegate
+                {
+                    hashList.Items.Clear();
+                    hashList.Items.AddRange(hashes);
+                });
+            });
+        }
+
+        public void ShowWindow(Action? callback)
+        {
+            if (Visible)
+                return;
+
+            okCallback = callback;
+            Show();
         }
 
         private void button_Click(object sender, EventArgs e)
         {
-            selectedHash = hashList.Text;
             DialogResult = DialogResult.OK;
+            okCallback?.Invoke();
+            Hide();
+        }
+
+        private void HashSelector_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
         }
     }
 }
