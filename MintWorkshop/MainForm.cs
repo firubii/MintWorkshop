@@ -1427,5 +1427,10 @@ namespace MintWorkshop
             ViewArchiveForm form = new ViewArchiveForm(archives[arcTree.SelectedNode.Index]);
             form.ShowDialog();
         }
+
+        private void instructionDictionaryToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://docs.google.com/spreadsheets/d/1A_08ytw1oIBhqBzpkxDIU86RwmYAjG4DopogqCQllMo");
+        }
     }
 }

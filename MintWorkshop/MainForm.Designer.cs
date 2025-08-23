@@ -88,11 +88,11 @@
             addModuleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             importModulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            viewPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             dumpHashesToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             closeArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             namespaceMenuStrip = new System.Windows.Forms.ContextMenuStrip(components);
             exportAllModulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            viewPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -239,6 +239,7 @@
             instructionDictionaryToolStripMenuItem.Name = "instructionDictionaryToolStripMenuItem";
             instructionDictionaryToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             instructionDictionaryToolStripMenuItem.Text = "Instruction Dictionary";
+            instructionDictionaryToolStripMenuItem.Click += instructionDictionaryToolStripMenuItem_Click;
             // 
             // tabControl
             // 
@@ -510,7 +511,7 @@
             // 
             archiveMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { buildMenuItem, buildAsMenuItem, toolStripSeparator6, addModuleMenuItem, importModulesToolStripMenuItem, toolStripSeparator7, viewPropertiesToolStripMenuItem, dumpHashesToolStripMenuItem1, closeArchiveToolStripMenuItem });
             archiveMenuStrip.Name = "archiveMenuStrip";
-            archiveMenuStrip.Size = new System.Drawing.Size(181, 192);
+            archiveMenuStrip.Size = new System.Drawing.Size(160, 170);
             // 
             // buildMenuItem
             // 
@@ -549,6 +550,13 @@
             toolStripSeparator7.Name = "toolStripSeparator7";
             toolStripSeparator7.Size = new System.Drawing.Size(156, 6);
             // 
+            // viewPropertiesToolStripMenuItem
+            // 
+            viewPropertiesToolStripMenuItem.Name = "viewPropertiesToolStripMenuItem";
+            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            viewPropertiesToolStripMenuItem.Text = "View Properties";
+            viewPropertiesToolStripMenuItem.Click += viewPropertiesToolStripMenuItem_Click;
+            // 
             // dumpHashesToolStripMenuItem1
             // 
             dumpHashesToolStripMenuItem1.Name = "dumpHashesToolStripMenuItem1";
@@ -574,13 +582,6 @@
             exportAllModulesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             exportAllModulesToolStripMenuItem.Text = "Export All Modules";
             exportAllModulesToolStripMenuItem.Click += exportAllModulesToolStripMenuItem_Click;
-            // 
-            // viewPropertiesToolStripMenuItem
-            // 
-            viewPropertiesToolStripMenuItem.Name = "viewPropertiesToolStripMenuItem";
-            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            viewPropertiesToolStripMenuItem.Text = "View Properties";
-            viewPropertiesToolStripMenuItem.Click += viewPropertiesToolStripMenuItem_Click;
             // 
             // MainForm
             // 
