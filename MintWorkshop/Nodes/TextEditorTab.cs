@@ -136,6 +136,9 @@ namespace MintWorkshop.Nodes
 
                     for (int i = start; i < end;)
                     {
+                        if (TextBox.Text.IndexOf('\n', i) < 0)
+                            break;
+
                         string rawLine = TextBox.Text[i..(TextBox.Text.IndexOf('\n', i) + 1)];
                         string line = rawLine.Trim();
                         if (line.EndsWith(':'))
