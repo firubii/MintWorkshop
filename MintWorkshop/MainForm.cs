@@ -753,11 +753,13 @@ namespace MintWorkshop
             {
                 EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleTreeNode).Module, ref hashes);
                 editor.ShowDialog();
+                (arcTree.SelectedNode as ModuleTreeNode).Update();
             }
             else if (arcTree.SelectedNode is ModuleRtDLTreeNode)
             {
                 EditModuleForm editor = new EditModuleForm((arcTree.SelectedNode as ModuleRtDLTreeNode).Module);
                 editor.ShowDialog();
+                (arcTree.SelectedNode as ModuleRtDLTreeNode).Update();
             }
             else if (arcTree.SelectedNode is ObjectTreeNode)
             {
@@ -774,6 +776,8 @@ namespace MintWorkshop
                     EditClassForm editor = new EditClassForm(node.Object, mNode.GetArchive().Archive, mNode.Module, ref hashes);
                     editor.ShowDialog();
                 }
+
+                (arcTree.SelectedNode as ObjectTreeNode).Update();
             }
             else if (arcTree.SelectedNode is VariableTreeNode)
             {
@@ -786,6 +790,8 @@ namespace MintWorkshop
 
                 EditVariableForm editor = new EditVariableForm(node.Variable, fmt);
                 editor.ShowDialog();
+
+                (arcTree.SelectedNode as VariableTreeNode).Update();
             }
             else if (arcTree.SelectedNode is FunctionTreeNode)
             {
@@ -798,6 +804,8 @@ namespace MintWorkshop
 
                 EditFunctionForm editor = new EditFunctionForm(node.Function, fmt);
                 editor.ShowDialog();
+
+                (arcTree.SelectedNode as FunctionTreeNode).Update();
             }
             else if (arcTree.SelectedNode is EnumTreeNode)
             {
@@ -810,6 +818,8 @@ namespace MintWorkshop
 
                 EditEnumForm editor = new EditEnumForm(node.Enum, fmt);
                 editor.ShowDialog();
+
+                (arcTree.SelectedNode as EnumTreeNode).Update();
             }
         }
 
