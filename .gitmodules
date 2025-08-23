@@ -1,0 +1,3 @@
+[submodule "KirbyLib"]
+	path = KirbyLib
+	url = https://github.com/firubii/KirbyLib.git
