@@ -8,7 +8,7 @@ A GUI editor for HAL's Mint bytecode and its updated form found in modern Kirby 
 * A nice color-coded disassembly view
 * Adding, editing, and removing classes, variables, functions, and constants
 * Loading hashes from an external file (`hashes_<version>.txt`) and automatically generating hashes
-* LZ77 Extended (de)compression for Mint archives found in HAL's 3DS games
+* LZ77 Extended (de)compression for Mint archives found in HAL's Wii and 3DS games
 
 ## Supported Mint Versions and Games
 * 0.2
