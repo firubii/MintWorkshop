@@ -2760,6 +2760,8 @@ namespace MintWorkshop
         {
             Module module = new Module();
 
+            var opcodes = MintVersions.Versions[version].ToList();
+
             // Find module declaration
             for (int i = 0; i < text.Length; i++)
             {
@@ -2880,6 +2882,29 @@ namespace MintWorkshop
                         if (line.EndsWith("}"))
                             break;
 
+                        if (line.StartsWith("extend "))
+                        {
+                            string[] tokens = Tokenize(line);
+                            byte[] b = { 0xFF, 0xFF, 0x00, 0x00 };
+                            if (ushort.TryParse(tokens[1], out ushort stdRaw))
+                            {
+                                b[0] = (byte)opcodes.FindIndex(x => x.Name == "_short");
+                                Array.Copy(BitConverter.GetBytes(stdRaw), 0, b, 2, 2);
+                            }
+                            else if (FlagLabels.StdTypes.ContainsValue(tokens[1]))
+                            {
+                                b[0] = (byte)opcodes.FindIndex(x => x.Name == "_short");
+                                Array.Copy(BitConverter.GetBytes(FlagLabels.StdTypes.FirstOrDefault(x => x.Value == tokens[1]).Key), 0, b, 2, 2);
+                            }
+                            else
+                            {
+                                b[0] = (byte)opcodes.FindIndex(x => x.Name == "_xref");
+                                Array.Copy(BitConverter.GetBytes((ushort)SearchXRef(module, Crc32C.CalculateInv(tokens[1]))), 0, b, 2, 2);
+                            }
+
+                            obj.Extends.Add(b);
+                        }
+
                         var objMatch = MintRegex.Variable().Match(line);
                         if (objMatch.Success)
                         {
@@ -2953,8 +2978,6 @@ namespace MintWorkshop
 
         public static ModuleRtDL AssembleRtDL(string[] text)
         {
-            byte[] version = new byte[] { 0, 2, 0, 0 };
-
             ModuleRtDL module = new ModuleRtDL();
 
             // Find module declaration
@@ -3020,7 +3043,7 @@ namespace MintWorkshop
                 }
             }
 
-            AssembleSData(module, inst, version);
+            AssembleSData(module, inst, MainForm.RTDL_VERSION);
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -3079,7 +3102,7 @@ namespace MintWorkshop
                                 funcInst.Add(line);
                             }
 
-                            mFunc.Data = AssembleFunction(module, funcInst, version);
+                            mFunc.Data = AssembleFunction(module, funcInst, MainForm.RTDL_VERSION);
 
                             obj.Functions.Add(mFunc);
 

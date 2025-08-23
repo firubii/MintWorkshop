@@ -38,7 +38,7 @@ namespace MintWorkshop
 
         public static Config Config;
 
-        public readonly byte[] RTDL_VERSION = { 0, 2, 0, 0 };
+        public static readonly byte[] RTDL_VERSION = { 0, 2, 0, 0 };
 
         string exeDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         bool loading = false;
