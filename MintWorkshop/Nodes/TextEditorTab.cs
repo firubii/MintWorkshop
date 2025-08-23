@@ -92,7 +92,7 @@ namespace MintWorkshop.Nodes
              * 
              * I might have to rewrite how this class draws to do that but I don't want to do that right now
             */
-
+            
             Task.Run(() =>
             {
                 Invoke((MethodInvoker)delegate
@@ -118,11 +118,11 @@ namespace MintWorkshop.Nodes
                     while (start > firstLine && TextBox.Text[start - 1] != '\n')
                         start--;
 
-                    int end = TextBox.TextLength;
+                    int end = TextBox.Text.Length - 1;
                     if (lines > 0)
                     {
                         end = start;
-                        while (lines > 0)
+                        while (lines > 0 && end < TextBox.Text.Length - 1)
                         {
                             end++;
                             if (TextBox.Text[end] == '\n')
