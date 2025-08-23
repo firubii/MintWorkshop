@@ -72,8 +72,8 @@ namespace MintWorkshop
 
         private void CloseAllArchives()
         {
-            for (int i = 0; i < tabControl.TabPages.Count; i++)
-                CloseEditor(i, true);
+            while (tabControl.TabPages.Count > 0)
+                CloseEditor(0, true);
 
             arcTree.Nodes.Clear();
         }
@@ -579,8 +579,8 @@ namespace MintWorkshop
 
         private void closeAllTabsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < tabControl.TabPages.Count; i++)
-                tabControl.TabPages.RemoveAt(0);
+            while (tabControl.TabPages.Count > 0)
+                CloseEditor(0, true);
         }
 
         private void addClassToolStripMenuItem_Click(object sender, EventArgs e)
