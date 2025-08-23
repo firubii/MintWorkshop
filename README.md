@@ -11,6 +11,9 @@ A GUI editor for HAL's Mint bytecode and its updated form found in modern Kirby 
 * LZ77 Extended (de)compression for Mint archives found in HAL's 3DS games
 
 ## Supported Mint Versions and Games
+* 0.2
+  * Kirby's Return to Dream Land
+  * Kirby's Dream Collection
 * 1.0.5
   * Kirby: Triple Deluxe
 * 1.0.8
@@ -40,9 +43,13 @@ A GUI editor for HAL's Mint bytecode and its updated form found in modern Kirby 
 ## Supported Basil Versions and Games
 * 7.0.2 (Semi-complete)
   * Kirby and the Forgotten Land
+* 7.0.6 (Very incomplete)
+  * Kirby's Dream Buffet
+* 7.0.8 (Very incomplete)
+  * Kirby's Return to Dream Land Deluxe
 
 # Usage
-After starting the program, use `File -> Open` or `Ctrl+O` to select a Mint archive to open.
+After starting the program, use `File -> Open` or `Ctrl+O` to select a Mint archive to open. (For Kirby's Return to Dream Land and Kirby's Dream Collection, use `File -> Open RtDL` or `Ctrl+Shift+O` instead.)
 
 Wait for the program to read the archive data and populate the tree view on the left. After it has finished, you can expand the nodes to explore the archive.
 
@@ -53,9 +60,9 @@ Press `Editor->Save Tab` or `Ctrl+S` to assemble and save the currently selected
 
 Press `Editor->Close Tab` or `Ctrl+W` to close the currently selected editor tab. Use `Editor->Close All Tabs` or `Ctrl+Shift+W` to close all of them.
 
-Press `File->Build` or `Ctrl+B` to build the archive in place, where the original opened file is.
+Right-click an archive and select `Build` to build the archive in place, where the original opened file is.
 
-Press `File->Build As` or `Ctrl+Shift+B` to build the archive somewhere else. The place where you build this to is saved and will be used by the `Build` operation.
+Right-click an archive and select `Build As...` to build the archive somewhere else. The place where you build this to is saved and will be used by the `Build` operation.
 
 # Credits
 
