@@ -57,6 +57,7 @@
             // 
             flags.Location = new System.Drawing.Point(97, 44);
             flags.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            flags.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
             flags.Name = "flags";
             flags.Size = new System.Drawing.Size(313, 23);
             flags.TabIndex = 17;
@@ -93,6 +94,7 @@
             // 
             arguments.Location = new System.Drawing.Point(97, 74);
             arguments.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            arguments.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             arguments.Name = "arguments";
             arguments.Size = new System.Drawing.Size(313, 23);
             arguments.TabIndex = 20;
@@ -111,6 +113,7 @@
             // 
             registers.Location = new System.Drawing.Point(97, 104);
             registers.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            registers.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             registers.Name = "registers";
             registers.Size = new System.Drawing.Size(313, 23);
             registers.TabIndex = 22;
