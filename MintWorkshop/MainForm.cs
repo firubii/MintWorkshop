@@ -381,7 +381,7 @@ namespace MintWorkshop
                 {
                     try
                     {
-                        string disasm = FunctionUtil.Disassemble(module, function, RTDL_VERSION, ref hashes);
+                        string disasm = FunctionUtil.Disassemble(module, function);
 
                         tab.TextBox.AppendText(disasm);
                         tab.UpdateTextColor();
@@ -928,7 +928,7 @@ namespace MintWorkshop
                     if (arcTree.SelectedNode is ModuleRtDLTreeNode)
                     {
                         ModuleRtDLTreeNode node = arcTree.SelectedNode as ModuleRtDLTreeNode;
-                        disasm = FunctionUtil.Disassemble(node.Module, RTDL_VERSION, ref hashes);
+                        disasm = FunctionUtil.Disassemble(node.Module);
                     }
                     else
                     {
@@ -1056,15 +1056,48 @@ namespace MintWorkshop
 
         private void optimizeScriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            /*
-            int origSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
+            if (arcTree.SelectedNode is ModuleRtDLTreeNode)
+            {
+                ModuleRtDLTreeNode node = arcTree.SelectedNode as ModuleRtDLTreeNode;
+                ArchiveRtDL archive = node.GetArchive().Archive;
 
-            archive.Scripts[arcTree.SelectedNode.FullPath].Optimize();
+                ModuleRtDL newModule = FunctionUtil.AssembleRtDL(FunctionUtil.Disassemble(node.Module).Split("\n"));
+                for (int i = 0; i < archive.Modules.Count; i++)
+                {
+                    if (archive.Modules[i].Name == newModule.Name)
+                    {
+                        archive.Modules[i] = newModule;
+                        break;
+                    }
+                }
 
-            int newSize = archive.Scripts[arcTree.SelectedNode.FullPath].Write().Length;
+                node.Module = newModule;
+                node.Update();
+                node.Open();
 
-            MessageBox.Show($"Successfully optimized {archive.Scripts[arcTree.SelectedNode.FullPath].Name}\nOriginal Size: {origSize} bytes\nNew Size: {newSize} bytes", "Mint Workshop", MessageBoxButtons.OK);
-            */
+                MessageBox.Show($"Successfully optimized {newModule.Name}", "Mint Workshop", MessageBoxButtons.OK);
+            }
+            else
+            {
+                ModuleTreeNode node = arcTree.SelectedNode as ModuleTreeNode;
+                Archive archive = node.GetArchive().Archive;
+
+                Module newModule = FunctionUtil.Assemble(FunctionUtil.Disassemble(node.Module, archive.Version, ref hashes).Split("\n"), archive.Version);
+                for (int i = 0; i < archive.Modules.Count; i++)
+                {
+                    if (archive.Modules[i].Name == newModule.Name)
+                    {
+                        archive.Modules[i] = newModule;
+                        break;
+                    }
+                }
+
+                node.Module = newModule;
+                node.Update();
+                node.Open();
+
+                MessageBox.Show($"Successfully optimized {newModule.Name}", "Mint Workshop", MessageBoxButtons.OK);
+            }
         }
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1118,41 +1151,41 @@ namespace MintWorkshop
             ReloadHashes();
         }
 
-        private void lz77Cmp_CheckedChanged(object sender, EventArgs e)
-        {
-            /*
-            if (!loading)
-                archive.LZ77Compressed = lz77Cmp.Checked;
-            */
-        }
-
         private void dumpHashesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            /*
+            if (arcTree.SelectedNode is not ArchiveTreeNode)
+            {
+                MessageBox.Show("Hash dumping is not available for this Archive.", "MintWorkshop", MessageBoxButtons.OK);
+                return;
+            }
+
+            ArchiveContext ctx = archives[arcTree.SelectedNode.Index];
+
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "Text Files|*.txt";
             save.AddExtension = true;
             save.DefaultExt = ".txt";
-            save.FileName = $"{Path.GetFileNameWithoutExtension(filePath)}.txt";
+            save.FileName = $"{Path.GetFileNameWithoutExtension(ctx.Path)}.txt";
             if (save.ShowDialog() == DialogResult.OK)
             {
                 using (StreamWriter writer = new StreamWriter(new FileStream(save.FileName, FileMode.Create, FileAccess.Write)))
                 {
-                    foreach (KeyValuePair<string, MintScript> pair in archive.Scripts)
+                    for (int i = 0; i < ctx.Archive.Modules.Count; i++)
                     {
-                        for (int c = 0; c < pair.Value.Classes.Count; c++)
+                        var mod = ctx.Archive.Modules[i];
+                        for (int o = 0; o < mod.Objects.Count; o++)
                         {
-                            writer.WriteLine(pair.Value.Classes[c].Name);
-                            for (int i = 0; i < pair.Value.Classes[c].Variables.Count; i++)
-                                writer.WriteLine(pair.Value.Classes[c].Variables[i].FullName());
-                            for (int i = 0; i < pair.Value.Classes[c].Functions.Count; i++)
-                                writer.WriteLine(pair.Value.Classes[c].Functions[i].FullName());
+                            var obj = mod.Objects[o];
+                            writer.WriteLine(obj.Name);
+                            for (int j = 0; j < obj.Variables.Count; j++)
+                                writer.WriteLine(obj.Name + "." + obj.Variables[j].Name);
+                            for (int j = 0; j < obj.Functions.Count; j++)
+                                writer.WriteLine(obj.Name + "." + obj.Functions[j].NameWithoutType());
                         }
                     }
                 }
                 MessageBox.Show($"Exported hashes to\n{save.FileName}", "Mint Workshop", MessageBoxButtons.OK);
             }
-            */
         }
 
         private void searchForHashUsageToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1404,7 +1437,7 @@ namespace MintWorkshop
                 {
                     var moduleNode = child as ModuleRtDLTreeNode;
                     File.WriteAllText(Path.Combine(path, moduleNode.Module.Name + ".mints"),
-                        FunctionUtil.Disassemble(moduleNode.Module, RTDL_VERSION, ref hashes));
+                        FunctionUtil.Disassemble(moduleNode.Module));
                 }
             }
         }

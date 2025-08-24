@@ -602,7 +602,7 @@ namespace MintWorkshop
             return text;
         }
 
-        public static string Disassemble(ModuleRtDL module, MintFunction func, byte[] version, ref Dictionary<uint, string> hashes)
+        public static string Disassemble(ModuleRtDL module, MintFunction func)
         {
             string text = "";
 
@@ -610,7 +610,7 @@ namespace MintWorkshop
 
             Dictionary<int, string> jmpLoc = new Dictionary<int, string>();
 
-            var opcodes = MintVersions.Versions[version];
+            var opcodes = MintVersions.Versions[MainForm.RTDL_VERSION];
 
             // Find jump instructions to create labels
             for (int i = 0; i < func.Data.Length; i += 4)
@@ -1244,9 +1244,9 @@ namespace MintWorkshop
             return text;
         }
 
-        public static string Disassemble(ModuleRtDL module, byte[] version, ref Dictionary<uint, string> hashes)
+        public static string Disassemble(ModuleRtDL module)
         {
-            var opcodes = MintVersions.Versions[version];
+            var opcodes = MintVersions.Versions[MainForm.RTDL_VERSION];
 
             string text = $"module {module.Name}\n{{\n";
 
@@ -1267,7 +1267,7 @@ namespace MintWorkshop
                     var mFunc = obj.Functions[o];
                     text += $"\t\t{mFunc.Name}\n\t\t{{\n";
 
-                    text += "\t\t\t" + Disassemble(module, mFunc, version, ref hashes).Trim().Replace("\n", "\n\t\t\t");
+                    text += "\t\t\t" + Disassemble(module, mFunc).Trim().Replace("\n", "\n\t\t\t");
 
                     text += "\n\t\t}\n\t\t\n";
                 }
@@ -1395,9 +1395,9 @@ namespace MintWorkshop
                 return BitConverter.GetBytes(float.Parse(token));
         }
 
-        public static int SearchSData(Module module, byte[] value)
+        public static int SearchSData(Module module, byte[] value, bool ignoreEndianness = false)
         {
-            if (module.XData.Endianness == Endianness.Big)
+            if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
             int index = -1;
@@ -1599,7 +1599,7 @@ namespace MintWorkshop
                                 if (!MintRegex.String().IsMatch(token))
                                     throw new FormatException($"Operand {a} is not a string.\nLine: {line}");
 
-                                SearchSData(module, ParseStringToken(token));
+                                SearchSData(module, ParseStringToken(token), true);
 
                                 break;
                             }
@@ -1610,7 +1610,7 @@ namespace MintWorkshop
                                     throw new FormatException($"Operand {a} is neither a string or register.\nLine: {line}");
 
                                 if (isValue)
-                                    SearchSData(module, ParseStringToken(token));
+                                    SearchSData(module, ParseStringToken(token), true);
 
                                 break;
                             }
@@ -1914,7 +1914,7 @@ namespace MintWorkshop
                                 if (!MintRegex.String().IsMatch(token))
                                     throw new FormatException($"Operand {a} is not a string.\nLine: {line}");
 
-                                int index = SearchSData(module, ParseStringToken(token));
+                                int index = SearchSData(module, ParseStringToken(token), true);
 
                                 switch (argLoc)
                                 {
@@ -2032,7 +2032,7 @@ namespace MintWorkshop
 
                                 byte val;
                                 if (isValue)
-                                    val = (byte)((SearchSData(module, ParseStringToken(token)) / 4) | 0x80);
+                                    val = (byte)((SearchSData(module, ParseStringToken(token), true) / 4) | 0x80);
                                 else
                                     val = byte.Parse(token.Substring(1));
 
@@ -2118,9 +2118,9 @@ namespace MintWorkshop
             return data.ToArray();
         }
 
-        public static void AssembleSData(ModuleRtDL module, List<string> text, byte[] version)
+        public static void AssembleSData(ModuleRtDL module, List<string> text)
         {
-            var opcodes = MintVersions.Versions[version];
+            var opcodes = MintVersions.Versions[MainForm.RTDL_VERSION];
 
             // Integer pass
             for (int i = 0; i < text.Count; i++)
@@ -2787,7 +2787,7 @@ namespace MintWorkshop
                 {
                     string str = match.Groups[1].Value;
                     if (MintRegex.String().IsMatch(str))
-                        SearchSData(module, ParseStringToken(str));
+                        SearchSData(module, ParseStringToken(str), true);
                     else
                         SearchSData(module, ParseValueToken(str));
                     continue;
@@ -3039,7 +3039,7 @@ namespace MintWorkshop
                 }
             }
 
-            AssembleSData(module, inst, MainForm.RTDL_VERSION);
+            AssembleSData(module, inst);
 
             for (int i = 0; i < text.Length; i++)
             {

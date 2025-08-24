@@ -511,62 +511,63 @@
             // 
             archiveMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { buildMenuItem, buildAsMenuItem, toolStripSeparator6, addModuleMenuItem, importModulesToolStripMenuItem, toolStripSeparator7, viewPropertiesToolStripMenuItem, dumpHashesToolStripMenuItem1, closeArchiveToolStripMenuItem });
             archiveMenuStrip.Name = "archiveMenuStrip";
-            archiveMenuStrip.Size = new System.Drawing.Size(160, 170);
+            archiveMenuStrip.Size = new System.Drawing.Size(181, 192);
             // 
             // buildMenuItem
             // 
             buildMenuItem.Name = "buildMenuItem";
-            buildMenuItem.Size = new System.Drawing.Size(159, 22);
+            buildMenuItem.Size = new System.Drawing.Size(180, 22);
             buildMenuItem.Text = "Build";
             buildMenuItem.Click += buildMenuItem_Click;
             // 
             // buildAsMenuItem
             // 
             buildAsMenuItem.Name = "buildAsMenuItem";
-            buildAsMenuItem.Size = new System.Drawing.Size(159, 22);
+            buildAsMenuItem.Size = new System.Drawing.Size(180, 22);
             buildAsMenuItem.Text = "Build As...";
             buildAsMenuItem.Click += buildAsMenuItem_Click;
             // 
             // toolStripSeparator6
             // 
             toolStripSeparator6.Name = "toolStripSeparator6";
-            toolStripSeparator6.Size = new System.Drawing.Size(156, 6);
+            toolStripSeparator6.Size = new System.Drawing.Size(177, 6);
             // 
             // addModuleMenuItem
             // 
             addModuleMenuItem.Name = "addModuleMenuItem";
-            addModuleMenuItem.Size = new System.Drawing.Size(159, 22);
+            addModuleMenuItem.Size = new System.Drawing.Size(180, 22);
             addModuleMenuItem.Text = "Add Module";
             // 
             // importModulesToolStripMenuItem
             // 
             importModulesToolStripMenuItem.Name = "importModulesToolStripMenuItem";
-            importModulesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            importModulesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             importModulesToolStripMenuItem.Text = "Import Modules";
             importModulesToolStripMenuItem.Click += importModulesToolStripMenuItem_Click;
             // 
             // toolStripSeparator7
             // 
             toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(156, 6);
+            toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
             // 
             // viewPropertiesToolStripMenuItem
             // 
             viewPropertiesToolStripMenuItem.Name = "viewPropertiesToolStripMenuItem";
-            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             viewPropertiesToolStripMenuItem.Text = "View Properties";
             viewPropertiesToolStripMenuItem.Click += viewPropertiesToolStripMenuItem_Click;
             // 
             // dumpHashesToolStripMenuItem1
             // 
             dumpHashesToolStripMenuItem1.Name = "dumpHashesToolStripMenuItem1";
-            dumpHashesToolStripMenuItem1.Size = new System.Drawing.Size(159, 22);
+            dumpHashesToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             dumpHashesToolStripMenuItem1.Text = "Dump Hashes";
+            dumpHashesToolStripMenuItem1.Click += dumpHashesToolStripMenuItem_Click;
             // 
             // closeArchiveToolStripMenuItem
             // 
             closeArchiveToolStripMenuItem.Name = "closeArchiveToolStripMenuItem";
-            closeArchiveToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            closeArchiveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             closeArchiveToolStripMenuItem.Text = "Close Archive";
             closeArchiveToolStripMenuItem.Click += closeArchiveToolStripMenuItem_Click;
             // 
