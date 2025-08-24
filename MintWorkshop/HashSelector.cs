@@ -12,7 +12,7 @@ namespace MintWorkshop
 {
     public partial class HashSelector : Form
     {
-        public string SelectedHash { get => hashList.Text; }
+        public string SelectedHash { get => hashList.Text.Trim(); }
 
         Action okCallback;
 

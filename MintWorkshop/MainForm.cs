@@ -431,21 +431,12 @@ namespace MintWorkshop
                     continue;
 
                 Archive archive = ctx.Archive;
+                Opcode[] opcodes = MintVersions.Versions[archive.Version];
                 foreach (var module in archive.Modules)
                 {
-                    bool hasHash = false;
-                    for (int i = 0; i < module.XRef.Count; i++)
-                    {
-                        if (module.XRef[i] == searchHash)
-                        {
-                            hasHash = true;
-                            break;
-                        }
-                    }
-                    if (!hasHash)
+                    if (!module.XRef.Contains(searchHash))
                         continue;
 
-                    Opcode[] opcodes = MintVersions.Versions[archive.Version];
                     for (int c = 0; c < module.Objects.Count; c++)
                     {
                         MintObject obj = module[c];
@@ -468,7 +459,6 @@ namespace MintWorkshop
                             MintFunction func = obj.Functions[f];
                             for (int i = 0; i < func.Data.Length; i += 4)
                             {
-                                bool h = false;
                                 if (func.Data[i] >= opcodes.Length)
                                     continue;
                                 if (opcodes[func.Data[i]].Arguments == null)
@@ -479,8 +469,13 @@ namespace MintWorkshop
                                     switch (opcodes[func.Data[i]].Arguments[a])
                                     {
                                         case InstructionArg.XRefV:
-                                            xrefIndex = BitConverter.ToUInt16(func.Data, i + 2);
-                                            break;
+                                            {
+                                                byte[] b = { func.Data[i + 2], func.Data[i + 3] };
+                                                if (archive.XData.Endianness == Endianness.Big)
+                                                    b = b.Reverse().ToArray();
+                                                xrefIndex = BitConverter.ToUInt16(b);
+                                                break;
+                                            }
                                         case InstructionArg.XRefZ:
                                             xrefIndex = func.Data[i + 1];
                                             break;
@@ -491,8 +486,13 @@ namespace MintWorkshop
                                             xrefIndex = func.Data[i + 3];
                                             break;
                                         case InstructionArg.XRefE:
-                                            xrefIndex = BitConverter.ToUInt16(func.Data, i + 6);
-                                            break;
+                                            {
+                                                byte[] b = { func.Data[i + 6], func.Data[i + 7] };
+                                                if (archive.XData.Endianness == Endianness.Big)
+                                                    b = b.Reverse().ToArray();
+                                                xrefIndex = BitConverter.ToUInt16(b);
+                                                break;
+                                            }
                                         case InstructionArg.XRefA:
                                             xrefIndex = func.Data[i + 5];
                                             break;
@@ -518,6 +518,92 @@ namespace MintWorkshop
 
             SearchResultForm results = new SearchResultForm(scripts.ToArray());
             results.Text = "Search Results - " + (hashes.ContainsKey(searchHash) ? hashes[searchHash] : searchHash.ToString("X8"));
+            results.Show();
+        }
+
+        private void SearchForHashRtDL(string searchString)
+        {
+            List<string> scripts = new List<string>();
+            foreach (var ctx in archives)
+            {
+                if (ctx.ArchiveRtDL == null)
+                    continue;
+
+                ArchiveRtDL archive = ctx.ArchiveRtDL;
+                Opcode[] opcodes = MintVersions.Versions[RTDL_VERSION];
+                foreach (var module in archive.Modules)
+                {
+                    if (!module.XRef.Contains(searchString))
+                        continue;
+
+                    for (int c = 0; c < module.Objects.Count; c++)
+                    {
+                        MintObject obj = module[c];
+
+                        for (int f = 0; f < obj.Functions.Count; f++)
+                        {
+                            MintFunction func = obj.Functions[f];
+                            for (int i = 0; i < func.Data.Length; i += 4)
+                            {
+                                if (func.Data[i] >= opcodes.Length)
+                                    continue;
+                                if (opcodes[func.Data[i]].Arguments == null)
+                                    continue;
+                                for (int a = 0; a < opcodes[func.Data[i]].Arguments.Length; a++)
+                                {
+                                    int xrefIndex = -1;
+                                    switch (opcodes[func.Data[i]].Arguments[a])
+                                    {
+                                        case InstructionArg.XRefV:
+                                            {
+                                                byte[] b = { func.Data[i + 2], func.Data[i + 3] };
+                                                if (archive.XData.Endianness == Endianness.Big)
+                                                    b = b.Reverse().ToArray();
+                                                xrefIndex = BitConverter.ToUInt16(b);
+                                                break;
+                                            }
+                                        case InstructionArg.XRefZ:
+                                            xrefIndex = func.Data[i + 1];
+                                            break;
+                                        case InstructionArg.XRefX:
+                                            xrefIndex = func.Data[i + 2];
+                                            break;
+                                        case InstructionArg.XRefY:
+                                            xrefIndex = func.Data[i + 3];
+                                            break;
+                                        case InstructionArg.XRefE:
+                                            {
+                                                byte[] b = { func.Data[i + 6], func.Data[i + 7] };
+                                                if (archive.XData.Endianness == Endianness.Big)
+                                                    b = b.Reverse().ToArray();
+                                                xrefIndex = BitConverter.ToUInt16(b);
+                                                break;
+                                            }
+                                        case InstructionArg.XRefA:
+                                            xrefIndex = func.Data[i + 5];
+                                            break;
+                                        case InstructionArg.XRefB:
+                                            xrefIndex = func.Data[i + 6];
+                                            break;
+                                        case InstructionArg.XRefC:
+                                            xrefIndex = func.Data[i + 7];
+                                            break;
+                                    }
+
+                                    if (xrefIndex < 0 || xrefIndex >= module.XRef.Count)
+                                        continue;
+
+                                    if (module.XRef[xrefIndex] == searchString)
+                                        scripts.Add(module.Name + "." + func.NameWithoutType() + ": " + (i / 4));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            SearchResultForm results = new SearchResultForm(scripts.ToArray());
+            results.Text = "Search Results - " + searchString;
             results.Show();
         }
 
@@ -872,20 +958,30 @@ namespace MintWorkshop
         {
             if (arcTree.SelectedNode is ObjectTreeNode)
             {
-                MintObject obj = (arcTree.SelectedNode as ObjectTreeNode).Object;
-                SearchForHash(Crc32C.CalculateInv(obj.Name));
+                ObjectTreeNode node = arcTree.SelectedNode as ObjectTreeNode;
+                MintObject obj = node.Object;
+                if (node.GetModule() is ModuleRtDLTreeNode)
+                    SearchForHashRtDL(obj.Name);
+                else
+                    SearchForHash(Crc32C.CalculateInv(obj.Name));
             }
             else if (arcTree.SelectedNode is VariableTreeNode)
             {
                 VariableTreeNode node = arcTree.SelectedNode as VariableTreeNode;
                 MintObject obj = node.GetObject().Object;
-                SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Variable.Name}"));
+                if (node.GetObject().GetModule() is ModuleRtDLTreeNode)
+                    SearchForHashRtDL($"{obj.Name}.{node.Variable.Name}");
+                else
+                    SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Variable.Name}"));
             }
             else if (arcTree.SelectedNode is FunctionTreeNode)
             {
                 FunctionTreeNode node = arcTree.SelectedNode as FunctionTreeNode;
                 MintObject obj = node.GetObject().Object;
-                SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Function.NameWithoutType()}"));
+                if (node.GetObject().GetModule() is ModuleRtDLTreeNode)
+                    SearchForHashRtDL($"{obj.Name}.{node.Function.NameWithoutType()}");
+                else
+                    SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Function.NameWithoutType()}"));
             }
         }
 
@@ -1192,7 +1288,10 @@ namespace MintWorkshop
         {
             hashSelector.ShowWindow(() =>
             {
-                SearchForHash(Crc32C.CalculateInv(hashSelector.SelectedHash));
+                if (archives.Any(x => x.Archive != null))
+                    SearchForHash(Crc32C.CalculateInv(hashSelector.SelectedHash));
+                if (archives.Any(x => x.ArchiveRtDL != null))
+                    SearchForHashRtDL(hashSelector.SelectedHash);
             });
         }
 
