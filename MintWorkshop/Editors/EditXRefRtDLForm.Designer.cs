@@ -1,6 +1,6 @@
 ﻿namespace MintWorkshop.Editors
 {
-    partial class EditXRefForm
+    partial class EditXRefRtDLForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             xrefList = new System.Windows.Forms.ListView();
-            hashHeader = new System.Windows.Forms.ColumnHeader();
             nameHeader = new System.Windows.Forms.ColumnHeader();
             addButton = new System.Windows.Forms.Button();
             delButton = new System.Windows.Forms.Button();
@@ -40,7 +39,7 @@
             // 
             xrefList.Alignment = System.Windows.Forms.ListViewAlignment.Left;
             xrefList.AutoArrange = false;
-            xrefList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { hashHeader, nameHeader });
+            xrefList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { nameHeader });
             xrefList.FullRowSelect = true;
             xrefList.GridLines = true;
             xrefList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -56,11 +55,6 @@
             xrefList.View = System.Windows.Forms.View.Details;
             xrefList.AfterLabelEdit += xrefList_AfterLabelEdit;
             xrefList.MouseDoubleClick += xrefList_MouseDoubleClick;
-            // 
-            // hashHeader
-            // 
-            hashHeader.Text = "Hash";
-            hashHeader.Width = 73;
             // 
             // nameHeader
             // 
@@ -101,7 +95,7 @@
             saveButton.UseVisualStyleBackColor = true;
             saveButton.Click += saveButton_Click;
             // 
-            // EditXRefForm
+            // EditXRefRtDLForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -112,7 +106,7 @@
             Controls.Add(xrefList);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            Name = "EditXRefForm";
+            Name = "EditXRefRtDLForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "XRef Editor";
             ResumeLayout(false);
@@ -125,7 +119,6 @@
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.Button delButton;
         private System.Windows.Forms.Button saveButton;
-        private System.Windows.Forms.ColumnHeader hashHeader;
         private System.Windows.Forms.ColumnHeader nameHeader;
     }
 }

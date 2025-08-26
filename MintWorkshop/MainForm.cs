@@ -1143,13 +1143,16 @@ namespace MintWorkshop
 
         private void editXRefsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            /*
-            EditXRefForm edit = new EditXRefForm(archive.Scripts[arcTree.SelectedNode.FullPath].XRef.ToArray(), hashes);
-            if (edit.ShowDialog() == DialogResult.OK)
+            if (arcTree.SelectedNode is ModuleRtDLTreeNode)
             {
-                archive.Scripts[arcTree.SelectedNode.FullPath].XRef = edit.XRef;
+                EditXRefRtDLForm edit = new EditXRefRtDLForm((arcTree.SelectedNode as ModuleRtDLTreeNode).Module);
+                edit.ShowDialog();
             }
-            */
+            else
+            {
+                EditXRefForm edit = new EditXRefForm((arcTree.SelectedNode as ModuleTreeNode).Module, ref hashes);
+                edit.ShowDialog();
+            }
         }
 
         private void optimizeScriptToolStripMenuItem_Click(object sender, EventArgs e)

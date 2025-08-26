@@ -15,11 +15,11 @@ using MintWorkshop.Util;
 
 namespace MintWorkshop.Editors
 {
-    public partial class EditXRefForm : Form
+    public partial class EditXRefRtDLForm : Form
     {
-        Module module;
+        ModuleRtDL module;
 
-        public EditXRefForm(Module module, ref Dictionary<uint, string> hashes)
+        public EditXRefRtDLForm(ModuleRtDL module)
         {
             this.module = module;
 
@@ -27,33 +27,14 @@ namespace MintWorkshop.Editors
 
             for (int i = 0; i < module.XRef.Count; i++)
             {
-                ListViewItem item = new ListViewItem($"{module.XRef[i]:X8}");
-
-                if (hashes.ContainsKey(module.XRef[i]))
-                {
-                    item.SubItems.Add(hashes[module.XRef[i]]);
-                }
-                else
-                {
-                    item.BackColor = Color.Red;
-                    item.SubItems.Add("");
-                }
-
+                ListViewItem item = new ListViewItem(module.XRef[i]);
                 xrefList.Items.Add(item);
             }
         }
 
         private void xrefList_AfterLabelEdit(object sender, LabelEditEventArgs e)
         {
-            if (string.IsNullOrEmpty(e.Label)) return;
-
-            string str = e.Label;
-            uint hash = Crc32C.CalculateInv(str);
-            uint.TryParse(str, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out hash);
-
-            ListViewItem item = new ListViewItem($"{hash:X8}");
-            item.SubItems.Add(str);
-
+            ListViewItem item = new ListViewItem(e.Label);
             xrefList.Items[e.Item] = item;
             xrefList.Invalidate();
         }
@@ -61,7 +42,7 @@ namespace MintWorkshop.Editors
         private void addButton_Click(object sender, EventArgs e)
         {
             //Default to App since it always exists
-            ListViewItem item = new ListViewItem($"{Crc32C.CalculateInv("App"):X8}");
+            ListViewItem item = new ListViewItem("App");
             item.SubItems.Add("App");
 
             xrefList.Items.Add(item);
@@ -80,7 +61,7 @@ namespace MintWorkshop.Editors
         {
             module.XRef.Clear();
             for (int i = 0; i < xrefList.Items.Count; i++)
-                module.XRef.Add(uint.Parse(xrefList.Items[i].Text, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo));
+                module.XRef.Add(xrefList.Items[i].Text);
 
             DialogResult = DialogResult.OK;
         }
