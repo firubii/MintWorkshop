@@ -76,6 +76,8 @@ namespace MintWorkshop
                 CloseEditor(0, true);
 
             arcTree.Nodes.Clear();
+
+            archives.Clear();
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
