@@ -1400,10 +1400,11 @@ namespace MintWorkshop
             if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
+            ByteArrayComparer comparer = new ByteArrayComparer();
             int index = -1;
-            for (int s = 0; s < module.SData.Count; s += 4)
+            for (int s = 0; s < module.SData.Count - value.Length; s += 4)
             {
-                if (new ByteArrayComparer().Equals(value, module.SData.GetRange(s, 4).ToArray()))
+                if (comparer.Equals(value, module.SData.GetRange(s, 4).ToArray()))
                 {
                     index = s;
                     break;
@@ -1412,6 +1413,10 @@ namespace MintWorkshop
 
             if (index < 0)
             {
+                // Sometimes SData isn't properly aligned, so do it first
+                while ((module.SData.Count % 4) != 0)
+                    module.SData.Add(0xFF);
+
                 index = module.SData.Count;
                 module.SData.AddRange(value);
             }
@@ -1424,10 +1429,11 @@ namespace MintWorkshop
             if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
+            ByteArrayComparer comparer = new ByteArrayComparer();
             int index = -1;
             for (int s = 0; s < module.SData.Count - value.Length; s += 4)
             {
-                if (new ByteArrayComparer().Equals(value, module.SData.GetRange(s, 4).ToArray()))
+                if (comparer.Equals(value, module.SData.GetRange(s, 4).ToArray()))
                 {
                     index = s;
                     break;
@@ -1436,6 +1442,10 @@ namespace MintWorkshop
 
             if (index < 0)
             {
+                // Sometimes SData isn't properly aligned, so do it first
+                while ((module.SData.Count % 4) != 0)
+                    module.SData.Add(0xFF);
+
                 index = module.SData.Count;
                 module.SData.AddRange(value);
             }
