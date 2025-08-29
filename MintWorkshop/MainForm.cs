@@ -1066,13 +1066,9 @@ namespace MintWorkshop
             {
                 string text = FunctionUtil.StripComments(File.ReadAllText(path));
 
-                mod = FunctionUtil.Assemble(text.Split('\n'), archive.Version);
+                mod = FunctionUtil.Assemble(text.Split('\n'), archive);
                 mod.Format = archive.GetModuleFormat();
             }
-
-            mod.XData.Version = archive.XData.Version;
-            mod.XData.Endianness = archive.XData.Endianness;
-            mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
             return mod;
         }
@@ -1093,12 +1089,8 @@ namespace MintWorkshop
             {
                 string text = FunctionUtil.StripComments(File.ReadAllText(path));
 
-                mod = FunctionUtil.AssembleRtDL(text.Split('\n'));
+                mod = FunctionUtil.AssembleRtDL(text.Split('\n'), archive);
             }
-
-            mod.XData.Version = archive.XData.Version;
-            mod.XData.Endianness = archive.XData.Endianness;
-            mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
             return mod;
         }
@@ -1170,7 +1162,7 @@ namespace MintWorkshop
                 ModuleRtDLTreeNode node = arcTree.SelectedNode as ModuleRtDLTreeNode;
                 ArchiveRtDL archive = node.GetArchive().Archive;
 
-                ModuleRtDL newModule = FunctionUtil.AssembleRtDL(FunctionUtil.Disassemble(node.Module).Split("\n"));
+                ModuleRtDL newModule = FunctionUtil.AssembleRtDL(FunctionUtil.Disassemble(node.Module).Split("\n"), archive);
                 for (int i = 0; i < archive.Modules.Count; i++)
                 {
                     if (archive.Modules[i].Name == newModule.Name)
@@ -1191,7 +1183,7 @@ namespace MintWorkshop
                 ModuleTreeNode node = arcTree.SelectedNode as ModuleTreeNode;
                 Archive archive = node.GetArchive().Archive;
 
-                Module newModule = FunctionUtil.Assemble(FunctionUtil.Disassemble(node.Module, archive.Version, ref hashes).Split("\n"), archive.Version);
+                Module newModule = FunctionUtil.Assemble(FunctionUtil.Disassemble(node.Module, archive.Version, ref hashes).Split("\n"), archive);
                 for (int i = 0; i < archive.Modules.Count; i++)
                 {
                     if (archive.Modules[i].Name == newModule.Name)

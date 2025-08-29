@@ -1404,7 +1404,7 @@ namespace MintWorkshop
             int index = -1;
             for (int s = 0; s < module.SData.Count - value.Length; s += 4)
             {
-                if (comparer.Equals(value, module.SData.GetRange(s, 4).ToArray()))
+                if (comparer.Equals(value, module.SData.GetRange(s, value.Length).ToArray()))
                 {
                     index = s;
                     break;
@@ -1433,7 +1433,7 @@ namespace MintWorkshop
             int index = -1;
             for (int s = 0; s < module.SData.Count - value.Length; s += 4)
             {
-                if (comparer.Equals(value, module.SData.GetRange(s, 4).ToArray()))
+                if (comparer.Equals(value, module.SData.GetRange(s, value.Length).ToArray()))
                 {
                     index = s;
                     break;
@@ -2761,11 +2761,14 @@ namespace MintWorkshop
             return text;
         }
 
-        public static Module Assemble(string[] text, byte[] version)
+        public static Module Assemble(string[] text, Archive archive)
         {
             Module module = new Module();
+            module.XData.Version = archive.XData.Version;
+            module.XData.Endianness = archive.XData.Endianness;
+            module.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
-            var opcodes = MintVersions.Versions[version].ToList();
+            var opcodes = MintVersions.Versions[archive.Version].ToList();
 
             // Find module declaration
             for (int i = 0; i < text.Length; i++)
@@ -2834,7 +2837,7 @@ namespace MintWorkshop
                 }
             }
 
-            AssembleSData(module, inst, version);
+            AssembleSData(module, inst, archive.Version);
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -2946,7 +2949,7 @@ namespace MintWorkshop
                                 funcInst.Add(line);
                             }
 
-                            mFunc.Data = AssembleFunction(module, obj, funcInst, version);
+                            mFunc.Data = AssembleFunction(module, obj, funcInst, archive.Version);
 
                             obj.Functions.Add(mFunc);
 
@@ -2981,10 +2984,12 @@ namespace MintWorkshop
             return module;
         }
 
-        public static ModuleRtDL AssembleRtDL(string[] text)
+        public static ModuleRtDL AssembleRtDL(string[] text, ArchiveRtDL archive)
         {
             ModuleRtDL module = new ModuleRtDL();
-            module.XData.Endianness = Endianness.Big;
+            module.XData.Version = archive.XData.Version;
+            module.XData.Endianness = archive.XData.Endianness;
+            module.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
             // Find module declaration
             for (int i = 0; i < text.Length; i++)
