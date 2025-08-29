@@ -1070,10 +1070,13 @@ namespace MintWorkshop
                 mod.Format = archive.GetModuleFormat();
             }
 
+            mod.XData.Endianness = archive.XData.Endianness;
+            mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
+
             return mod;
         }
 
-        private ModuleRtDL OpenModuleRtDL(string path)
+        private ModuleRtDL OpenModuleRtDL(string path, ArchiveRtDL archive)
         {
             ModuleRtDL mod;
 
@@ -1091,6 +1094,9 @@ namespace MintWorkshop
 
                 mod = FunctionUtil.AssembleRtDL(text.Split('\n'));
             }
+
+            mod.XData.Endianness = archive.XData.Endianness;
+            mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
             return mod;
         }
@@ -1112,7 +1118,7 @@ namespace MintWorkshop
                 {
                     ArchiveRtDL arc = (arcTree.SelectedNode as ModuleRtDLTreeNode).GetArchive().Archive;
 
-                    ModuleRtDL newModule = OpenModuleRtDL(open.FileName);
+                    ModuleRtDL newModule = OpenModuleRtDL(open.FileName, arc);
                     if (newModule.Name != moduleName)
                     {
                         MessageBox.Show($"Module name \"{newModule.Name}\" does not match!");
@@ -1480,7 +1486,7 @@ namespace MintWorkshop
                     ArchiveRtDLTreeNode node = arcTree.SelectedNode as ArchiveRtDLTreeNode;
                     for (int i = 0; i < open.FileNames.Length; i++)
                     {
-                        ModuleRtDL newModule = OpenModuleRtDL(open.FileNames[i]);
+                        ModuleRtDL newModule = OpenModuleRtDL(open.FileNames[i], node.Archive);
                         modNames.Add(newModule.Name);
 
                         if (node.Archive.ModuleExists(newModule.Name))
