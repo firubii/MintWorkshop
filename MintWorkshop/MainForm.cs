@@ -1536,7 +1536,15 @@ namespace MintWorkshop
             {
                 var child = node.Nodes[i];
                 if (child is NamespaceTreeNode)
+                {
+                    bool expanded = node.IsExpanded;
+                    (child as NamespaceTreeNode).Open();
+
                     ExportAllNodes(child as NamespaceTreeNode, path);
+
+                    if (!expanded)
+                        (child as NamespaceTreeNode).Close();
+                }
                 else if (child is ModuleTreeNode)
                 {
                     var moduleNode = child as ModuleTreeNode;
@@ -1561,7 +1569,14 @@ namespace MintWorkshop
             open.Title = "Select output directory";
             if (open.ShowDialog() == CommonFileDialogResult.Ok)
             {
+                bool expanded = node.IsExpanded;
+                node.Open();
                 ExportAllNodes(node, open.FileName);
+
+                if (!expanded)
+                    node.Close();
+
+                MessageBox.Show($"Exported modules to \"{open.FileName}\"", "MintWorkshop", MessageBoxButtons.OK);
             }
         }
 
