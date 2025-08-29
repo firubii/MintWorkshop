@@ -1070,6 +1070,7 @@ namespace MintWorkshop
                 mod.Format = archive.GetModuleFormat();
             }
 
+            mod.XData.Version = archive.XData.Version;
             mod.XData.Endianness = archive.XData.Endianness;
             mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
@@ -1095,6 +1096,7 @@ namespace MintWorkshop
                 mod = FunctionUtil.AssembleRtDL(text.Split('\n'));
             }
 
+            mod.XData.Version = archive.XData.Version;
             mod.XData.Endianness = archive.XData.Endianness;
             mod.XData.Unknown_0xC = archive.XData.Unknown_0xC;
 
