@@ -1281,8 +1281,8 @@ namespace MintWorkshop
         }
 
         static readonly char[] token_delim = { ',' };
-        static readonly char[] token_open = { '(', '\"', '[' };
-        static readonly char[] token_close = { ')', '\"', ']' };
+        static readonly char[] token_open = { '(', '\"', '[', '<' };
+        static readonly char[] token_close = { ')', '\"', ']', '>' };
 
         // Really basic tokenize function
         public static string[] Tokenize(string text)
