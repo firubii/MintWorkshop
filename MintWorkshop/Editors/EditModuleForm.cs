@@ -38,7 +38,7 @@ namespace MintWorkshop.Editors
 
             InitializeComponent();
 
-            name.Text = _module.Name;
+            name.Text = _moduleRtDL.Name;
             unk.Visible = false;
             unkLabel.Visible = false;
         }
