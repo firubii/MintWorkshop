@@ -9,9 +9,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace MintWorkshop.Nodes
+namespace MintWorkshop.Editors
 {
     public class TextEditorTab : TabPage
     {
