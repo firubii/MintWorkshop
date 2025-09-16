@@ -34,13 +34,7 @@ namespace MintWorkshop.Mint
         {
             {  0x1, "init" },
             {  0x2, "virtual" },
-            /* 
-             * I don't really think this is "async" in the typical sense, nor am I really sure what it signifies anymore.
-             * It also doesn't necessarily have a C# equivalent, since its been around from before Basil,
-             * and HAL's IL2BC transpiler could look for an attribute to set this instead, or some other automated
-             * method.
-             */
-            {  0x4, "async" },
+            {  0x4, "public" },
             {  0x8, "null" },
             { 0x10, "extern" },
             { 0x20, "static" },
