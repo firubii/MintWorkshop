@@ -151,6 +151,8 @@ namespace MintWorkshop
                             ContextMenuStrip = archiveMenuStrip
                         });
                         progress.Close();
+
+                        UpdateArchiveNodes();
                         arcTree.EndUpdate();
                         closeToolStripMenuItem.Enabled = true;
                     });
@@ -221,6 +223,8 @@ namespace MintWorkshop
                             ContextMenuStrip = archiveMenuStrip
                         });
                         progress.Close();
+
+                        UpdateArchiveNodes();
                         arcTree.EndUpdate();
                         closeToolStripMenuItem.Enabled = true;
                     });
@@ -231,6 +235,27 @@ namespace MintWorkshop
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CloseAllArchives();
+        }
+
+        private void UpdateArchiveNodes()
+        {
+            for (int i = 0; i < archives.Count; i++)
+            {
+                var archive = archives[i];
+                TreeNode node = arcTree.Nodes[i];
+
+                string fileName = Path.GetFileName(archive.Path);
+                int directoryDepth = 0;
+                while (archives.Any(x => x.Path != archive.Path && x.Path.EndsWith(fileName)))
+                {
+                    directoryDepth++;
+
+                    string[] dir = Path.GetDirectoryName(archive.Path).Split(Path.DirectorySeparatorChar);
+                    fileName = string.Join(Path.DirectorySeparatorChar, dir.Skip(dir.Length - directoryDepth)) + Path.DirectorySeparatorChar + Path.GetFileName(archive.Path);
+                }
+
+                node.Text = fileName + $" ({(archive.ArchiveRtDL != null ? archive.ArchiveRtDL.GetVersionString() : archive.Archive.GetVersionString())})";
+            }
         }
 
         private void ReloadHashes()
