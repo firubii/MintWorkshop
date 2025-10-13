@@ -1409,6 +1409,7 @@ namespace MintWorkshop
                 BuildArchive(ctx);
 
                 archives[arcTree.SelectedNode.Index] = ctx;
+                UpdateArchiveNodes();
             }
         }
 
