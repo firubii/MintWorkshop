@@ -71,8 +71,8 @@ namespace MintWorkshop.Editors
             flags.Visible = format > ModuleFormat.RtDL;
             flagsLabel.Visible = format > ModuleFormat.RtDL;
 
-            implements.Visible = format >= ModuleFormat.Mint;
-            implementsLabel.Visible = format >= ModuleFormat.Mint;
+            implements.Visible = format >= ModuleFormat.MintOld;
+            implementsLabel.Visible = format >= ModuleFormat.MintOld;
 
             extends.Visible = format >= ModuleFormat.BasilKatFL;
             extendsLabel.Visible = format >= ModuleFormat.BasilKatFL;
