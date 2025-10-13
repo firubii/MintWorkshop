@@ -38,7 +38,7 @@ namespace MintWorkshop
         [GeneratedRegex(@"\.raw ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2})")]
         internal static partial Regex Raw();
 
-        [GeneratedRegex(@"class ([.0-9A-Z_a-z<>\[\]^]+)")]
+        [GeneratedRegex(@"class ([./0-9A-Z_a-z<>\[\]^]+)")]
         internal static partial Regex Object();
 
         // return of the world's second worst regex
