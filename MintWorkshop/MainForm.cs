@@ -101,24 +101,28 @@ namespace MintWorkshop
                         progress.SetTitle("Reading Archive...");
                     });
 
+                    Archive archive;
                     bool isCompressed = false;
-                    EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read));
-                    if (reader.ReadByte() == 0x11)
+                    using (FileStream stream = new FileStream(open.FileName, FileMode.Open, FileAccess.Read))
                     {
-                        isCompressed = true;
-                        DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
-                        FileStream stream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
-                        stream.Lock(0, stream.Length);
-                        reader = new EndianBinaryReader(stream);
+                        EndianBinaryReader reader = new EndianBinaryReader(stream);
+                        if (reader.ReadByte() == 0x11)
+                        {
+                            isCompressed = true;
+                            DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
+                            FileStream cmpStream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                            cmpStream.Lock(0, cmpStream.Length);
+                            reader = new EndianBinaryReader(cmpStream);
+                        }
+
+                        reader.BaseStream.Position = 0;
+                        archive = new Archive(reader);
+
+                        if (isCompressed)
+                            (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                        reader.Dispose();
                     }
-
-                    reader.BaseStream.Position = 0;
-                    Archive archive = new Archive(reader);
-
-                    if (isCompressed)
-                        (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
-
-                    reader.Dispose();
 
                     archives.Add(new ArchiveContext()
                     {
@@ -181,24 +185,28 @@ namespace MintWorkshop
                         progress.SetTitle("Reading Archive");
                     });
 
+                    ArchiveRtDL archive;
                     bool isCompressed = false;
-                    EndianBinaryReader reader = new EndianBinaryReader(new FileStream(open.FileName, FileMode.Open, FileAccess.Read));
-                    if (reader.ReadByte() == 0x11)
+                    using (FileStream stream = new FileStream(open.FileName, FileMode.Open, FileAccess.Read))
                     {
-                        isCompressed = true;
-                        DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
-                        FileStream stream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
-                        stream.Lock(0, stream.Length);
-                        reader = new EndianBinaryReader(stream);
+                        EndianBinaryReader reader = new EndianBinaryReader(stream);
+                        if (reader.ReadByte() == 0x11)
+                        {
+                            isCompressed = true;
+                            DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
+                            FileStream cmpStream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                            cmpStream.Lock(0, cmpStream.Length);
+                            reader = new EndianBinaryReader(cmpStream);
+                        }
+
+                        reader.BaseStream.Position = 0;
+                        archive = new ArchiveRtDL(reader);
+
+                        if (isCompressed)
+                            (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                        reader.Dispose();
                     }
-
-                    reader.BaseStream.Position = 0;
-                    ArchiveRtDL archive = new ArchiveRtDL(reader);
-
-                    if (isCompressed)
-                        (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
-
-                    reader.Dispose();
 
                     archives.Add(new ArchiveContext()
                     {
