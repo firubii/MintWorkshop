@@ -1154,6 +1154,8 @@ namespace MintWorkshop
 
                     int idx = arc.Modules.FindIndex(x => x.Name == newModule.Name);
                     arc.Modules[idx] = newModule;
+
+                    (arcTree.SelectedNode as ModuleRtDLTreeNode).Module = newModule;
                 }
                 else
                 {
@@ -1168,6 +1170,8 @@ namespace MintWorkshop
 
                     int idx = arc.Modules.FindIndex(x => x.Name == newModule.Name);
                     arc.Modules[idx] = newModule;
+
+                    (arcTree.SelectedNode as ModuleTreeNode).Module = newModule;
                 }
 
                 (arcTree.SelectedNode as DynamicTreeNode).Open();
