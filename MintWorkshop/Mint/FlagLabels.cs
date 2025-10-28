@@ -19,14 +19,14 @@ namespace MintWorkshop.Mint
 
         public static Dictionary<uint, string> ClassFlags = new Dictionary<uint, string>()
         {
-            {  0x2, "enum" },
-            {  0x4, "pod" },
-            {  0x8, "static" },
+            {  0x1, "partial" },
+            {  0x2, "destructor" },
         };
 
         public static Dictionary<uint, string> VariableFlags = new Dictionary<uint, string>()
         {
             {  0x1, "static" },
+            {  0x2, "disposable" },
             {  0x8, "array" },
         };
 
