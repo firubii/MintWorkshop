@@ -93,6 +93,7 @@
             closeArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             namespaceMenuStrip = new System.Windows.Forms.ContextMenuStrip(components);
             exportAllModulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            copyFullName = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -275,13 +276,20 @@
             imageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
             imageList.ImageStream = (System.Windows.Forms.ImageListStreamer)resources.GetObject("imageList.ImageStream");
             imageList.TransparentColor = System.Drawing.Color.Transparent;
-            imageList.Images.SetKeyName(0, "Library_16x.png");
-            imageList.Images.SetKeyName(1, "Namespace_16x.png");
-            imageList.Images.SetKeyName(2, "ModuleFile_16x.png");
-            imageList.Images.SetKeyName(3, "Class_16x.png");
-            imageList.Images.SetKeyName(4, "Field_16x.png");
-            imageList.Images.SetKeyName(5, "Method_16x.png");
-            imageList.Images.SetKeyName(6, "Constant_16x.png");
+            imageList.Images.SetKeyName(0, "Archive");
+            imageList.Images.SetKeyName(1, "Namespace");
+            imageList.Images.SetKeyName(2, "Module");
+            imageList.Images.SetKeyName(3, "Class");
+            imageList.Images.SetKeyName(4, "Enum");
+            imageList.Images.SetKeyName(5, "Interface");
+            imageList.Images.SetKeyName(6, "Pod");
+            imageList.Images.SetKeyName(7, "Struct");
+            imageList.Images.SetKeyName(8, "Rawptr");
+            imageList.Images.SetKeyName(9, "Utility");
+            imageList.Images.SetKeyName(10, "Unknown");
+            imageList.Images.SetKeyName(11, "Variable");
+            imageList.Images.SetKeyName(12, "Function");
+            imageList.Images.SetKeyName(13, "EnumItem");
             // 
             // groupBox1
             // 
@@ -397,54 +405,54 @@
             // 
             // classCtxMenu
             // 
-            classCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { findUsesOfObjectToolStripMenuItem1, editClassToolStripMenuItem, deleteClassToolStripMenuItem, toolStripSeparator1, addVariableToolStripMenuItem, addFunctionToolStripMenuItem, addConstantToolStripMenuItem });
+            classCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { copyFullName, findUsesOfObjectToolStripMenuItem1, editClassToolStripMenuItem, deleteClassToolStripMenuItem, toolStripSeparator1, addVariableToolStripMenuItem, addFunctionToolStripMenuItem, addConstantToolStripMenuItem });
             classCtxMenu.Name = "classCtxMenu";
-            classCtxMenu.Size = new System.Drawing.Size(177, 142);
+            classCtxMenu.Size = new System.Drawing.Size(181, 186);
             // 
             // findUsesOfObjectToolStripMenuItem1
             // 
             findUsesOfObjectToolStripMenuItem1.Name = "findUsesOfObjectToolStripMenuItem1";
-            findUsesOfObjectToolStripMenuItem1.Size = new System.Drawing.Size(176, 22);
+            findUsesOfObjectToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             findUsesOfObjectToolStripMenuItem1.Text = "Find Uses of Object";
             findUsesOfObjectToolStripMenuItem1.Click += findUsesOfObjectToolStripMenuItem_Click;
             // 
             // editClassToolStripMenuItem
             // 
             editClassToolStripMenuItem.Name = "editClassToolStripMenuItem";
-            editClassToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            editClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             editClassToolStripMenuItem.Text = "Edit Class";
             editClassToolStripMenuItem.Click += editObjectToolStripMenuItem_Click;
             // 
             // deleteClassToolStripMenuItem
             // 
             deleteClassToolStripMenuItem.Name = "deleteClassToolStripMenuItem";
-            deleteClassToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            deleteClassToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             deleteClassToolStripMenuItem.Text = "Delete Class";
             deleteClassToolStripMenuItem.Click += deleteClassToolStripMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new System.Drawing.Size(173, 6);
+            toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // addVariableToolStripMenuItem
             // 
             addVariableToolStripMenuItem.Name = "addVariableToolStripMenuItem";
-            addVariableToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            addVariableToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             addVariableToolStripMenuItem.Text = "Add Variable";
             addVariableToolStripMenuItem.Click += addVariableToolStripMenuItem_Click;
             // 
             // addFunctionToolStripMenuItem
             // 
             addFunctionToolStripMenuItem.Name = "addFunctionToolStripMenuItem";
-            addFunctionToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            addFunctionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             addFunctionToolStripMenuItem.Text = "Add Function";
             addFunctionToolStripMenuItem.Click += addFunctionToolStripMenuItem_Click;
             // 
             // addConstantToolStripMenuItem
             // 
             addConstantToolStripMenuItem.Name = "addConstantToolStripMenuItem";
-            addConstantToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            addConstantToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             addConstantToolStripMenuItem.Text = "Add Enum";
             addConstantToolStripMenuItem.Click += addConstantToolStripMenuItem_Click;
             // 
@@ -511,63 +519,63 @@
             // 
             archiveMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { buildMenuItem, buildAsMenuItem, toolStripSeparator6, addModuleMenuItem, importModulesToolStripMenuItem, toolStripSeparator7, viewPropertiesToolStripMenuItem, dumpHashesToolStripMenuItem1, closeArchiveToolStripMenuItem });
             archiveMenuStrip.Name = "archiveMenuStrip";
-            archiveMenuStrip.Size = new System.Drawing.Size(181, 192);
+            archiveMenuStrip.Size = new System.Drawing.Size(160, 170);
             // 
             // buildMenuItem
             // 
             buildMenuItem.Name = "buildMenuItem";
-            buildMenuItem.Size = new System.Drawing.Size(180, 22);
+            buildMenuItem.Size = new System.Drawing.Size(159, 22);
             buildMenuItem.Text = "Build";
             buildMenuItem.Click += buildMenuItem_Click;
             // 
             // buildAsMenuItem
             // 
             buildAsMenuItem.Name = "buildAsMenuItem";
-            buildAsMenuItem.Size = new System.Drawing.Size(180, 22);
+            buildAsMenuItem.Size = new System.Drawing.Size(159, 22);
             buildAsMenuItem.Text = "Build As...";
             buildAsMenuItem.Click += buildAsMenuItem_Click;
             // 
             // toolStripSeparator6
             // 
             toolStripSeparator6.Name = "toolStripSeparator6";
-            toolStripSeparator6.Size = new System.Drawing.Size(177, 6);
+            toolStripSeparator6.Size = new System.Drawing.Size(156, 6);
             // 
             // addModuleMenuItem
             // 
             addModuleMenuItem.Name = "addModuleMenuItem";
-            addModuleMenuItem.Size = new System.Drawing.Size(180, 22);
+            addModuleMenuItem.Size = new System.Drawing.Size(159, 22);
             addModuleMenuItem.Text = "Add Module";
             // 
             // importModulesToolStripMenuItem
             // 
             importModulesToolStripMenuItem.Name = "importModulesToolStripMenuItem";
-            importModulesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            importModulesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             importModulesToolStripMenuItem.Text = "Import Modules";
             importModulesToolStripMenuItem.Click += importModulesToolStripMenuItem_Click;
             // 
             // toolStripSeparator7
             // 
             toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            toolStripSeparator7.Size = new System.Drawing.Size(156, 6);
             // 
             // viewPropertiesToolStripMenuItem
             // 
             viewPropertiesToolStripMenuItem.Name = "viewPropertiesToolStripMenuItem";
-            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            viewPropertiesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             viewPropertiesToolStripMenuItem.Text = "View Properties";
             viewPropertiesToolStripMenuItem.Click += viewPropertiesToolStripMenuItem_Click;
             // 
             // dumpHashesToolStripMenuItem1
             // 
             dumpHashesToolStripMenuItem1.Name = "dumpHashesToolStripMenuItem1";
-            dumpHashesToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            dumpHashesToolStripMenuItem1.Size = new System.Drawing.Size(159, 22);
             dumpHashesToolStripMenuItem1.Text = "Dump Hashes";
             dumpHashesToolStripMenuItem1.Click += dumpHashesToolStripMenuItem_Click;
             // 
             // closeArchiveToolStripMenuItem
             // 
             closeArchiveToolStripMenuItem.Name = "closeArchiveToolStripMenuItem";
-            closeArchiveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            closeArchiveToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             closeArchiveToolStripMenuItem.Text = "Close Archive";
             closeArchiveToolStripMenuItem.Click += closeArchiveToolStripMenuItem_Click;
             // 
@@ -583,6 +591,13 @@
             exportAllModulesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             exportAllModulesToolStripMenuItem.Text = "Export All Modules";
             exportAllModulesToolStripMenuItem.Click += exportAllModulesToolStripMenuItem_Click;
+            // 
+            // copyFullName
+            // 
+            copyFullName.Name = "copyFullName";
+            copyFullName.Size = new System.Drawing.Size(180, 22);
+            copyFullName.Text = "Copy Full Name";
+            copyFullName.Click += copyFullNameToolStripMenuItem_Click;
             // 
             // MainForm
             // 
@@ -682,6 +697,7 @@
         private System.Windows.Forms.ContextMenuStrip namespaceMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem exportAllModulesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewPropertiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyFullName;
     }
 }
 

@@ -19,8 +19,8 @@ namespace MintWorkshop.Nodes
             Name = Namespace;
             Text = Namespace.Substring(Namespace.LastIndexOf('.') + 1);
 
-            ImageIndex = 1;
-            SelectedImageIndex = 1;
+            ImageKey = "Namespace";
+            SelectedImageKey = "Namespace";
 
             ToolTipText = Namespace;
 

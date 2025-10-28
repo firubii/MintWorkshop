@@ -21,8 +21,37 @@ namespace MintWorkshop.Nodes
                 ? Object.Name[(moduleName.LastIndexOf('.') + 1)..]
                 : Object.Name;
 
-            ImageIndex = 3;
-            SelectedImageIndex = 3;
+            string imageKey;
+            switch (Object.Type)
+            {
+                default:
+                    imageKey = "Unknown";
+                    break;
+                case ObjectType.Class:
+                    imageKey = "Class";
+                    break;
+                case ObjectType.Enum:
+                    imageKey = "Enum";
+                    break;
+                case ObjectType.Interface:
+                    imageKey = "Interface";
+                    break;
+                case ObjectType.Pod:
+                    imageKey = "Pod";
+                    break;
+                case ObjectType.Rawptr:
+                    imageKey = "Rawptr";
+                    break;
+                case ObjectType.Struct:
+                    imageKey = "Struct";
+                    break;
+                case ObjectType.Utility:
+                    imageKey = "Utility";
+                    break;
+            }
+
+            ImageKey = imageKey;
+            SelectedImageKey = imageKey;
 
             ToolTipText = Object.Name;
 
@@ -42,6 +71,38 @@ namespace MintWorkshop.Nodes
                 : Object.Name;
 
             ToolTipText = Object.Name;
+
+            string imageKey;
+            switch (Object.Type)
+            {
+                default:
+                    imageKey = "Unknown";
+                    break;
+                case ObjectType.Class:
+                    imageKey = "Class";
+                    break;
+                case ObjectType.Enum:
+                    imageKey = "Enum";
+                    break;
+                case ObjectType.Interface:
+                    imageKey = "Interface";
+                    break;
+                case ObjectType.Pod:
+                    imageKey = "Pod";
+                    break;
+                case ObjectType.Rawptr:
+                    imageKey = "Rawptr";
+                    break;
+                case ObjectType.Struct:
+                    imageKey = "Struct";
+                    break;
+                case ObjectType.Utility:
+                    imageKey = "Utility";
+                    break;
+            }
+
+            ImageKey = imageKey;
+            SelectedImageKey = imageKey;
         }
 
         public override void Open()
@@ -52,8 +113,8 @@ namespace MintWorkshop.Nodes
 
             TreeNode varList = new TreeNode();
             varList.Text = "Variables";
-            varList.ImageIndex = 4;
-            varList.SelectedImageIndex = 4;
+            varList.ImageKey = "Variable";
+            varList.SelectedImageKey = "Variable";
 
             for (int i = 0; i < Object.Variables.Count; i++)
                 varList.Nodes.Add(new VariableTreeNode(Object.Variables[i]));
@@ -62,8 +123,8 @@ namespace MintWorkshop.Nodes
 
             TreeNode funcList = new TreeNode();
             funcList.Text = "Functions";
-            funcList.ImageIndex = 5;
-            funcList.SelectedImageIndex = 5;
+            funcList.ImageKey = "Function";
+            funcList.SelectedImageKey = "Function";
 
             for (int i = 0; i < Object.Functions.Count; i++)
                 funcList.Nodes.Add(new FunctionTreeNode(Object.Functions[i]));
@@ -74,8 +135,8 @@ namespace MintWorkshop.Nodes
             {
                 TreeNode enumList = new TreeNode();
                 enumList.Text = "Enums";
-                enumList.ImageIndex = 6;
-                enumList.SelectedImageIndex = 6;
+                enumList.ImageKey = "EnumItem";
+                enumList.SelectedImageKey = "EnumItem";
 
                 for (int i = 0; i < Object.Enums.Count; i++)
                     enumList.Nodes.Add(new EnumTreeNode(Object.Enums[i]));

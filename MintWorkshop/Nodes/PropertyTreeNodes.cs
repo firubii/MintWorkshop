@@ -19,8 +19,8 @@ namespace MintWorkshop.Nodes
             Name = Variable.Name;
             Text = Variable.Type + " " + Variable.Name;
 
-            ImageIndex = 4;
-            SelectedImageIndex = 4;
+            ImageKey = "Variable";
+            SelectedImageKey = "Variable";
         }
 
         public void Update()
@@ -46,8 +46,8 @@ namespace MintWorkshop.Nodes
             Name = Function.Name;
             Text = Function.Name;
 
-            ImageIndex = 5;
-            SelectedImageIndex = 5;
+            ImageKey = "Function";
+            SelectedImageKey = "Function";
         }
 
         public void Update()
@@ -73,8 +73,8 @@ namespace MintWorkshop.Nodes
             Name = Enum.Name;
             Text = Enum.Name + $" (0x{Enum.Value:X})";
 
-            ImageIndex = 6;
-            SelectedImageIndex = 6;
+            ImageKey = "EnumItem";
+            SelectedImageKey = "EnumItem";
         }
 
         public void Update()

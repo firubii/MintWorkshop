@@ -19,8 +19,8 @@ namespace MintWorkshop.Nodes
             Name = Module.Name;
             Text = Module.Name.Split('.').Last();
 
-            ImageIndex = 2;
-            SelectedImageIndex = 2;
+            ImageKey = "Module";
+            SelectedImageKey = "Module";
 
             ToolTipText = Module.Name;
 

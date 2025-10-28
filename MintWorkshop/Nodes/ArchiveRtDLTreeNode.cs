@@ -15,8 +15,8 @@ namespace MintWorkshop.Nodes
         {
             Archive = archive;
 
-            ImageIndex = 0;
-            SelectedImageIndex = 0;
+            ImageKey = "Archive";
+            SelectedImageKey = "Archive";
 
             Close();
         }
