@@ -38,7 +38,7 @@ namespace MintWorkshop
         [GeneratedRegex(@"\.raw ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2})")]
         internal static partial Regex Raw();
 
-        [GeneratedRegex(@"class ([./0-9A-Z_a-z<>\[\]^]+)")]
+        [GeneratedRegex(@"(invalid|class|enum|interface|pod|rawptr|struct|unknown_7|utility) ([./0-9A-Z_a-z<>\[\]^]+)")]
         internal static partial Regex Object();
 
         // return of the world's second worst regex
@@ -75,6 +75,19 @@ namespace MintWorkshop
 
     public static class FunctionUtil
     {
+        static Dictionary<string, ObjectType> TypeKeywords = new Dictionary<string, ObjectType>()
+        {
+            { "invalid", ObjectType.Invalid },
+            { "class", ObjectType.Class },
+            { "enum", ObjectType.Enum },
+            { "interface", ObjectType.Interface },
+            { "pod", ObjectType.Pod },
+            { "rawptr", ObjectType.Rawptr },
+            { "struct", ObjectType.Struct },
+            { "unknown_7", ObjectType.Unknown_7 },
+            { "utility", ObjectType.Utility },
+        };
+
         public static string Disassemble(Module module, MintObject obj, MintFunction func, byte[] version, ref Dictionary<uint, string> hashes)
         {
             string text = "";
@@ -1158,7 +1171,7 @@ namespace MintWorkshop
                     if (!string.IsNullOrWhiteSpace(flags))
                         flags += " ";
 
-                    text += $"\t{flags}class {obj.Name}";
+                    text += $"\t{flags}{obj.Type.ToString().ToLower()} {obj.Name}";
                 }
 
                 List<string> impl = new List<string>();
@@ -1237,6 +1250,9 @@ namespace MintWorkshop
                 }
 
                 text += "\t}\n";
+
+                if (i < module.Objects.Count - 1)
+                    text += "\t\n";
             }
 
             text += "}";
@@ -1273,6 +1289,9 @@ namespace MintWorkshop
                 }
 
                 text += "\t}\n";
+
+                if (i < module.Objects.Count - 1)
+                    text += "\t\n";
             }
 
             text += "}";
@@ -2861,10 +2880,11 @@ namespace MintWorkshop
                 if (match.Success)
                 {
                     MintObject obj = new MintObject();
-                    obj.Name = match.Groups[1].Value;
+                    obj.Type = TypeKeywords[match.Groups[1].Value];
+                    obj.Name = match.Groups[2].Value;
 
                     string[] objFlags = line.Substring(0, match.Groups[1].Index).Split(' ').ToArray();
-                    obj.Flags = ParseFlags(objFlags, FlagLabels.ClassFlags);
+                    obj.Flags = (byte)ParseFlags(objFlags, FlagLabels.ClassFlags);
 
                     if (line.Contains(':'))
                     {

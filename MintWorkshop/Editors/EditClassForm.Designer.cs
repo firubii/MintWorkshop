@@ -37,6 +37,8 @@
             implementsLabel = new System.Windows.Forms.Label();
             extendsLabel = new System.Windows.Forms.Label();
             extends = new System.Windows.Forms.TextBox();
+            typeLabel = new System.Windows.Forms.Label();
+            type = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)flags).BeginInit();
             SuspendLayout();
             // 
@@ -55,13 +57,13 @@
             name.Location = new System.Drawing.Point(90, 7);
             name.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             name.Name = "name";
-            name.Size = new System.Drawing.Size(312, 23);
+            name.Size = new System.Drawing.Size(313, 23);
             name.TabIndex = 1;
             // 
             // flagsLabel
             // 
             flagsLabel.AutoSize = true;
-            flagsLabel.Location = new System.Drawing.Point(10, 39);
+            flagsLabel.Location = new System.Drawing.Point(10, 67);
             flagsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             flagsLabel.Name = "flagsLabel";
             flagsLabel.Size = new System.Drawing.Size(34, 15);
@@ -70,7 +72,7 @@
             // 
             // flags
             // 
-            flags.Location = new System.Drawing.Point(90, 37);
+            flags.Location = new System.Drawing.Point(90, 65);
             flags.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             flags.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
             flags.Name = "flags";
@@ -79,10 +81,10 @@
             // 
             // okButton
             // 
-            okButton.Location = new System.Drawing.Point(14, 127);
+            okButton.Location = new System.Drawing.Point(14, 155);
             okButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(388, 27);
+            okButton.Size = new System.Drawing.Size(389, 27);
             okButton.TabIndex = 4;
             okButton.Text = "OK";
             okButton.UseVisualStyleBackColor = true;
@@ -90,16 +92,16 @@
             // 
             // implements
             // 
-            implements.Location = new System.Drawing.Point(90, 67);
+            implements.Location = new System.Drawing.Point(90, 95);
             implements.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             implements.Name = "implements";
-            implements.Size = new System.Drawing.Size(312, 23);
+            implements.Size = new System.Drawing.Size(313, 23);
             implements.TabIndex = 5;
             // 
             // implementsLabel
             // 
             implementsLabel.AutoSize = true;
-            implementsLabel.Location = new System.Drawing.Point(10, 70);
+            implementsLabel.Location = new System.Drawing.Point(10, 98);
             implementsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             implementsLabel.Name = "implementsLabel";
             implementsLabel.Size = new System.Drawing.Size(70, 15);
@@ -109,7 +111,7 @@
             // extendsLabel
             // 
             extendsLabel.AutoSize = true;
-            extendsLabel.Location = new System.Drawing.Point(10, 100);
+            extendsLabel.Location = new System.Drawing.Point(10, 128);
             extendsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             extendsLabel.Name = "extendsLabel";
             extendsLabel.Size = new System.Drawing.Size(48, 15);
@@ -118,17 +120,39 @@
             // 
             // extends
             // 
-            extends.Location = new System.Drawing.Point(90, 97);
+            extends.Location = new System.Drawing.Point(90, 125);
             extends.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             extends.Name = "extends";
-            extends.Size = new System.Drawing.Size(312, 23);
+            extends.Size = new System.Drawing.Size(313, 23);
             extends.TabIndex = 7;
+            // 
+            // typeLabel
+            // 
+            typeLabel.AutoSize = true;
+            typeLabel.Location = new System.Drawing.Point(10, 39);
+            typeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            typeLabel.Name = "typeLabel";
+            typeLabel.Size = new System.Drawing.Size(31, 15);
+            typeLabel.TabIndex = 9;
+            typeLabel.Text = "Type";
+            // 
+            // type
+            // 
+            type.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            type.FormattingEnabled = true;
+            type.Items.AddRange(new object[] { "Invalid", "Class", "Enum", "Interface", "Pod", "Rawptr", "Struct", "Unknown_7", "Utility" });
+            type.Location = new System.Drawing.Point(90, 36);
+            type.Name = "type";
+            type.Size = new System.Drawing.Size(313, 23);
+            type.TabIndex = 10;
             // 
             // EditClassForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(416, 164);
+            ClientSize = new System.Drawing.Size(416, 193);
+            Controls.Add(type);
+            Controls.Add(typeLabel);
             Controls.Add(extendsLabel);
             Controls.Add(extends);
             Controls.Add(implementsLabel);
@@ -160,5 +184,7 @@
         private System.Windows.Forms.Label implementsLabel;
         private System.Windows.Forms.Label extendsLabel;
         private System.Windows.Forms.TextBox extends;
+        private System.Windows.Forms.Label typeLabel;
+        private System.Windows.Forms.ComboBox type;
     }
 }

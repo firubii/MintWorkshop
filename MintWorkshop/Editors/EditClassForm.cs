@@ -25,6 +25,7 @@ namespace MintWorkshop.Editors
             InitializeComponent();
 
             name.Text = _object.Name;
+            type.SelectedIndex = (int)_object.Type;
             flags.Value = _object.Flags;
 
             for (int i = 0; i < _object.Implements.Count; i++)
@@ -68,6 +69,8 @@ namespace MintWorkshop.Editors
             }
 
             ModuleFormat format = archive.GetModuleFormat();
+            type.Visible = format > ModuleFormat.RtDL;
+            typeLabel.Visible = format > ModuleFormat.RtDL;
             flags.Visible = format > ModuleFormat.RtDL;
             flagsLabel.Visible = format > ModuleFormat.RtDL;
 
@@ -86,6 +89,8 @@ namespace MintWorkshop.Editors
 
             name.Text = _object.Name;
 
+            type.Visible = false;
+            typeLabel.Visible = false;
             flags.Visible = false;
             flagsLabel.Visible = false;
             implements.Visible = false;
@@ -100,7 +105,8 @@ namespace MintWorkshop.Editors
 
             if (_module != null)
             {
-                _object.Flags = (uint)flags.Value;
+                _object.Type = (ObjectType)type.SelectedIndex;
+                _object.Flags = (byte)flags.Value;
 
                 _object.Implements = new List<uint>();
                 string[] xrefs = FunctionUtil.Tokenize(implements.Text);
