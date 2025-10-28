@@ -271,29 +271,16 @@ namespace MintWorkshop
             hashes.Clear();
             hashes = new Dictionary<uint, string>();
 
+            List<string> versions = new List<string>();
+
             foreach (var ctx in archives)
             {
                 if (ctx.Archive == null)
                     continue;
 
                 Archive archive = ctx.Archive;
-                if (File.Exists(exeDir + $"\\hashes_{archive.GetVersionString()}.txt"))
-                {
-                    Console.WriteLine($"Hash file found for version {archive.GetVersionString()}");
-                    using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{archive.GetVersionString()}.txt"))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string line = reader.ReadLine();
-                            if (!line.StartsWith("#"))
-                            {
-                                uint hash = Crc32C.CalculateInv(line);
-                                if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
-                            }
-                        }
-                    }
-                    Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
-                }
+                if (!versions.Contains(archive.GetVersionString()))
+                    versions.Add(archive.GetVersionString());
 
                 for (int i = 0; i < archive.Modules.Count; i++)
                 {
@@ -319,6 +306,27 @@ namespace MintWorkshop
                                 hashes.Add(hash, obj.Name + "." + obj.Functions[j].NameWithoutType());
                         }
                     }
+                }
+            }
+
+            for (int i = 0; i < versions.Count; i++)
+            {
+                if (File.Exists(exeDir + $"\\hashes_{versions[i]}.txt"))
+                {
+                    Console.WriteLine($"Hash file found for version {versions[i]}");
+                    using (StreamReader reader = new StreamReader(exeDir + $"\\hashes_{versions[i]}.txt"))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string line = reader.ReadLine();
+                            if (!line.StartsWith("#"))
+                            {
+                                uint hash = Crc32C.CalculateInv(line);
+                                if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
+                            }
+                        }
+                    }
+                    Console.WriteLine($"Finished reading {hashes.Keys.Count} hashes");
                 }
             }
 
