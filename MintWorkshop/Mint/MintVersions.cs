@@ -483,7 +483,7 @@ namespace MintWorkshop.Mint
                     new Opcode("jmppos", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}, Action.Jump),
                     new Opcode("jmpneg", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}, Action.Jump),
                     new Opcode("fenter", new InstructionArg[] {InstructionArg.Z,InstructionArg.X,InstructionArg.Y}),
-                    new Opcode("fleave", new InstructionArg[] {InstructionArg.RegY}, Action.Return),
+                    new Opcode("fleave", new InstructionArg[] {InstructionArg.RegX}, Action.Return),
                     new Opcode("call",   new InstructionArg[] {InstructionArg.RegZ,InstructionArg.XRefV}),
                     new Opcode("callnv", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.XRefV}),
                     new Opcode("calltv", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.XRefV}),
