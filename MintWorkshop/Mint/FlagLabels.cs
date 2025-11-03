@@ -21,12 +21,14 @@ namespace MintWorkshop.Mint
         {
             {  0x1, "partial" },
             {  0x2, "destructor" },
+            {  0x4, "final" },
         };
 
         public static Dictionary<uint, string> VariableFlags = new Dictionary<uint, string>()
         {
             {  0x1, "static" },
             {  0x2, "disposable" },
+
             {  0x8, "array" },
         };
 
