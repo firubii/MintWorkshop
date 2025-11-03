@@ -2941,7 +2941,7 @@ namespace MintWorkshop
                             MintVariable mVar = new MintVariable(type, name);
 
                             string[] flags = line.Substring(0, objMatch.Groups[1].Index).Split(' ').ToArray();
-                            mVar.Flags = ParseFlags(flags, FlagLabels.VariableFlags);
+                            mVar.Flags = (byte)ParseFlags(flags, FlagLabels.VariableFlags);
 
                             obj.Variables.Add(mVar);
 
@@ -3105,7 +3105,7 @@ namespace MintWorkshop
                             MintVariable mVar = new MintVariable(type, name);
 
                             string[] flags = line.Substring(0, objMatch.Groups[1].Index).Split(' ').ToArray();
-                            mVar.Flags = ParseFlags(flags, FlagLabels.VariableFlags);
+                            mVar.Flags = (byte)ParseFlags(flags, FlagLabels.VariableFlags);
 
                             obj.Variables.Add(mVar);
 

@@ -71,7 +71,7 @@
             // 
             flags.Location = new System.Drawing.Point(93, 74);
             flags.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            flags.Maximum = new decimal(new int[] { -1, 0, 0, 0 });
+            flags.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             flags.Name = "flags";
             flags.Size = new System.Drawing.Size(313, 23);
             flags.TabIndex = 10;

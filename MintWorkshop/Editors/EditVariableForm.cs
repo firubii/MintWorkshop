@@ -34,7 +34,7 @@ namespace MintWorkshop.Editors
         {
             _variable.Name = name.Text;
             _variable.Type = type.Text;
-            _variable.Flags = (uint)flags.Value;
+            _variable.Flags = (byte)flags.Value;
 
             DialogResult = DialogResult.OK;
         }
