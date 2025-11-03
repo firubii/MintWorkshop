@@ -166,7 +166,7 @@
             Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             Name = "EditClassForm";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            Text = "Edit Class";
+            Text = "Edit Object";
             ((System.ComponentModel.ISupportInitialize)flags).EndInit();
             ResumeLayout(false);
             PerformLayout();
