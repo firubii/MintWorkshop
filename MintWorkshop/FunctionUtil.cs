@@ -2155,6 +2155,8 @@ namespace MintWorkshop
             for (int i = 0; i < text.Count; i++)
             {
                 string line = text[i];
+                if (string.IsNullOrWhiteSpace(line) || line.EndsWith(':'))
+                    continue;
 
                 if (MintRegex.Raw().IsMatch(line))
                     continue;
@@ -2228,6 +2230,8 @@ namespace MintWorkshop
             for (int i = 0; i < text.Count; i++)
             {
                 string line = text[i];
+                if (string.IsNullOrWhiteSpace(line) || line.EndsWith(':'))
+                    continue;
 
                 if (MintRegex.Raw().IsMatch(line))
                     continue;
@@ -3086,7 +3090,8 @@ namespace MintWorkshop
                 if (match.Success)
                 {
                     MintObject obj = new MintObject();
-                    obj.Name = match.Groups[1].Value;
+                    obj.Type = ObjectType.Class;
+                    obj.Name = match.Groups[2].Value;
 
                     while (!line.EndsWith("{"))
                         line = text[i++].Trim();
