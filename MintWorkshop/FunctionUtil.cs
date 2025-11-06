@@ -2930,6 +2930,9 @@ namespace MintWorkshop
                                 ? uint.Parse(hashMatch.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)
                                 : Crc32C.CalculateInv(inheritance[h]);
 
+                            if (!module.XRef.Contains(hash))
+                                module.XRef.Add(hash);
+
                             obj.Implements.Add(hash);
                         }
                     }
