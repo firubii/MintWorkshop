@@ -509,7 +509,8 @@ namespace MintWorkshop
                                 {
                                     List<byte> bytes = new List<byte>();
                                     bool utf16 = false;
-                                    for (int s = reg * 4; s < sdata.Length; s++)
+                                    int start = (reg & 0x7F) * 4;
+                                    for (int s = start; s < sdata.Length; s++)
                                     {
                                         if (sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
@@ -1036,7 +1037,8 @@ namespace MintWorkshop
                                 {
                                     List<byte> bytes = new List<byte>();
                                     bool utf16 = false;
-                                    for (int s = reg * 4; s < sdata.Length; s++)
+                                    int start = (reg & 0x7F) * 4;
+                                    for (int s = start; s < sdata.Length; s++)
                                     {
                                         if (sdata[s] == 0x00 && ((s & 0x1) == 0x1))
                                         {
@@ -1300,18 +1302,20 @@ namespace MintWorkshop
         }
 
         static readonly char[] token_delim = { ',' };
-        static readonly char[] token_open = { '(', '\"', '[', '<' };
-        static readonly char[] token_close = { ')', '\"', ']', '>' };
+        static readonly char[] token_string = { '\"' };
+        static readonly char[] token_open = { '(', '[', '<' };
+        static readonly char[] token_close = { ')', ']', '>' };
 
         // Really basic tokenize function
         public static string[] Tokenize(string text)
         {
             List<string> tokens = new List<string>();
             string token = "";
+            bool isString = false;
             int nest = 0;
             for (int i = 0; i < text.Length; i++)
             {
-                if ((char.IsWhiteSpace(text[i]) || token_delim.Contains(text[i])) && nest == 0)
+                if ((char.IsWhiteSpace(text[i]) || token_delim.Contains(text[i])) && nest == 0 && !isString)
                 {
                     if (!string.IsNullOrWhiteSpace(token))
                         tokens.Add(token);
@@ -1320,10 +1324,17 @@ namespace MintWorkshop
                 else
                 {
                     token += text[i];
-                    if (token_open.Contains(text[i]) && text[i - 1] != '\\')
-                        nest++;
-                    else if (token_close.Contains(text[i]) && text[i - 1] != '\\')
-                        nest--;
+
+                    if (token_string.Contains(text[i]) && text[i - 1] != '\\')
+                        isString = !isString;
+
+                    if (!isString)
+                    {
+                        if (token_open.Contains(text[i]) && text[i - 1] != '\\')
+                            nest++;
+                        else if (token_close.Contains(text[i]) && text[i - 1] != '\\')
+                            nest--;
+                    }
                 }
 
                 if (nest < 0)
@@ -1419,11 +1430,20 @@ namespace MintWorkshop
             if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
-            ByteArrayComparer comparer = new ByteArrayComparer();
             int index = -1;
-            for (int s = 0; s < module.SData.Count - value.Length; s += 4)
+            for (int s = 0; s <= module.SData.Count - value.Length; s += 4)
             {
-                if (comparer.Equals(value, module.SData.GetRange(s, value.Length).ToArray()))
+                bool match = true;
+                for (int i = 0; i < value.Length; i++)
+                {
+                    if (module.SData[s + i] != value[i])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
                 {
                     index = s;
                     break;
@@ -1448,11 +1468,20 @@ namespace MintWorkshop
             if (!ignoreEndianness && module.XData.Endianness == Endianness.Big)
                 value = value.Reverse().ToArray();
 
-            ByteArrayComparer comparer = new ByteArrayComparer();
             int index = -1;
-            for (int s = 0; s < module.SData.Count - value.Length; s += 4)
+            for (int s = 0; s <= module.SData.Count - value.Length; s += 4)
             {
-                if (comparer.Equals(value, module.SData.GetRange(s, value.Length).ToArray()))
+                bool match = true;
+                for (int i = 0; i < value.Length; i++)
+                {
+                    if (module.SData[s + i] != value[i])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
                 {
                     index = s;
                     break;
