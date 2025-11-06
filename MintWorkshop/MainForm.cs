@@ -1634,5 +1634,52 @@ namespace MintWorkshop
                 UseShellExecute = true
             });
         }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            NewArchiveForm form = new NewArchiveForm();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                ArchiveContext ctx = new ArchiveContext();
+                ctx.Path = form.ArcName + ".bin";
+
+                arcTree.BeginUpdate();
+                if (form.Version.SequenceEqual(RTDL_VERSION))
+                {
+                    ArchiveRtDL archive = new ArchiveRtDL();
+                    archive.XData.Version = new byte[] { 2, 0 };
+                    archive.XData.Endianness = form.LittleEndian ? Endianness.Little : Endianness.Big;
+
+                    ctx.ArchiveRtDL = archive;
+
+                    arcTree.Nodes.Add(new ArchiveRtDLTreeNode(archive)
+                    {
+                        Text = $"{ctx.Path} ({archive.GetVersionString()})",
+                        ContextMenuStrip = archiveMenuStrip
+                    });
+                }
+                else
+                {
+                    Archive archive = new Archive(form.Version);
+                    archive.XData.Version = new byte[] { 2, 0 };
+                    archive.XData.Endianness = form.LittleEndian ? Endianness.Little : Endianness.Big;
+
+                    ctx.Archive = archive;
+
+                    arcTree.Nodes.Add(new ArchiveTreeNode(archive)
+                    {
+                        Text = $"{ctx.Path} ({archive.GetVersionString()})",
+                        ContextMenuStrip = archiveMenuStrip
+                    });
+                }
+
+                archives.Add(ctx);
+
+                UpdateArchiveNodes();
+                arcTree.EndUpdate();
+
+                closeToolStripMenuItem.Enabled = true;
+            }
+        }
     }
 }
