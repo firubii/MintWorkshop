@@ -1219,7 +1219,7 @@ namespace MintWorkshop.Mint
                     new Opcode("dcall",  new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}),
                     new Opcode("fret",   new InstructionArg[] {InstructionArg.RegZ}, Action.Return),
                     new Opcode("fleave", new InstructionArg[] {InstructionArg.RegY}, Action.Return),
-                    new Opcode("fretpd", new InstructionArg[] {InstructionArg.RegY}, Action.Return),
+                    new Opcode("fretpd", new InstructionArg[] {InstructionArg.RegZ, InstructionArg.XRefV}, Action.Return),
                     new Opcode("jmp",    new InstructionArg[] {InstructionArg.VSigned}, Action.Jump),
                     new Opcode("jmpneg", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}, Action.Jump),
                     new Opcode("jmppos", new InstructionArg[] {InstructionArg.RegZ,InstructionArg.VSigned}, Action.Jump),
