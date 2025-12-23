@@ -66,6 +66,45 @@ namespace MintWorkshop.Util
         }
     }
 
+    public class UIntArrayComparer : EqualityComparer<uint[]>
+    {
+        public static bool Equal(uint[] left, uint[] right)
+        {
+            return new UIntArrayComparer().Equals(left, right);
+        }
+
+        public override bool Equals(uint[] left, uint[] right)
+        {
+            if (left == null || right == null)
+            {
+                return left == right;
+            }
+            if (left.Length != right.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < left.Length; i++)
+            {
+                if (left[i] != right[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public override int GetHashCode(uint[] key)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+            uint sum = 0;
+            foreach (uint cur in key)
+            {
+                sum += cur;
+            }
+            return (int)sum;
+        }
+    }
+
     // From https://stackoverflow.com/a/487757
     public static class DrawingControl
     {

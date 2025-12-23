@@ -16,8 +16,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 using WindowsAPICodePack.Dialogs;
 
 namespace MintWorkshop
@@ -1682,6 +1684,448 @@ namespace MintWorkshop
                 arcTree.EndUpdate();
 
                 closeToolStripMenuItem.Enabled = true;
+            }
+        }
+        {
+            if (arcTree.SelectedNode is not ArchiveTreeNode && arcTree.SelectedNode is not ArchiveRtDLTreeNode)
+                return;
+
+            ArchiveContext ctx = archives[arcTree.SelectedNode.Index];
+
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Mint Project|*.mntproj";
+            save.FileName = Path.GetFileNameWithoutExtension(ctx.Path.Replace(".cmp", "")) + ".mntproj";
+            save.AddExtension = true;
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                string projectPath = Path.GetDirectoryName(save.FileName);
+
+                XmlDocument doc = new XmlDocument();
+                doc.AppendChild(doc.CreateXmlDeclaration("1.0", "utf-8", null));
+
+                var root = doc.CreateElement("Project");
+                doc.AppendChild(root);
+
+                XData arcXData = ctx.ArchiveRtDL != null ? ctx.ArchiveRtDL.XData : ctx.Archive.XData;
+                var xdata = doc.CreateElement("XData");
+                xdata.SetAttribute("version", string.Join(".", arcXData.Version));
+                xdata.SetAttribute("endianness", arcXData.Endianness.ToString());
+                root.AppendChild(xdata);
+
+                var mint = doc.CreateElement("Mint");
+                mint.SetAttribute("version", ctx.ArchiveRtDL != null ? ctx.ArchiveRtDL.GetVersionString() : ctx.Archive.GetVersionString());
+                root.AppendChild(mint);
+
+                var cmp = doc.CreateElement("Compressed");
+                cmp.InnerText = ctx.IsCompressed.ToString();
+                root.AppendChild(cmp);
+
+                var includeMints = doc.CreateElement("IncludeMints");
+                includeMints.InnerText = "True";
+                root.AppendChild(includeMints);
+
+                var includeBin = doc.CreateElement("IncludeBin");
+                includeBin.InnerText = "False";
+                root.AppendChild(includeBin);
+
+                var exclude = doc.CreateElement("Exclude");
+                exclude.InnerText = "";
+                root.AppendChild(exclude);
+
+                doc.Save(save.FileName);
+
+                ProgressBar progress = new ProgressBar();
+
+                if (ctx.ArchiveRtDL != null)
+                {
+                    ArchiveRtDL archive = ctx.ArchiveRtDL;
+                    progress.SetTitle("Exporting Modules...");
+                    progress.SetValue(0);
+                    progress.SetMax(archive.Modules.Count);
+
+                    Task.Run(() =>
+                    {
+                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
+                        for (int i = 0; i < archive.Modules.Count; i++)
+                        {
+                            var mod = archive.Modules[i];
+                            Invoke((MethodInvoker)delegate
+                            {
+                                progress.SetStatus("Exporting " + mod.Name);
+                                progress.SetValue(i);
+                            });
+
+                            string path = Path.Combine(projectPath, string.Join(Path.DirectorySeparatorChar, mod.Name.Split('.').Take(mod.Name.Count(x => x == '.'))));
+                            if (!Directory.Exists(path))
+                                Directory.CreateDirectory(path);
+
+                            File.WriteAllText(Path.Combine(projectPath, mod.Name.Replace('.', '\\') + ".mints"), FunctionUtil.Disassemble(mod));
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.Close();
+                        });
+                    });
+                }
+                else
+                {
+                    Archive archive = ctx.Archive;
+                    progress.SetTitle("Exporting Modules...");
+                    progress.SetValue(0);
+                    progress.SetMax(archive.Modules.Count);
+
+                    Task.Run(() =>
+                    {
+                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
+                        for (int i = 0; i < archive.Modules.Count; i++)
+                        {
+                            var mod = archive.Modules[i];
+                            Invoke((MethodInvoker)delegate
+                            {
+                                progress.SetStatus("Exporting " + mod.Name);
+                                progress.SetValue(i);
+                            });
+
+                            string path = Path.Combine(projectPath, string.Join(Path.DirectorySeparatorChar, mod.Name.Split('.').Take(mod.Name.Count(x => x == '.'))));
+                            if (!Directory.Exists(path))
+                                Directory.CreateDirectory(path);
+
+                            File.WriteAllText(Path.Combine(projectPath, mod.Name.Replace('.', '\\') + ".mints"), FunctionUtil.Disassemble(mod, archive.Version, ref hashes));
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.Close();
+                        });
+                    });
+                }
+            }
+        }
+
+        static byte[] ParseVersion(string version, int length)
+        {
+            byte[] v = new byte[length];
+            string[] split = version.Split('.');
+            for (int i = 0; i < Math.Min(split.Length, v.Length); i++)
+                v[i] = byte.Parse(split[i]);
+
+            return v;
+        }
+
+        private void buildMintProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Mint Project|*.mntproj";
+            open.Multiselect = false;
+            open.AddExtension = true;
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                XmlDocument xml = new XmlDocument();
+                xml.Load(open.FileName);
+
+                byte[] mintVer = ParseVersion(xml["Project"]["Mint"].GetAttribute("version"), 4);
+
+                string path = Path.GetDirectoryName(open.FileName);
+                string filePath = Path.ChangeExtension(Path.GetFullPath(open.FileName), ".bin");
+
+                List<string> buildFiles = new List<string>();
+                if (xml["Project"]["IncludeMints"] != null && bool.Parse(xml["Project"]["IncludeMints"].InnerText))
+                    buildFiles.AddRange(Directory.GetFiles(path, "*.mints", SearchOption.AllDirectories));
+                if (xml["Project"]["IncludeBin"] != null && bool.Parse(xml["Project"]["IncludeBin"].InnerText))
+                    buildFiles.AddRange(Directory.GetFiles(path, "*.bin", SearchOption.AllDirectories));
+
+                buildFiles.Remove(filePath);
+
+                string[] exclude = xml["Project"]["Exclude"].InnerText.Split('\n');
+                for (int f = 0; f < buildFiles.Count; f++)
+                {
+                    for (int i = 0; i < exclude.Length; i++)
+                    {
+                        if (buildFiles[f] == path + "\\" + exclude[i])
+                        {
+                            buildFiles.RemoveAt(f);
+                            f--;
+                        }
+                    }
+                }
+
+                bool isCompressed = xml["Project"]["Compressed"] != null && bool.Parse(xml["Project"]["Compressed"].InnerText);
+
+                if (mintVer.SequenceEqual(RTDL_VERSION))
+                {
+                    ArchiveRtDL archive = new ArchiveRtDL();
+                    archive.XData.Version = ParseVersion(xml["Project"]["XData"].GetAttribute("version"), 2);
+                    archive.XData.Endianness = Enum.Parse<Endianness>(xml["Project"]["XData"].GetAttribute("endianness"));
+
+                    ProgressBar progress = new ProgressBar();
+                    progress.SetTitle("Importing Modules...");
+                    progress.SetValue(0);
+                    progress.SetMax(buildFiles.Count);
+
+                    Task.Run(() =>
+                    {
+                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
+                        for (int i = 0; i < buildFiles.Count; i++)
+                        {
+                            Invoke((MethodInvoker)delegate
+                            {
+                                progress.SetStatus("Assembling " + buildFiles[i].Replace(path + "\\", ""));
+                                progress.SetValue(i);
+                            });
+
+                            ModuleRtDL mod = OpenModuleRtDL(buildFiles[i], archive);
+                            mod.XData.Version = archive.XData.Version;
+                            mod.XData.Endianness = archive.XData.Endianness;
+                            archive.Modules.Add(mod);
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetTitle("Saving...");
+                            progress.SetStatus("");
+                            progress.SetValue(0);
+                            progress.SetMax(1);
+                        });
+
+                        if (isCompressed)
+                        {
+                            Invoke((MethodInvoker)delegate
+                            {
+                                MemoryStream stream = new MemoryStream();
+                                EndianBinaryWriter writer = new EndianBinaryWriter(stream);
+
+                                archive.Write(writer);
+
+                                writer.BaseStream.Seek(0, SeekOrigin.End);
+                                byte[] buffer = stream.GetBuffer().Take((int)writer.BaseStream.Position).ToArray();
+                                unsafe
+                                {
+                                    fixed (byte* b = &buffer[0])
+                                    {
+                                        using (FileStream file = new FileStream(filePath + ".cmp", FileMode.Create, FileAccess.Write))
+                                            Compressor.Compact(CompressionType.ExtendedLZ77, new VoidPtr { address = b }, buffer.Length, file, new RawDataNode { _mainForm = Program.MainForm, Name = "Mint Archive" });
+                                    }
+                                }
+
+                                writer.Dispose();
+                                stream.Dispose();
+                            });
+                        }
+                        else
+                        {
+                            using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write)))
+                                archive.Write(writer);
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.Close();
+                        });
+                    });
+                }
+                else
+                {
+                    Archive archive = new Archive(mintVer);
+                    archive.XData.Version = ParseVersion(xml["Project"]["XData"].GetAttribute("version"), 2);
+                    archive.XData.Endianness = Enum.Parse<Endianness>(xml["Project"]["XData"].GetAttribute("endianness"));
+
+                    ProgressBar progress = new ProgressBar();
+                    progress.SetTitle("Importing Modules...");
+                    progress.SetValue(0);
+                    progress.SetMax(buildFiles.Count);
+
+                    Task.Run(() =>
+                    {
+                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
+                        for (int i = 0; i < buildFiles.Count; i++)
+                        {
+                            Invoke((MethodInvoker)delegate
+                            {
+                                progress.SetStatus("Assembling " + buildFiles[i].Replace(path + "\\", ""));
+                                progress.SetValue(i);
+                            });
+
+                            Module mod = OpenModule(buildFiles[i], archive);
+                            mod.XData.Version = archive.XData.Version;
+                            mod.XData.Endianness = archive.XData.Endianness;
+                            archive.Modules.Add(mod);
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetTitle("Saving...");
+                            progress.SetStatus("");
+                            progress.SetValue(0);
+                            progress.SetMax(1);
+                        });
+
+                        if (isCompressed)
+                        {
+                            MemoryStream stream = new MemoryStream();
+                            EndianBinaryWriter writer = new EndianBinaryWriter(stream);
+
+                            archive.Write(writer);
+
+                            writer.BaseStream.Seek(0, SeekOrigin.End);
+                            byte[] buffer = stream.GetBuffer().Take((int)writer.BaseStream.Position).ToArray();
+                            unsafe
+                            {
+                                fixed (byte* b = &buffer[0])
+                                {
+                                    using (FileStream file = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                                        Compressor.Compact(CompressionType.ExtendedLZ77, new VoidPtr { address = b }, buffer.Length, file, new RawDataNode { _mainForm = Program.MainForm, Name = "Mint Archive" });
+                                }
+                            }
+
+                            writer.Dispose();
+                            stream.Dispose();
+                        }
+                        else
+                        {
+                            using (EndianBinaryWriter writer = new EndianBinaryWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write)))
+                                archive.Write(writer);
+                        }
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetValue(1);
+                            progress.Close();
+                        });
+                    });
+                }
+            }
+        }
+
+        private void compareArchivesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Title = "Open Mint Archive";
+            open.Filter = "Binary Files|*.bin;*.bin.cmp";
+            open.CheckFileExists = true;
+            open.AddExtension = true;
+            open.DefaultExt = ".bin";
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                string baseArchive = open.FileName;
+                string compArchive;
+                if (open.ShowDialog() == DialogResult.OK)
+                    compArchive = open.FileName;
+                else
+                    return;
+
+                Archive _base;
+                Archive _compare;
+                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(baseArchive, FileMode.Open, FileAccess.Read)))
+                    _base = new Archive(reader);
+                using (EndianBinaryReader reader = new EndianBinaryReader(new FileStream(compArchive, FileMode.Open, FileAccess.Read)))
+                    _compare = new Archive(reader);
+
+                StringBuilder log = new StringBuilder();
+                if (_base.GetVersionString() != _compare.GetVersionString())
+                {
+                    log.AppendLine($"Archives have differing versions! Cannot compare {_base.GetVersionString()} to {_compare.GetVersionString()}");
+                    return;
+                }
+
+                for (int i = 0; i < _base.Modules.Count; i++)
+                {
+                    Module _baseMod = _base[i];
+                    if (_compare.ModuleExists(_baseMod.Name))
+                    {
+                        Module _compareMod = _compare[_baseMod.Name];
+                        if (_baseMod.UnkHash != _compareMod.UnkHash)
+                            log.AppendLine($"Module \"{_baseMod.Name}\" differs in UnkHash: {_baseMod.UnkHash:X8} vs. {_compareMod.UnkHash:X8}");
+
+                        if (ByteArrayComparer.Equal(_baseMod.SData.ToArray(), _compareMod.SData.ToArray()))
+                            log.AppendLine($"Module \"{_baseMod.Name}\" differs in Constant Table");
+
+                        if (UIntArrayComparer.Equal(_baseMod.XRef.ToArray(), _baseMod.XRef.ToArray()))
+                            log.AppendLine($"Module \"{_baseMod.Name}\" differs in Symbol Table");
+                    }
+                    else
+                        log.AppendLine($"Archive does not contain a Module named \"{_baseMod.Name}\"");
+                }
+
+
+                for (int i = 0; i < _compare.Modules.Count; i++)
+                {
+                    Module _compareMod = _compare[i];
+                    if (!_base.ModuleExists(_compareMod.Name))
+                        log.AppendLine($"Modified Archive added Module \"{_compareMod.Name}\"");
+                }
+            }
+        }
+
+        private void batchDumpHashesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Title = "Open Mint Archives";
+            open.Filter = "Binary Files|*.bin;*.bin.cmp";
+            open.CheckFileExists = true;
+            open.AddExtension = true;
+            open.Multiselect = true;
+            open.DefaultExt = ".bin";
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                SaveFileDialog save = new SaveFileDialog();
+                save.Title = "Save hash file";
+                save.Filter = "Text Files|*.txt";
+                save.AddExtension = true;
+                save.DefaultExt = ".txt";
+                if (save.ShowDialog() != DialogResult.OK)
+                    return;
+
+                using (StreamWriter writer = new StreamWriter(new FileStream(save.FileName, FileMode.Create, FileAccess.Write)))
+                {
+                    for (int i = 0; i < open.FileNames.Length; i++)
+                    {
+                        string path = open.FileNames[i];
+
+                        Archive archive;
+                        bool isCompressed = false;
+                        using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+                        {
+                            EndianBinaryReader reader = new EndianBinaryReader(stream);
+                            if (reader.ReadByte() == 0x11)
+                            {
+                                isCompressed = true;
+                                DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(path)), CompressionType.LZ77);
+                                FileStream cmpStream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                                cmpStream.Lock(0, cmpStream.Length);
+                                reader = new EndianBinaryReader(cmpStream);
+                            }
+
+                            reader.BaseStream.Position = 0;
+                            archive = new Archive(reader);
+
+                            if (isCompressed)
+                                (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                            reader.Dispose();
+                        }
+
+                        writer.WriteLine("#" + Path.GetFileName(path));
+                        for (int m = 0; m < archive.Modules.Count; m++)
+                        {
+                            Module mod = archive[m];
+                            for (int o = 0; o < mod.Objects.Count; o++)
+                            {
+                                MintObject obj = mod.Objects[o];
+                                writer.WriteLine(obj.Name);
+                                for (int j = 0; j < obj.Variables.Count; j++)
+                                    writer.WriteLine(obj.Name + "." + obj.Variables[j].Name);
+                                for (int j = 0; j < obj.Functions.Count; j++)
+                                    writer.WriteLine(obj.Name + "." + obj.Functions[j].NameWithoutType());
+                            }
+                        }
+                        writer.WriteLine();
+                    }
+                }
             }
         }
     }
