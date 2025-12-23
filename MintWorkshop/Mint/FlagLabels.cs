@@ -10,11 +10,24 @@ namespace MintWorkshop.Mint
     {
         public static Dictionary<ushort, string> StdTypes = new Dictionary<ushort, string>()
         {
+            { 1, "void" },
             { 2, "bool" },
+            { 3, "byte" },
+            { 4, "ushort" },
             { 5, "uint" },
+            { 6, "ulong" },
+            { 7, "sbyte" },
+            { 8, "short" },
             { 9, "int" },
+            { 10, "long" },
             { 11, "float" },
+            { 12, "double" },
+            { 13, "char" },
             { 16, "string" },
+            { 17, "wstring" },
+            { 18, "register" },
+            { 19, "object" },
+            { 20, "null" },
         };
 
         public static Dictionary<uint, string> ClassFlags = new Dictionary<uint, string>()
