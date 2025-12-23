@@ -95,12 +95,11 @@ namespace MintWorkshop
                 ProgressBar progress = new ProgressBar();
                 Task.Run(() =>
                 {
+                    Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
                     for (int i = 0; i < open.FileNames.Length; i++)
                     {
                         string path = open.FileNames[i];
-
-                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
-
                         Invoke((MethodInvoker)delegate
                         {
                             progress.SetValue(0);
@@ -153,7 +152,6 @@ namespace MintWorkshop
                                 Text = Path.GetFileName(path) + $" ({archive.GetVersionString()})",
                                 ContextMenuStrip = archiveMenuStrip
                             });
-                            progress.Close();
 
                             UpdateArchiveNodes();
                             arcTree.EndUpdate();
@@ -168,6 +166,8 @@ namespace MintWorkshop
                         progress.SetTitle("Updating hash list...");
                     });
                     ReloadHashes();
+
+                    Invoke((MethodInvoker)delegate { progress.Close(); });
                 });
             }
         }
