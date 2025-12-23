@@ -88,80 +88,86 @@ namespace MintWorkshop
             open.Filter = "Binary Files|*.bin;*.bin.cmp";
             open.CheckFileExists = true;
             open.AddExtension = true;
+            open.Multiselect = true;
             open.DefaultExt = ".bin";
             if (open.ShowDialog() == DialogResult.OK)
             {
                 ProgressBar progress = new ProgressBar();
                 Task.Run(() =>
                 {
-                    Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
-
-                    Invoke((MethodInvoker)delegate
+                    for (int i = 0; i < open.FileNames.Length; i++)
                     {
-                        progress.SetValue(0);
-                        progress.SetMax(1);
-                        progress.SetTitle("Reading Archive...");
-                    });
+                        string path = open.FileNames[i];
 
-                    Archive archive;
-                    bool isCompressed = false;
-                    using (FileStream stream = new FileStream(open.FileName, FileMode.Open, FileAccess.Read))
-                    {
-                        EndianBinaryReader reader = new EndianBinaryReader(stream);
-                        if (reader.ReadByte() == 0x11)
+                        Task.Run(() => { Invoke((MethodInvoker)delegate { progress.ShowDialog(); }); });
+
+                        Invoke((MethodInvoker)delegate
                         {
-                            isCompressed = true;
-                            DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(open.FileName)), CompressionType.LZ77);
-                            FileStream cmpStream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
-                            cmpStream.Lock(0, cmpStream.Length);
-                            reader = new EndianBinaryReader(cmpStream);
+                            progress.SetValue(0);
+                            progress.SetMax(1);
+                            progress.SetTitle("Reading Archive...");
+                        });
+
+                        Archive archive;
+                        bool isCompressed = false;
+                        using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+                        {
+                            EndianBinaryReader reader = new EndianBinaryReader(stream);
+                            if (reader.ReadByte() == 0x11)
+                            {
+                                isCompressed = true;
+                                DataSource dataSrc = new DataSource(new MemoryStream(File.ReadAllBytes(path)), CompressionType.LZ77);
+                                FileStream cmpStream = Compressor.TryExpand(ref dataSrc, false).BaseStream;
+                                cmpStream.Lock(0, cmpStream.Length);
+                                reader = new EndianBinaryReader(cmpStream);
+                            }
+
+                            reader.BaseStream.Position = 0;
+                            archive = new Archive(reader);
+
+                            if (isCompressed)
+                                (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
+
+                            reader.Dispose();
                         }
 
-                        reader.BaseStream.Position = 0;
-                        archive = new Archive(reader);
-
-                        if (isCompressed)
-                            (reader.BaseStream as FileStream).Unlock(0, reader.BaseStream.Length);
-
-                        reader.Dispose();
-                    }
-
-                    archives.Add(new ArchiveContext()
-                    {
-                        Path = open.FileName,
-                        Archive = archive,
-                        IsCompressed = isCompressed
-                    });
-
-                    Invoke((MethodInvoker)delegate
-                    {
-                        progress.SetValue(0);
-                        progress.SetMax(1);
-                        progress.SetTitle("Updating hash list...");
-                    });
-                    ReloadHashes();
-
-                    Invoke((MethodInvoker)delegate
-                    {
-                        progress.SetValue(0);
-                        progress.SetMax(1);
-                        progress.SetTitle("Cleaning up...");
-                    });
-
-                    Invoke((MethodInvoker)delegate
-                    {
-                        arcTree.BeginUpdate();
-                        arcTree.Nodes.Add(new ArchiveTreeNode(archive)
+                        archives.Add(new ArchiveContext()
                         {
-                            Text = Path.GetFileName(open.FileName) + $" ({archive.GetVersionString()})",
-                            ContextMenuStrip = archiveMenuStrip
+                            Path = path,
+                            Archive = archive,
+                            IsCompressed = isCompressed
                         });
-                        progress.Close();
 
-                        UpdateArchiveNodes();
-                        arcTree.EndUpdate();
-                        closeToolStripMenuItem.Enabled = true;
-                    });
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetValue(0);
+                            progress.SetMax(1);
+                            progress.SetTitle("Updating hash list...");
+                        });
+                        ReloadHashes();
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            progress.SetValue(0);
+                            progress.SetMax(1);
+                            progress.SetTitle("Cleaning up...");
+                        });
+
+                        Invoke((MethodInvoker)delegate
+                        {
+                            arcTree.BeginUpdate();
+                            arcTree.Nodes.Add(new ArchiveTreeNode(archive)
+                            {
+                                Text = Path.GetFileName(path) + $" ({archive.GetVersionString()})",
+                                ContextMenuStrip = archiveMenuStrip
+                            });
+                            progress.Close();
+
+                            UpdateArchiveNodes();
+                            arcTree.EndUpdate();
+                            closeToolStripMenuItem.Enabled = true;
+                        });
+                    }
                 });
             }
         }
@@ -1686,6 +1692,8 @@ namespace MintWorkshop
                 closeToolStripMenuItem.Enabled = true;
             }
         }
+
+        private void exportToMintProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (arcTree.SelectedNode is not ArchiveTreeNode && arcTree.SelectedNode is not ArchiveRtDLTreeNode)
                 return;
