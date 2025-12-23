@@ -142,15 +142,7 @@ namespace MintWorkshop
                         {
                             progress.SetValue(0);
                             progress.SetMax(1);
-                            progress.SetTitle("Updating hash list...");
-                        });
-                        ReloadHashes();
-
-                        Invoke((MethodInvoker)delegate
-                        {
-                            progress.SetValue(0);
-                            progress.SetMax(1);
-                            progress.SetTitle("Cleaning up...");
+                            progress.SetTitle("Populating tree...");
                         });
 
                         Invoke((MethodInvoker)delegate
@@ -168,6 +160,14 @@ namespace MintWorkshop
                             closeToolStripMenuItem.Enabled = true;
                         });
                     }
+
+                    Invoke((MethodInvoker)delegate
+                    {
+                        progress.SetValue(0);
+                        progress.SetMax(1);
+                        progress.SetTitle("Updating hash list...");
+                    });
+                    ReloadHashes();
                 });
             }
         }
