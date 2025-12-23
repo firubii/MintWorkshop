@@ -1,6 +1,5 @@
 ﻿using KirbyLib.Mint;
 using MintWorkshop.Mint;
-using MintWorkshop.Util;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,11 +8,32 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using FastColoredTextBoxNS;
+
+using FCTBRange = FastColoredTextBoxNS.Range;
 
 namespace MintWorkshop.Editors
 {
     public class TextEditorTab : TabPage
     {
+        static readonly TextStyle Error = new TextStyle(new SolidBrush(Color.Red), null, FontStyle.Regular);
+        static readonly TextStyle Mneumonic = new TextStyle(new SolidBrush(Color.FromArgb(0, 0, 128)), null, FontStyle.Regular);
+        static readonly TextStyle MneumonicExt = new TextStyle(new SolidBrush(Color.FromArgb(0, 128, 255)), null, FontStyle.Regular);
+        static readonly TextStyle Register = new TextStyle(new SolidBrush(Color.FromArgb(155, 150, 50)), null, FontStyle.Regular);
+        static readonly TextStyle Constant = new TextStyle(new SolidBrush(Color.FromArgb(0, 128, 54)), null, FontStyle.Regular);
+        static readonly TextStyle String = new TextStyle(new SolidBrush(Color.FromArgb(100, 100, 100)), null, FontStyle.Regular);
+        static readonly TextStyle Label = new TextStyle(new SolidBrush(Color.FromArgb(180, 0, 240)), null, FontStyle.Regular);
+        static readonly TextStyle Comment = new TextStyle(new SolidBrush(Color.Green), null, FontStyle.Regular);
+
+        static readonly Regex ErrorRegex = new Regex(@"^.+?\s", RegexOptions.Multiline);
+        static readonly Regex RegisterRegex = new Regex(@"\b(r[0-9]+?)\b", RegexOptions.Multiline);
+        static readonly Regex ConstantRegex = new Regex(@"\b((?:(?:0x[0-9A-Fa-f]+)|(?:-?[0-9]+(?:\.[0-9]+)?f?)))\b", RegexOptions.Multiline);
+        static readonly Regex StringRegex = new Regex(@"\b(u?"".*?"")\b", RegexOptions.Multiline);
+        static readonly Regex LabelRefRegex = new Regex(@"(\b\S+?\b)(?:(?=.+\b\1:)|(?<=\b\1:.+))", RegexOptions.Singleline);
+        static readonly Regex LabelRegex = new Regex(@"(\S+?):", RegexOptions.Multiline);
+        static readonly Regex CommentRegex = new Regex(@"//.*$", RegexOptions.Multiline);
+        static readonly Regex CommentMultiRegex = new Regex(@"(/\*.*?\*/)|(/\*.*)", RegexOptions.Singleline);
+
         public byte[] Version;
 
         public bool IsLoading;
@@ -26,11 +46,12 @@ namespace MintWorkshop.Editors
         public MintObject Object;
         public MintFunction Function;
 
-        public RichTextBox TextBox;
+        public FastColoredTextBox TextBox;
 
+        AutocompleteMenu autoComplete;
+        Regex mnemonicRegex;
+        Regex mnemonicExRegex;
         bool isColoring;
-
-        List<Range> comments = new List<Range>();
 
         public TextEditorTab(Archive archive, Module module, MintObject obj, MintFunction function, byte[] version)
         {
@@ -55,11 +76,14 @@ namespace MintWorkshop.Editors
 
         private void Setup()
         {
-            TextBox = new RichTextBox();
+            mnemonicRegex = new Regex(@$"\b({string.Join('|',MintVersions.Versions[Version].Select(x => x.Name).Where(x => !x.StartsWith('_')))})\s+");
+            mnemonicExRegex = new Regex(@$"\b({string.Join('|', MintVersions.Versions[Version].Select(x => x.Name).Where(x => x.StartsWith('_')))})\s+");
+
+            TextBox = new FastColoredTextBox();
+            TextBox.Language = Language.Custom;
             TextBox.BorderStyle = BorderStyle.FixedSingle;
             TextBox.Dock = DockStyle.Fill;
             TextBox.Font = new Font(new FontFamily("Courier New"), MainForm.Config.FontSize);
-            TextBox.ScrollBars = RichTextBoxScrollBars.Both;
             TextBox.WordWrap = false;
 
             string[] flags = FunctionUtil.GetFlagLabels(Function.Flags, ref FlagLabels.FunctionFlags);
@@ -69,187 +93,103 @@ namespace MintWorkshop.Editors
             TextBox.AppendText("\n\n");
 
             TextBox.TextChanged += TextBox_TextChanged;
+            TextBox.KeyDown += TextBox_KeyDown;
 
             Controls.Add(TextBox);
+
+            autoComplete = new AutocompleteMenu(TextBox);
+            autoComplete.SearchPattern = @"[\w\.(),]";
+            autoComplete.AllowTabKey = true;
+            autoComplete.MinFragmentLength = 1;
+
+            List<AutocompleteItem> acItems = new List<AutocompleteItem>();
+            foreach (var op in MintVersions.Versions[Version])
+                acItems.Add(new AutocompleteItem(op.Name));
+
+            foreach (var h in Program.MainForm.GetHashes())
+                acItems.Add(new AutocompleteItem(h.Value));
+
+            autoComplete.Items.SetAutocompleteItems(acItems);
+            autoComplete.Items.MaximumSize = new Size(1200, 300);
+            autoComplete.Items.Width = 500;
         }
 
-        private void TextBox_TextChanged(object sender, EventArgs e)
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (IsLoading || isColoring) return;
+            if (e.KeyData == (Keys.Space | Keys.Control))
+            {
+                autoComplete.Show(true);
+                e.Handled = true;
+            }
+        }
 
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (IsLoading || isColoring)
+                return;
+            
             SetDirty(true);
 
-            UpdateTextColor(TextBox.SelectionStart, 1);
+            UpdateTextColor(e);
         }
 
-        public void UpdateTextColor(int start = -1, int lines = -1)
+        public void UpdateTextColor(TextChangedEventArgs e)
         {
             isColoring = true;
 
-            /*
-             * TODO: Find out a way to do this that doesn't break the ability to undo
-             * 
-             * I might have to rewrite how this class draws to do that but I don't want to do that right now
-            */
-            
-            Task.Run(() =>
+            e.ChangedRange.ClearStyle(
+                Error,
+                Mneumonic,
+                MneumonicExt,
+                Register,
+                Constant,
+                String,
+                Label,
+                Comment
+            );
+
+            e.ChangedRange.ClearFoldingMarkers();
+
+            //e.ChangedRange.SetStyle(Error, ErrorRegex);
+            e.ChangedRange.SetStyle(Mneumonic, mnemonicRegex);
+            e.ChangedRange.SetStyle(MneumonicExt, mnemonicExRegex);
+
+            e.ChangedRange.SetStyle(Register, RegisterRegex);
+
+            e.ChangedRange.SetStyle(Constant, ConstantRegex);
+            e.ChangedRange.SetStyle(String, StringRegex);
+
+            // Manual label coloring
+            if (!e.ChangedRange.Text.Contains('\n'))
             {
-                Invoke((MethodInvoker)delegate
+                //Find all label references
+                foreach (string part in e.ChangedRange.Text.Split(' '))
                 {
-                    int selStart = TextBox.SelectionStart;
-                    int selLen = TextBox.SelectionLength;
+                    if (TextBox.Text.Contains(part + ":"))
+                        e.ChangedRange.SetStyle(Label, part.Replace(".", "\\."));
+                }
 
-                    DrawingControl.SuspendDrawing(TextBox);
-                    TextBox.SuspendLayout();
-
-                    List<string> labels = new List<string>();
-                    for (int i = 1; i < TextBox.Lines.Length; i++)
-                    {
-                        string line = TextBox.Lines[i].Trim();
-                        if (line.EndsWith(':'))
-                            labels.Add(line[..(line.Length - 1)]);
-                    }
-
-                    var opcodes = MintVersions.Versions[Version];
-
-                    int firstLine = TextBox.Text.IndexOf('\n') + 1;
-                    start = Math.Max(start - 1, firstLine);
-                    while (start > firstLine && TextBox.Text[start - 1] != '\n')
-                        start--;
-
-                    int end = TextBox.Text.Length - 1;
-                    if (lines > 0)
-                    {
-                        end = start;
-                        while (lines > 0 && end < TextBox.Text.Length - 1)
-                        {
-                            end++;
-                            if (TextBox.Text[end] == '\n')
-                                lines--;
-                        }
-                    }
-
-                    TextBox.SelectionStart = start;
-                    TextBox.SelectionLength = end - start;
-                    TextBox.SelectionColor = Color.Black;
-
-                    for (int i = start; i < end;)
-                    {
-                        if (TextBox.Text.IndexOf('\n', i) < 0)
-                            break;
-
-                        string rawLine = TextBox.Text[i..(TextBox.Text.IndexOf('\n', i) + 1)];
-                        string line = rawLine.Trim();
-                        if (line.EndsWith(':'))
-                        {
-                            TextBox.SelectionStart = i;
-                            TextBox.SelectionLength = line.Length;
-                            TextBox.SelectionColor = TextColors.LabelColor;
-                        }
-                        else if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("//"))
-                        {
-                            string[] tokens = FunctionUtil.Tokenize(line);
-                            if (tokens.Length > 0)
-                            {
-                                string opcode = tokens[0];
-                                int instIdx = rawLine.IndexOf(opcode);
-                                if (instIdx >= 0)
-                                {
-                                    TextBox.SelectionStart = i + instIdx;
-                                    TextBox.SelectionLength = opcode.Length;
-                                    if (opcodes.Count(x => x.Name == opcode.ToLower()) > 0)
-                                        TextBox.SelectionColor = opcode.StartsWith('_') ? TextColors.MneumonicExtColor : TextColors.MneumonicColor;
-                                    else
-                                        TextBox.SelectionColor = Color.Red;
-
-                                    int tokenIdx = instIdx + opcode.Length;
-                                    for (int t = 1; t < tokens.Length; t++)
-                                    {
-                                        string token = tokens[t];
-                                        int index = rawLine.IndexOf(token, tokenIdx);
-                                        if (index < 0)
-                                            continue;
-
-                                        TextBox.SelectionStart = i + index;
-                                        TextBox.SelectionLength = token.Length;
-
-                                        Match match;
-                                        if (labels.Contains(token))
-                                        {
-                                            TextBox.SelectionColor = TextColors.LabelColor;
-                                            goto loop;
-                                        }
-                                        match = MintRegex.String().Match(token);
-                                        if (match.Success)
-                                        {
-                                            TextBox.SelectionColor = TextColors.StringColor;
-                                            goto loop;
-                                        }
-                                        match = MintRegex.Register().Match(token);
-                                        if (match.Success && match.Value == token)
-                                        {
-                                            TextBox.SelectionColor = TextColors.RegisterColor;
-                                            goto loop;
-                                        }
-                                        match = MintRegex.Value().Match(token);
-                                        if (match.Success && match.Value == token)
-                                        {
-                                            TextBox.SelectionColor = TextColors.ConstantColor;
-                                            goto loop;
-                                        }
-
-                                        loop:
-                                        tokenIdx = index + token.Length;
-                                    }
-                                }
-                            }
-                        }
-
-                        i += rawLine.Length;
-                    }
-
-                    for (int i = 0; i < comments.Count; i++)
-                    {
-                        Range range = comments[i];
-                        TextBox.SelectionStart = range.Start.Value;
-                        TextBox.SelectionLength = range.End.Value - range.Start.Value;
-                        TextBox.SelectionColor = Color.Green;
-                    }
-
-                    // Restore selection at the end of the thread
-                    TextBox.SelectionStart = selStart;
-                    TextBox.SelectionLength = selLen;
-
-                    TextBox.ResumeLayout();
-                    DrawingControl.ResumeDrawing(TextBox);
-                    TextBox.Invalidate();
-
-                    isColoring = false;
-                });
-            });
-
-            // Get all comments to store them for coloring, this is the most demanding operation
-            Task.Run(() =>
+                //Correct label references if this line is a label
+                var match = LabelRegex.Match(e.ChangedRange.Text);
+                if (match.Success)
+                {
+                    string label = match.Groups[1].Value;
+                    TextBox.Range.SetStyle(Label, label);
+                }
+            }
+            else
             {
-                Invoke((MethodInvoker)delegate
-                {
-                    comments.Clear();
+                e.ChangedRange.SetStyle(Label, LabelRefRegex);
+                e.ChangedRange.SetStyle(Label, LabelRegex);
+            }
 
-                    var cmtMatches = MintRegex.Comment().Matches(TextBox.Text);
-                    for (int i = 0; i < cmtMatches.Count; i++)
-                    {
-                        var match = cmtMatches[i];
-                        comments.Add(new Range(match.Index, match.Index + match.Length + 1));
-                    }
+            e.ChangedRange.SetStyle(Comment, CommentRegex);
+            e.ChangedRange.SetStyle(Comment, CommentMultiRegex);
 
-                    var mltcmtMatches = MintRegex.MultilineComment().Matches(TextBox.Text);
-                    for (int i = 0; i < mltcmtMatches.Count; i++)
-                    {
-                        var match = mltcmtMatches[i];
-                        comments.Add(new Range(match.Index, match.Index + match.Length));
-                    }
-                });
-            });
+            e.ChangedRange.SetFoldingMarkers(@"/\*", @"\*/");
+
+            isColoring = false;
         }
 
         public void SetContextMenuStrip(ContextMenuStrip ctxMenu)

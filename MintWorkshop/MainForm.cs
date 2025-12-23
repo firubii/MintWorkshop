@@ -12,6 +12,7 @@ using MintWorkshop.Nodes;
 using MintWorkshop.Util;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -60,7 +61,7 @@ namespace MintWorkshop
 
             InitializeComponent();
 
-            this.arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
+            arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
 
             //AllocConsole();
 
@@ -277,6 +278,8 @@ namespace MintWorkshop
             }
         }
 
+        public ref Dictionary<uint, string> GetHashes() => ref hashes;
+
         private void ReloadHashes()
         {
             hashes.Clear();
@@ -364,8 +367,6 @@ namespace MintWorkshop
             tab.Text = module.Name + "." + function.NameWithoutType();
 
             tab.TextBox.SelectionStart = 0;
-            tab.TextBox.ScrollToCaret();
-            tab.TextBox.ClearUndo();
 
             tabControl.TabPages.Add(tab);
 
@@ -373,29 +374,31 @@ namespace MintWorkshop
 
             tab.IsLoading = true;
             tab.TextBox.Enabled = false;
-            tab.TextBox.UseWaitCursor = true;
-            Task.Run(() =>
+            tab.TextBox.Cursor = Cursors.WaitCursor;
+
+            tab.TextBox.BeginInvoke(() =>
             {
-                Invoke((MethodInvoker)delegate
+                try
                 {
-                    try
-                    {
-                        string disasm = FunctionUtil.Disassemble(module, obj, function, archive.Version, ref hashes);
+                    string disasm = FunctionUtil.Disassemble(module, obj, function, archive.Version, ref hashes);
+                    tab.TextBox.BeginUpdate();
 
-                        tab.TextBox.AppendText(disasm);
-                        tab.UpdateTextColor();
-                        tab.TextBox.Enabled = true;
-                        tab.TextBox.UseWaitCursor = false;
+                    tab.TextBox.AppendText(disasm);
+                    tab.IsLoading = false;
 
-                        tab.IsLoading = false;
+                    tab.TextBox.OnTextChanged();
+                    tab.TextBox.ClearUndo();
+                    tab.TextBox.Enabled = true;
+                    tab.TextBox.Cursor = Cursors.IBeam;
 
-                        tab.SetContextMenuStrip(editorCtxMenu);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"[{tab.Text}] Disasm error: {e}");
-                    }
-                });
+                    tab.SetContextMenuStrip(editorCtxMenu);
+
+                    tab.TextBox.EndUpdate();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[{tab.Text}] Disasm error: {ex}");
+                }
             });
         }
 
@@ -419,8 +422,6 @@ namespace MintWorkshop
             tab.Text = module.Name + "." + function.NameWithoutType();
 
             tab.TextBox.SelectionStart = 0;
-            tab.TextBox.ScrollToCaret();
-            tab.TextBox.ClearUndo();
 
             tabControl.TabPages.Add(tab);
 
@@ -428,29 +429,31 @@ namespace MintWorkshop
 
             tab.IsLoading = true;
             tab.TextBox.Enabled = false;
-            tab.TextBox.UseWaitCursor = true;
-            Task.Run(() =>
+            tab.TextBox.Cursor = Cursors.WaitCursor;
+
+            tab.TextBox.BeginInvoke(() =>
             {
-                Invoke((MethodInvoker)delegate
+                try
                 {
-                    try
-                    {
-                        string disasm = FunctionUtil.Disassemble(module, function);
+                    string disasm = FunctionUtil.Disassemble(module, function);
+                    tab.TextBox.BeginUpdate();
 
-                        tab.TextBox.AppendText(disasm);
-                        tab.UpdateTextColor();
-                        tab.TextBox.Enabled = true;
-                        tab.TextBox.UseWaitCursor = false;
+                    tab.TextBox.AppendText(disasm);
+                    tab.IsLoading = false;
 
-                        tab.IsLoading = false;
+                    tab.TextBox.OnTextChanged();
+                    tab.TextBox.ClearUndo();
+                    tab.TextBox.Enabled = true;
+                    tab.TextBox.Cursor = Cursors.IBeam;
 
-                        tab.SetContextMenuStrip(editorCtxMenu);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"[{tab.Text}] Disasm error: {e}");
-                    }
-                });
+                    tab.SetContextMenuStrip(editorCtxMenu);
+
+                    tab.TextBox.EndUpdate();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[{tab.Text}] Disasm error: {ex}");
+                }
             });
         }
 
@@ -1269,7 +1272,7 @@ namespace MintWorkshop
 
         private void parseAsFloatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+            var box = (tabControl.SelectedTab as TextEditorTab).TextBox;
             string text = box.SelectedText;
             if (text.StartsWith("0x"))
             {
@@ -1287,7 +1290,7 @@ namespace MintWorkshop
 
         private void convertToDecimalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            RichTextBox box = tabControl.SelectedTab.Controls[0] as RichTextBox;
+            var box = (tabControl.SelectedTab as TextEditorTab).TextBox;
             string text = box.SelectedText;
             if (text.StartsWith("0x"))
             {

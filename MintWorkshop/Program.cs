@@ -8,7 +8,7 @@ namespace MintWorkshop
 {
     static class Program
     {
-        public static Form MainForm;
+        public static MainForm MainForm;
 
         /// <summary>
         /// The main entry point for the application.
