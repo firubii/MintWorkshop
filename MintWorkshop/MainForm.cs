@@ -252,6 +252,9 @@ namespace MintWorkshop
                 var archive = archives[i];
                 TreeNode node = arcTree.Nodes[i];
 
+                if (string.IsNullOrEmpty(archive.Path))
+                    continue;
+
                 string fileName = Path.GetFileName(archive.Path);
                 int directoryDepth = 0;
                 while (archives.Any(x => x.Path != archive.Path && x.Path.EndsWith(fileName)))
