@@ -12,6 +12,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MintWorkshop
 {
@@ -66,7 +67,7 @@ namespace MintWorkshop
         [GeneratedRegex(@"^((?:(?:0x[0-9A-Fa-f]+)|(?:-?[0-9]+(?:\.[0-9]+)?f?)))$")]
         internal static partial Regex Value();
 
-        [GeneratedRegex(@"^((?:u)?"".*?"")$")]
+        [GeneratedRegex(@"^((?:u?)""(.*?[^\\])?"")$")]
         internal static partial Regex String();
 
         [GeneratedRegex(@"^#([0-9A-Fa-f]{8})\b$")]
@@ -398,7 +399,7 @@ namespace MintWorkshop
                                 Encoding enc = utf16 ? Encoding.Unicode : Encoding.UTF8;
                                 if (utf16)
                                     text += "u";
-                                text += "\"" + enc.GetString(bytes.ToArray()) + "\"";
+                                text += "\"" + EscapeString(enc.GetString(bytes.ToArray())) + "\"";
 
                                 break;
                             }
@@ -546,7 +547,7 @@ namespace MintWorkshop
                                     Encoding enc = utf16 ? Encoding.Unicode : Encoding.UTF8;
                                     if (utf16)
                                         text += "u";
-                                    text += "\"" + enc.GetString(bytes.ToArray()) + "\"";
+                                    text += "\"" + EscapeString(enc.GetString(bytes.ToArray())) + "\"";
                                 }
                                 else
                                     text += "r" + reg;
@@ -926,7 +927,7 @@ namespace MintWorkshop
                                 Encoding enc = utf16 ? Encoding.Unicode : Encoding.UTF8;
                                 if (utf16)
                                     text += "u";
-                                text += "\"" + enc.GetString(bytes.ToArray()) + "\"";
+                                text += "\"" + EscapeString(enc.GetString(bytes.ToArray())) + "\"";
 
                                 break;
                             }
@@ -1074,7 +1075,7 @@ namespace MintWorkshop
                                     Encoding enc = utf16 ? Encoding.Unicode : Encoding.UTF8;
                                     if (utf16)
                                         text += "u";
-                                    text += "\"" + enc.GetString(bytes.ToArray()) + "\"";
+                                    text += "\"" + EscapeString(enc.GetString(bytes.ToArray())) + "\"";
                                 }
                                 else
                                     text += "r" + reg;
@@ -1338,7 +1339,7 @@ namespace MintWorkshop
                 }
 
                 if (nest < 0)
-                    throw new FormatException("Tokenize error: Malformatted token! Missing opening or closing character in parentheses or quotation mark pair.");
+                    MessageBox.Show($"Warning: Missing opening or closing character in [], (), or <> pair in:\n{text}", "MintWorkshop", MessageBoxButton.OK);
 
                 if (token == "//")
                 {
@@ -1372,6 +1373,16 @@ namespace MintWorkshop
             return tokens.ToArray();
         }
 
+        public static string EscapeString(string str)
+        {
+            return str.Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r")
+                .Replace("\t", "\\t")
+                .Replace("\0", "\\0");
+        }
+
         public static uint ParseFlags(string[] flags, Dictionary<uint, string> labels)
         {
             uint f = 0;
@@ -1390,6 +1401,14 @@ namespace MintWorkshop
         public static byte[] ParseStringToken(string token)
         {
             bool utf16 = token.StartsWith("u");
+
+            token = token
+                .Replace("\\\"", "\"")
+                .Replace("\\n", "\n")
+                .Replace("\\r", "\r")
+                .Replace("\\t", "\t")
+                .Replace("\\0", "\0")
+                .Replace("\\\\", "\\");
 
             Encoding encoding = utf16 ? Encoding.Unicode : Encoding.UTF8;
             List<byte> raw = encoding.GetBytes(
