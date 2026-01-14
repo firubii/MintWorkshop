@@ -1,15 +1,17 @@
-﻿using KirbyLib.Mint;
+﻿using FastColoredTextBoxNS;
+using KirbyLib.Mint;
 using MintWorkshop.Mint;
+using MintWorkshop.Util;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
-
 using FCTBRange = FastColoredTextBoxNS.Range;
 
 namespace MintWorkshop.Editors
@@ -25,12 +27,6 @@ namespace MintWorkshop.Editors
         static readonly TextStyle Label = new TextStyle(new SolidBrush(Color.FromArgb(180, 0, 240)), null, FontStyle.Regular);
         static readonly TextStyle Comment = new TextStyle(new SolidBrush(Color.Green), null, FontStyle.Regular);
 
-        static readonly Regex ErrorRegex = new Regex(@"^.+?\s", RegexOptions.Multiline);
-        static readonly Regex RegisterRegex = new Regex(@"\b(r[0-9]+?)\b", RegexOptions.Multiline);
-        static readonly Regex ConstantRegex = new Regex(@"\b((?:(?:0x[0-9A-Fa-f]+)|(?:-?[0-9]+(?:\.[0-9]+)?f?)))\b", RegexOptions.Multiline);
-        static readonly Regex StringRegex = new Regex(@"\b(u?"".*?"")\b", RegexOptions.Multiline);
-        static readonly Regex LabelRefRegex = new Regex(@"(\b\S+?\b)(?:(?=.+\b\1:)|(?<=\b\1:.+))", RegexOptions.Singleline);
-        static readonly Regex LabelRegex = new Regex(@"(\S+?):", RegexOptions.Multiline);
         static readonly Regex CommentRegex = new Regex(@"//.*$", RegexOptions.Multiline);
         static readonly Regex CommentMultiRegex = new Regex(@"(/\*.*?\*/)|(/\*.*)", RegexOptions.Singleline);
 
@@ -49,9 +45,6 @@ namespace MintWorkshop.Editors
         public FastColoredTextBox TextBox;
 
         AutocompleteMenu autoComplete;
-        Regex mnemonicRegex;
-        Regex mnemonicExRegex;
-        bool isColoring;
 
         public TextEditorTab(Archive archive, Module module, MintObject obj, MintFunction function, byte[] version)
         {
@@ -76,9 +69,6 @@ namespace MintWorkshop.Editors
 
         private void Setup()
         {
-            mnemonicRegex = new Regex(@$"\b({string.Join('|',MintVersions.Versions[Version].Select(x => x.Name).Where(x => !x.StartsWith('_')))})\s+");
-            mnemonicExRegex = new Regex(@$"\b({string.Join('|', MintVersions.Versions[Version].Select(x => x.Name).Where(x => x.StartsWith('_')))})\s+");
-
             TextBox = new FastColoredTextBox();
             TextBox.Language = Language.Custom;
             TextBox.BorderStyle = BorderStyle.FixedSingle;
@@ -123,73 +113,144 @@ namespace MintWorkshop.Editors
             }
         }
 
-
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (IsLoading || isColoring)
+            if (IsLoading)
                 return;
-            
+                
             SetDirty(true);
-
-            UpdateTextColor(e);
+            BeginUpdateTextColor(e.ChangedRange);
         }
 
-        public void UpdateTextColor(TextChangedEventArgs e)
+        public void BeginUpdateTextColor(FCTBRange range = null)
         {
-            isColoring = true;
+            if (range == null)
+                range = TextBox.Range;
 
-            e.ChangedRange.ClearStyle(
-                Error,
-                Mneumonic,
-                MneumonicExt,
-                Register,
-                Constant,
-                String,
-                Label,
-                Comment
-            );
+            new Thread(() => UpdateTextColorThreaded(range)).Start();
+        }
 
-            e.ChangedRange.ClearFoldingMarkers();
-
-            //e.ChangedRange.SetStyle(Error, ErrorRegex);
-            e.ChangedRange.SetStyle(Mneumonic, mnemonicRegex);
-            e.ChangedRange.SetStyle(MneumonicExt, mnemonicExRegex);
-
-            e.ChangedRange.SetStyle(Register, RegisterRegex);
-
-            e.ChangedRange.SetStyle(Constant, ConstantRegex);
-            e.ChangedRange.SetStyle(String, StringRegex);
-
-            // Manual label coloring
-            if (!e.ChangedRange.Text.Contains('\n'))
+        void UpdateTextColorThreaded(FCTBRange changedRange)
+        {
+            try //i dont care
             {
-                //Find all label references
-                foreach (string part in e.ChangedRange.Text.Split(' '))
+                List<string> labels = new List<string>();
+                for (int i = 1; i < TextBox.Lines.Count; i++)
                 {
-                    if (TextBox.Text.Contains(part + ":"))
-                        e.ChangedRange.SetStyle(Label, part.Replace(".", "\\."));
+                    string line = TextBox.Lines[i].Trim();
+                    if (line.EndsWith(':'))
+                        labels.Add(line[..(line.Length - 1)]);
                 }
 
-                //Correct label references if this line is a label
-                var match = LabelRegex.Match(e.ChangedRange.Text);
-                if (match.Success)
+                Invoke(() =>
                 {
-                    string label = match.Groups[1].Value;
-                    TextBox.Range.SetStyle(Label, label);
+                    changedRange.ClearStyle(
+                        Error,
+                        Mneumonic,
+                        MneumonicExt,
+                        Register,
+                        Constant,
+                        String,
+                        Label,
+                        Comment
+                    );
+                });
+
+                var opcodes = MintVersions.Versions[Version];
+
+                int start = TextBox.PlaceToPosition(changedRange.Start);
+                int end = TextBox.PlaceToPosition(changedRange.End);
+
+                for (int i = start; i < end;)
+                {
+                    if (i >= TextBox.Text.Length)
+                        break;
+
+                    int nextNewline = Math.Min(TextBox.Text.IndexOf('\n', i) + 1, TextBox.Text.Length);
+                    if (nextNewline <= 0)
+                        break;
+
+                    string rawLine = TextBox.Text[i..nextNewline];
+                    string line = rawLine.Trim();
+                    if (line.EndsWith(':'))
+                    {
+                        Invoke(() => TextBox.GetRange(i, i + line.Length).SetStyle(Label));
+                    }
+                    else if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("//"))
+                    {
+                        string[] tokens = FunctionUtil.Tokenize(line);
+                        if (tokens.Length > 0)
+                        {
+                            string opName = tokens[0];
+                            Opcode? opcode = null;
+                            if (opcodes.Any(x => x.Name == opName.ToLower()))
+                                opcode = opcodes.First(x => x.Name == opName.ToLower());
+
+                            int instIdx = rawLine.IndexOf(opName);
+                            if (instIdx >= 0)
+                            {
+                                FCTBRange range = TextBox.GetRange(i + instIdx, i + instIdx + opName.Length);
+                                if (opcode.HasValue)
+                                    Invoke(() => range.SetStyle(opName.StartsWith('_') ? MneumonicExt : Mneumonic));
+                                else
+                                    Invoke(() => range.SetStyle(Error));
+
+                                int tokenIdx = instIdx + opName.Length;
+                                for (int t = 1; t < tokens.Length; t++)
+                                {
+                                    string token = tokens[t];
+                                    int index = rawLine.IndexOf(token, tokenIdx);
+                                    if (index < 0)
+                                        continue;
+
+                                    range = TextBox.GetRange(i + index, i + index + token.Length);
+
+                                    Match match;
+                                    if (labels.Contains(token))
+                                    {
+                                        Invoke(() => range.SetStyle(Label));
+                                        goto loop;
+                                    }
+                                    match = MintRegex.String().Match(token);
+                                    if (match.Success)
+                                    {
+                                        Invoke(() => range.SetStyle(String));
+                                        goto loop;
+                                    }
+                                    match = MintRegex.Register().Match(token);
+                                    if (match.Success && match.Value == token)
+                                    {
+                                        Invoke(() => range.SetStyle(Register));
+                                        goto loop;
+                                    }
+                                    match = MintRegex.Value().Match(token);
+                                    if (match.Success && match.Value == token)
+                                    {
+                                        Invoke(() => range.SetStyle(Constant));
+                                        goto loop;
+                                    }
+
+                                loop:
+                                    tokenIdx = index + token.Length;
+                                }
+                            }
+                        }
+                    }
+
+                    i += rawLine.Length;
                 }
+
+                Invoke(() =>
+                {
+                    TextBox.Range.ClearStyle(Comment);
+
+                    TextBox.Range.SetStyle(Comment, CommentRegex);
+                    //TextBox.Range.SetStyle(Comment, CommentMultiRegex);
+
+                    //TextBox.Range.SetFoldingMarkers(@"/\*", @"\*/");
+                });
             }
-            else
-            {
-                e.ChangedRange.SetStyle(Label, LabelRefRegex);
-                e.ChangedRange.SetStyle(Label, LabelRegex);
-            }
-
-            e.ChangedRange.SetStyle(Comment, CommentRegex);
-            e.ChangedRange.SetStyle(Comment, CommentMultiRegex);
-
-            e.ChangedRange.SetFoldingMarkers(@"/\*", @"\*/");
-
-            isColoring = false;
+            catch { }
         }
 
         public void SetContextMenuStrip(ContextMenuStrip ctxMenu)
