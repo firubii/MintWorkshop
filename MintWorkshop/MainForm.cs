@@ -52,7 +52,7 @@ namespace MintWorkshop
 
         HashSelector hashSelector;
 
-        public MainForm()
+        public MainForm(bool showConsole = false)
         {
             Config = new Config();
             if (File.Exists(exeDir + "\\Config.xml"))
@@ -64,7 +64,8 @@ namespace MintWorkshop
 
             arcTree.NodeMouseClick += (sender, args) => arcTree.SelectedNode = args.Node;
 
-            //AllocConsole();
+            if (showConsole)
+                AllocConsole();
 
             hashSelector = new HashSelector();
         }
