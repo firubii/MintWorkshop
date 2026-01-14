@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -376,30 +377,35 @@ namespace MintWorkshop
             tab.TextBox.Enabled = false;
             tab.TextBox.Cursor = Cursors.WaitCursor;
 
-            tab.TextBox.BeginInvoke(() =>
+            new Thread(() =>
             {
                 try
                 {
                     string disasm = FunctionUtil.Disassemble(module, obj, function, archive.Version, ref hashes);
-                    tab.TextBox.BeginUpdate();
+                    tab.TextBox.Invoke(() =>
+                    {
+                        tab.TextBox.BeginUpdate();
 
-                    tab.TextBox.AppendText(disasm);
-                    tab.IsLoading = false;
+                        tab.TextBox.AppendText(disasm);
 
-                    tab.TextBox.OnTextChanged();
-                    tab.TextBox.ClearUndo();
-                    tab.TextBox.Enabled = true;
-                    tab.TextBox.Cursor = Cursors.IBeam;
+                        tab.TextBox.OnTextChanged();
+                        tab.TextBox.ClearUndo();
+                        tab.TextBox.Enabled = true;
+                        tab.TextBox.Cursor = Cursors.IBeam;
 
-                    tab.SetContextMenuStrip(editorCtxMenu);
+                        tab.SetContextMenuStrip(editorCtxMenu);
 
-                    tab.TextBox.EndUpdate();
+                        tab.TextBox.EndUpdate();
+                        tab.IsLoading = false;
+
+                        tab.BeginUpdateTextColor();
+                    });
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[{tab.Text}] Disasm error: {ex}");
                 }
-            });
+            }).Start();
         }
 
         void CreateEditor(ArchiveRtDL archive, ModuleRtDL module, MintFunction function)
@@ -431,30 +437,35 @@ namespace MintWorkshop
             tab.TextBox.Enabled = false;
             tab.TextBox.Cursor = Cursors.WaitCursor;
 
-            tab.TextBox.BeginInvoke(() =>
+            new Thread(() =>
             {
                 try
                 {
                     string disasm = FunctionUtil.Disassemble(module, function);
-                    tab.TextBox.BeginUpdate();
+                    tab.TextBox.Invoke(() =>
+                    {
+                        tab.TextBox.BeginUpdate();
 
-                    tab.TextBox.AppendText(disasm);
-                    tab.IsLoading = false;
+                        tab.TextBox.AppendText(disasm);
 
-                    tab.TextBox.OnTextChanged();
-                    tab.TextBox.ClearUndo();
-                    tab.TextBox.Enabled = true;
-                    tab.TextBox.Cursor = Cursors.IBeam;
+                        tab.TextBox.OnTextChanged();
+                        tab.TextBox.ClearUndo();
+                        tab.TextBox.Enabled = true;
+                        tab.TextBox.Cursor = Cursors.IBeam;
 
-                    tab.SetContextMenuStrip(editorCtxMenu);
+                        tab.SetContextMenuStrip(editorCtxMenu);
 
-                    tab.TextBox.EndUpdate();
+                        tab.TextBox.EndUpdate();
+                        tab.IsLoading = false;
+
+                        tab.BeginUpdateTextColor();
+                    });
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[{tab.Text}] Disasm error: {ex}");
                 }
-            });
+            }).Start();
         }
 
         void CloseEditor(int index, bool forceClose)
