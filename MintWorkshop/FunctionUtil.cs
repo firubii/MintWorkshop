@@ -39,17 +39,17 @@ namespace MintWorkshop
         [GeneratedRegex(@"\.raw ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2}),? ([0-9a-fA-F]{2})")]
         internal static partial Regex Raw();
 
-        [GeneratedRegex(@"(invalid|class|enum|interface|pod|rawptr|struct|unknown_7|utility) ([./0-9A-Z_a-z<>\[\]^]+)")]
+        [GeneratedRegex(@"(invalid|class|enum|interface|pod|rawptr|struct|unknown_7|utility) ([./0-9A-Z_a-z<>\[\]^`]+)")]
         internal static partial Regex Object();
 
         // return of the world's second worst regex
-        [GeneratedRegex(@"extend ((?:[.0-9A-Z_a-z<>\[\]^]+)|(?:#[0-9A-Fa-f]{8}\b))")]
+        [GeneratedRegex(@"extend ((?:[.0-9A-Z_a-z<>\[\]^`]+)|(?:#[0-9A-Fa-f]{8}\b))")]
         internal static partial Regex Extend();
 
-        [GeneratedRegex(@"([.0-9A-Z_a-z<>\[\]^]+) ([.-9A-Z_a-z]+);")]
+        [GeneratedRegex(@"([.0-9A-Z_a-z<>\[\]^`]+) ([.-9A-Z_a-z]+);")]
         internal static partial Regex Variable();
 
-        [GeneratedRegex(@"([.0-9A-Z_a-z<>\[\]^]+ [.-9A-Z_a-z]+\(.*?\))")]
+        [GeneratedRegex(@"([.0-9A-Z_a-z<>\[\]^`]+ [.-9A-Z_a-z]+\(.*?\))")]
         internal static partial Regex Function();
 
         [GeneratedRegex(@"const ([.0-9A-Z_a-z]+) = ((?:(?:0x[0-9A-Fa-f]+)|(?:-?[0-9]+)));")]
