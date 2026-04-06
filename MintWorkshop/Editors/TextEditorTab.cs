@@ -94,10 +94,16 @@ namespace MintWorkshop.Editors
 
             List<AutocompleteItem> acItems = new List<AutocompleteItem>();
             foreach (var op in MintVersions.Versions[Version])
-                acItems.Add(new AutocompleteItem(op.Name));
+            {
+                if (!string.IsNullOrWhiteSpace(op.Name))
+                    acItems.Add(new AutocompleteItem(op.Name));
+            }
 
             foreach (var h in Program.MainForm.GetHashes())
-                acItems.Add(new AutocompleteItem(h.Value));
+            {
+                if (!string.IsNullOrWhiteSpace(h.Value))
+                    acItems.Add(new AutocompleteItem(h.Value));
+            }
 
             autoComplete.Items.SetAutocompleteItems(acItems);
             autoComplete.Items.MaximumSize = new Size(1200, 300);
