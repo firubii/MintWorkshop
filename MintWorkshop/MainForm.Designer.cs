@@ -49,6 +49,7 @@
             searchForHashUsageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             buildMintProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             compareArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            batchDumpHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             instructionDictionaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             tabControl = new System.Windows.Forms.TabControl();
@@ -99,7 +100,7 @@
             closeArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             namespaceMenuStrip = new System.Windows.Forms.ContextMenuStrip(components);
             exportAllModulesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            batchDumpHashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            goToSymbolMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -254,6 +255,13 @@
             compareArchivesToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             compareArchivesToolStripMenuItem.Text = "Compare Archives";
             compareArchivesToolStripMenuItem.Click += compareArchivesToolStripMenuItem_Click;
+            // 
+            // batchDumpHashesToolStripMenuItem
+            // 
+            batchDumpHashesToolStripMenuItem.Name = "batchDumpHashesToolStripMenuItem";
+            batchDumpHashesToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            batchDumpHashesToolStripMenuItem.Text = "Batch Dump Hashes";
+            batchDumpHashesToolStripMenuItem.Click += batchDumpHashesToolStripMenuItem_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -536,9 +544,9 @@
             // 
             // editorCtxMenu
             // 
-            editorCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { parseAsFloatToolStripMenuItem1, convertToDecimalToolStripMenuItem });
+            editorCtxMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { parseAsFloatToolStripMenuItem1, convertToDecimalToolStripMenuItem, goToSymbolMenuItem });
             editorCtxMenu.Name = "editorCtxMenu";
-            editorCtxMenu.Size = new System.Drawing.Size(228, 48);
+            editorCtxMenu.Size = new System.Drawing.Size(228, 92);
             // 
             // parseAsFloatToolStripMenuItem1
             // 
@@ -638,12 +646,12 @@
             exportAllModulesToolStripMenuItem.Text = "Export All Modules";
             exportAllModulesToolStripMenuItem.Click += exportAllModulesToolStripMenuItem_Click;
             // 
-            // batchDumpHashesToolStripMenuItem
+            // goToSymbolMenuItem
             // 
-            batchDumpHashesToolStripMenuItem.Name = "batchDumpHashesToolStripMenuItem";
-            batchDumpHashesToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            batchDumpHashesToolStripMenuItem.Text = "Batch Dump Hashes";
-            batchDumpHashesToolStripMenuItem.Click += batchDumpHashesToolStripMenuItem_Click;
+            goToSymbolMenuItem.Name = "goToSymbolMenuItem";
+            goToSymbolMenuItem.Size = new System.Drawing.Size(227, 22);
+            goToSymbolMenuItem.Text = "Navigate to Symbol";
+            goToSymbolMenuItem.Click += goToSymbolMenuItem_Click;
             // 
             // MainForm
             // 
@@ -750,6 +758,7 @@
         private System.Windows.Forms.ToolStripMenuItem buildMintProjectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem compareArchivesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem batchDumpHashesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem goToSymbolMenuItem;
     }
 }
 

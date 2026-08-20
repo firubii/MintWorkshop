@@ -1318,6 +1318,201 @@ namespace MintWorkshop
                 MessageBox.Show("Error: Selected text is not hexadecimal.", "Mint Workshop", MessageBoxButtons.OK);
         }
 
+        private void goToSymbolMenuItem_Click(object sender, EventArgs e)
+        {
+            var box = (tabControl.SelectedTab as TextEditorTab).TextBox;
+            string text = box.SelectedText;
+            
+            if (box.Selection.Length == 0)
+            {
+                int start = box.SelectionStart;
+                int parenthesis = 0;
+                while ((!char.IsWhiteSpace(box.Text[start]) || parenthesis > 0) && start > 0 && box.Text[start] != '\n')
+                {
+                    start--;
+                    if (box.Text[start] == ')')
+                        parenthesis++;
+                    else if (box.Text[start] == '(')
+                        parenthesis--;
+                }
+                start++;
+
+                int end = start;
+                parenthesis = 0;
+                while ((!char.IsWhiteSpace(box.Text[end]) || parenthesis > 0) && end < box.Text.Length - 1 && box.Text[end] != '\n')
+                {
+                    end++;
+                    if (box.Text[end] == '(')
+                        parenthesis++;
+                    else if (box.Text[end] == ')')
+                        parenthesis--;
+                }
+
+                Console.WriteLine($"caret = {box.SelectionStart}, start = {start}, end = {end}");
+                text = box.GetRange(start, end).Text;
+            }
+
+            for (int a = 0; a < archives.Count; a++)
+            {
+                if (archives[a].Archive != null)
+                {
+                    Archive arc = archives[a].Archive;
+                    for (int i = 0; i < arc.Modules.Count; i++)
+                    {
+                        Module module = arc[i];
+                        for (int o = 0; o < module.Objects.Count; o++)
+                        {
+                            bool isFunction = false;
+                            int propIndex = -1;
+
+                            bool goToModule = false;
+                            MintObject obj = module[o];
+                            if (obj.Name == text)
+                                goToModule = true;
+
+                            for (int v = 0; v < obj.Variables.Count; v++)
+                            {
+                                if (obj.Name + "." + obj.Variables[v].Name == text)
+                                {
+                                    propIndex = v;
+                                    isFunction = false;
+                                    goToModule = true;
+                                    break;
+                                }
+                            }
+
+                            for (int f = 0; f < obj.Functions.Count; f++)
+                            {
+                                if (obj.Name + "." + obj.Functions[f].NameWithoutType() == text)
+                                {
+                                    propIndex = f;
+                                    isFunction = true;
+                                    goToModule = true;
+                                    break;
+                                }
+                            }
+
+                            if (goToModule)
+                            {
+                                DynamicTreeNode node = arcTree.Nodes[a] as DynamicTreeNode;
+                                string[] nodePath = module.Name.Split('.');
+                                for (int j = 0; j < nodePath.Length; j++)
+                                {
+                                    if (!node.IsExpanded)
+                                    {
+                                        node.Open();
+                                        node.Expand();
+                                    }
+                                    node = node.Nodes[string.Join('.', nodePath.Take(j + 1))] as DynamicTreeNode;
+                                }
+
+                                if (!node.IsExpanded)
+                                {
+                                    node.Open();
+                                    node.Expand();
+                                }
+
+                                if (propIndex > -1)
+                                {
+                                    node = node.Nodes[o] as DynamicTreeNode;
+                                    if (!node.IsExpanded)
+                                    {
+                                        node.Open();
+                                        node.Expand();
+                                    }
+
+                                    var category = node.Nodes[isFunction ? 1 : 0];
+                                    category.Expand();
+
+                                    arcTree.SelectedNode = category.Nodes[propIndex];
+                                }
+                                else
+                                    arcTree.SelectedNode = node;
+                                return;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    ArchiveRtDL arc = archives[a].ArchiveRtDL;
+                    for (int i = 0; i < arc.Modules.Count; i++)
+                    {
+                        ModuleRtDL module = arc[i];
+                        for (int o = 0; o < module.Objects.Count; o++)
+                        {
+                            bool isFunction = false;
+                            int propIndex = -1;
+
+                            bool goToModule = false;
+                            MintObject obj = module[o];
+                            if (obj.Name == text)
+                                goToModule = true;
+
+                            for (int v = 0; v < obj.Variables.Count; v++)
+                            {
+                                if (obj.Name + "." + obj.Variables[v].Name == text)
+                                {
+                                    goToModule = true;
+                                    break;
+                                }
+                            }
+
+                            for (int v = 0; v < obj.Functions.Count; v++)
+                            {
+                                if (obj.Name + "." + obj.Functions[v].NameWithoutType() == text)
+                                {
+                                    goToModule = true;
+                                    break;
+                                }
+                            }
+
+                            if (goToModule)
+                            {
+                                DynamicTreeNode node = arcTree.Nodes[a] as DynamicTreeNode;
+                                string[] nodePath = module.Name.Split('.');
+                                for (int j = 0; j < nodePath.Length; j++)
+                                {
+                                    if (!node.IsExpanded)
+                                    {
+                                        node.Open();
+                                        node.Expand();
+                                    }
+                                    node = node.Nodes[string.Join('.', nodePath.Take(j + 1))] as DynamicTreeNode;
+                                }
+
+                                if (!node.IsExpanded)
+                                {
+                                    node.Open();
+                                    node.Expand();
+                                }
+
+                                if (propIndex > -1)
+                                {
+                                    node = node.Nodes[o] as DynamicTreeNode;
+                                    if (!node.IsExpanded)
+                                    {
+                                        node.Open();
+                                        node.Expand();
+                                    }
+
+                                    var category = node.Nodes[isFunction ? 1 : 0];
+                                    category.Expand();
+
+                                    arcTree.SelectedNode = category.Nodes[propIndex];
+                                }
+                                else
+                                    arcTree.SelectedNode = node;
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                MessageBox.Show($"Could not navigate to symbol:\n\"{text}\"", "MintWorkshop");
+            }
+        }
+
         private void reloadHashesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ReloadHashes();
@@ -1588,8 +1783,11 @@ namespace MintWorkshop
                     string[] nodes = modNames[i].Split('.');
                     for (int j = 1; j < nodes.Length; j++)
                     {
-                        node.Open();
-                        node.Expand();
+                        if (!node.IsExpanded)
+                        {
+                            node.Open();
+                            node.Expand();
+                        }
                         node = node.Nodes[string.Join('.', nodes.Take(j))] as DynamicTreeNode;
                     }
                 }
@@ -2151,5 +2349,7 @@ namespace MintWorkshop
                 }
             }
         }
+
+        
     }
 }
