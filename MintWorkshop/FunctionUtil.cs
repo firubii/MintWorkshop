@@ -2146,7 +2146,7 @@ namespace MintWorkshop
 
                                 uint hash = match.Success
                                     ? uint.Parse(match.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)
-                                    : Crc32C.CalculateInv(token);
+                                    : CRC32C.Calculate(token);
 
                                 int index = SearchXRef(module, hash);
 
@@ -2884,7 +2884,7 @@ namespace MintWorkshop
                     if (MintRegex.Hash().IsMatch(str))
                         SearchXRef(module, uint.Parse(str.Substring(1), System.Globalization.NumberStyles.HexNumber));
                     else
-                        SearchXRef(module, Crc32C.CalculateInv(str));
+                        SearchXRef(module, CRC32C.Calculate(str));
                     continue;
                 }
 
@@ -2923,7 +2923,7 @@ namespace MintWorkshop
 
                     uint hash = hashMatch.Success
                         ? uint.Parse(hashMatch.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)
-                        : Crc32C.CalculateInv(unkHash);
+                        : CRC32C.Calculate(unkHash);
 
                     module.UnkHash = hash;
                 }
@@ -2947,7 +2947,7 @@ namespace MintWorkshop
 
                             uint hash = hashMatch.Success
                                 ? uint.Parse(hashMatch.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)
-                                : Crc32C.CalculateInv(inheritance[h]);
+                                : CRC32C.Calculate(inheritance[h]);
 
                             if (!module.XRef.Contains(hash))
                                 module.XRef.Add(hash);
@@ -2982,7 +2982,7 @@ namespace MintWorkshop
                             else
                             {
                                 b[0] = (byte)opcodes.FindIndex(x => x.Name == "_xref");
-                                Array.Copy(BitConverter.GetBytes((ushort)SearchXRef(module, Crc32C.CalculateInv(tokens[1]))), 0, b, 2, 2);
+                                Array.Copy(BitConverter.GetBytes((ushort)SearchXRef(module, CRC32C.Calculate(tokens[1]))), 0, b, 2, 2);
                             }
 
                             obj.Extends.Add(b);

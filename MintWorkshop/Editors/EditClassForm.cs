@@ -115,7 +115,7 @@ namespace MintWorkshop.Editors
                     _object.Implements.Add(
                         uint.TryParse(xrefs[i], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint h)
                         ? h
-                        : Crc32C.CalculateInv(xrefs[i])
+                        : CRC32C.Calculate(xrefs[i])
                     );
                 }
 
@@ -144,7 +144,7 @@ namespace MintWorkshop.Editors
                         
                         uint hash;
                         if (!uint.TryParse(token, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hash))
-                            hash = Crc32C.CalculateInv(token);
+                            hash = CRC32C.Calculate(token);
 
                         int v = _module.XRef.IndexOf(hash);
                         if (v < 0)

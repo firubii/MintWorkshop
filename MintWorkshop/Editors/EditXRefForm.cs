@@ -48,7 +48,7 @@ namespace MintWorkshop.Editors
             if (string.IsNullOrEmpty(e.Label)) return;
 
             string str = e.Label;
-            uint hash = Crc32C.CalculateInv(str);
+            uint hash = CRC32C.Calculate(str);
             uint.TryParse(str, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out hash);
 
             ListViewItem item = new ListViewItem($"{hash:X8}");
@@ -61,7 +61,7 @@ namespace MintWorkshop.Editors
         private void addButton_Click(object sender, EventArgs e)
         {
             //Default to App since it always exists
-            ListViewItem item = new ListViewItem($"{Crc32C.CalculateInv("App"):X8}");
+            ListViewItem item = new ListViewItem($"{CRC32C.Calculate("App"):X8}");
             item.SubItems.Add("App");
 
             xrefList.Items.Add(item);

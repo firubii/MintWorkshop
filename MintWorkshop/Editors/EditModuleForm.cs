@@ -54,7 +54,7 @@ namespace MintWorkshop.Editors
                     _module.UnkHash =
                         uint.TryParse(unk.Text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint h)
                         ? h
-                        : Crc32C.CalculateInv(unk.Text);
+                        : CRC32C.Calculate(unk.Text);
             }
             else if (_moduleRtDL != null)
             {

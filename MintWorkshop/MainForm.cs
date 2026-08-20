@@ -304,20 +304,20 @@ namespace MintWorkshop
                     for (int o = 0; o < mod.Objects.Count; o++)
                     {
                         MintObject obj = mod[o];
-                        uint hash = Crc32C.CalculateInv(obj.Name);
+                        uint hash = CRC32C.Calculate(obj.Name);
                         if (!hashes.ContainsKey(hash))
                             hashes.Add(hash, obj.Name);
 
                         for (int j = 0; j < obj.Variables.Count; j++)
                         {
-                            hash = Crc32C.CalculateInv(obj.Name + "." + obj.Variables[j].Name);
+                            hash = CRC32C.Calculate(obj.Name + "." + obj.Variables[j].Name);
                             if (!hashes.ContainsKey(hash))
                                 hashes.Add(hash, obj.Name + "." + obj.Variables[j].Name);
                         }
 
                         for (int j = 0; j < obj.Functions.Count; j++)
                         {
-                            hash = Crc32C.CalculateInv(obj.Name + "." + obj.Functions[j].NameWithoutType());
+                            hash = CRC32C.Calculate(obj.Name + "." + obj.Functions[j].NameWithoutType());
                             if (!hashes.ContainsKey(hash))
                                 hashes.Add(hash, obj.Name + "." + obj.Functions[j].NameWithoutType());
                         }
@@ -337,7 +337,7 @@ namespace MintWorkshop
                             string line = reader.ReadLine();
                             if (!line.StartsWith("#"))
                             {
-                                uint hash = Crc32C.CalculateInv(line);
+                                uint hash = CRC32C.Calculate(line);
                                 if (!hashes.ContainsKey(hash)) hashes.Add(hash, line);
                             }
                         }
@@ -1032,7 +1032,7 @@ namespace MintWorkshop
                 if (node.GetModule() is ModuleRtDLTreeNode)
                     SearchForHashRtDL(obj.Name);
                 else
-                    SearchForHash(Crc32C.CalculateInv(obj.Name));
+                    SearchForHash(CRC32C.Calculate(obj.Name));
             }
             else if (arcTree.SelectedNode is VariableTreeNode)
             {
@@ -1041,7 +1041,7 @@ namespace MintWorkshop
                 if (node.GetObject().GetModule() is ModuleRtDLTreeNode)
                     SearchForHashRtDL($"{obj.Name}.{node.Variable.Name}");
                 else
-                    SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Variable.Name}"));
+                    SearchForHash(CRC32C.Calculate($"{obj.Name}.{node.Variable.Name}"));
             }
             else if (arcTree.SelectedNode is FunctionTreeNode)
             {
@@ -1050,7 +1050,7 @@ namespace MintWorkshop
                 if (node.GetObject().GetModule() is ModuleRtDLTreeNode)
                     SearchForHashRtDL($"{obj.Name}.{node.Function.NameWithoutType()}");
                 else
-                    SearchForHash(Crc32C.CalculateInv($"{obj.Name}.{node.Function.NameWithoutType()}"));
+                    SearchForHash(CRC32C.Calculate($"{obj.Name}.{node.Function.NameWithoutType()}"));
             }
         }
 
@@ -1365,7 +1365,7 @@ namespace MintWorkshop
             hashSelector.ShowWindow(() =>
             {
                 if (archives.Any(x => x.Archive != null))
-                    SearchForHash(Crc32C.CalculateInv(hashSelector.SelectedHash));
+                    SearchForHash(CRC32C.Calculate(hashSelector.SelectedHash));
                 if (archives.Any(x => x.ArchiveRtDL != null))
                     SearchForHashRtDL(hashSelector.SelectedHash);
             });
