@@ -1593,6 +1593,9 @@ namespace MintWorkshop
 
                 for (int a = 0; a < op.Arguments.Length; a++)
                 {
+                    if ((a + 1) >= tokens.Length)
+                        throw new FormatException($"Not enough operands found for \"{op.Name}\".\nLine: {line}");
+
                     string token = tokens[a + 1];
 
                     switch (op.Arguments[a] & InstructionArg.AllTypes)
