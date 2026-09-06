@@ -1322,7 +1322,7 @@ namespace MintWorkshop
         {
             var box = (tabControl.SelectedTab as TextEditorTab).TextBox;
             string text = box.SelectedText;
-            
+
             if (box.Selection.Length == 0)
             {
                 int start = box.SelectionStart;
@@ -2350,6 +2350,29 @@ namespace MintWorkshop
             }
         }
 
-        
+        private void addModuleMenuItem_Click(object sender, EventArgs e)
+        {
+            if (arcTree.SelectedNode is ArchiveTreeNode arcNode)
+            {
+                Module newModule = new()
+                {
+                    Format = arcNode.Archive.GetModuleFormat()
+                };
+                arcNode.Archive.Modules.Add(newModule);
+                EditModuleForm editor = new(newModule, ref hashes);
+                editor.ShowDialog();
+                UpdateArchiveNodes();
+                arcNode.Collapse();
+            }
+            else if (arcTree.SelectedNode is ArchiveRtDLTreeNode arcRtdlNode)
+            {
+                ModuleRtDL newModule = new();
+                arcRtdlNode.Archive.Modules.Add(newModule);
+                EditModuleForm editor = new(newModule);
+                editor.ShowDialog();
+                UpdateArchiveNodes();
+                arcRtdlNode.Collapse();
+            }
+        }
     }
 }
